@@ -293,3 +293,60 @@ func DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
+
+func UpdatePassword(c *gin.Context) {
+	var (
+		User models.Users
+	)
+
+	claims := c.MustGet("decoded").(*models.Claims)
+
+	err := json.NewDecoder(c.Request.Body).Decode(&User)
+
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(500, gin.H{
+			"Message": "Internal Server Error ",
+		})
+		return
+	}
+
+	if claims.IsAdmin() || claims.ID == User.ID {
+		fmt.Println("You have permission for this access")
+	} else {
+		c.JSON(500, gin.H{
+			"Message": "You don't have the permission ",
+		})
+		return
+	}
+	collection := db.Collection("users")
+
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+
+	User.Password, err = helper.HashPassword(User.Password)
+	filter := bson.D{{"_id", User.ID}}
+	result, errs := collection.UpdateOne(ctx, filter, bson.D{{"$set", User}})
+
+	if errs != nil {
+		c.JSON(500, gin.H{
+			"Message": "Error while updating",
+		})
+		return
+	}
+	if result.MatchedCount < 1 {
+		c.JSON(200, gin.H{
+			"Message": "Id Not Found",
+		})
+		return
+	}
+	if result.ModifiedCount < 1 {
+		c.JSON(200, gin.H{
+			"Message": "Data Is Fresh, Nothing change in your data",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Message": "Data Updated",
+	})
+	return
+}

@@ -43,6 +43,7 @@ func main() {
 			api.PUT("/user/:id", controller.UpdateUser)
 			api.DELETE("/user/:id", controller.DeleteUser)
 
+			api.POST("/user/password", controller.UpdatePassword)
 		}
 
 	}
