@@ -42,12 +42,13 @@ type Persetujuan struct {
 	Verifikator_tanggal        time.Time `json:"verifikator_tanggal,omitempty" bson:"verifikator_tanggal,omitempty"`
 	Manager_tanggal            time.Time `json:"manager_tanggal,omitempty" bson:"manager_tanggal,omitempty"`
 	Kadiv_tanggal              time.Time `json:"kadiv_tanggal,omitempty" bson:"kadiv_tanggal,omitempty"`
+	Pic_tanggal                time.Time `json:"pic_tanggal,omitempty" bson:"pic_tanggal,omitempty"`
 	Keterangan_pic             string    `json:"keterangan_pic,omitempty" bson:"keterangan_pic,omitempty"`
 	Keterangan_manager         string    `json:"keterangan_manager,omitempty" bson:"keterangan_manager,omitempty"`
 	Keterangan_kadiv           string    `json:"keterangan_kadiv,omitempty" bson:"keterangan_kadiv,omitempty"`
-	Status_persetujuan_pic     int32     `json:"status_persetujuan_pic" bson:"status_persetujuan_pic,omitempty"`
-	Status_persetujuan_manager int32     `json:"status_persetujuan_manager" bson:"status_persetujuan_manager,omitempty"`
-	Status_persetujuan_kadiv   int32     `json:"status_persetujuan_kadiv" bson:"status_persetujuan_kadiv,omitempty"`
+	Status_persetujuan_pic     int32     `json:"status_persetujuan_pic,omitempty" bson:"status_persetujuan_pic,omitempty"`
+	Status_persetujuan_manager int32     `json:"status_persetujuan_manager,omitempty" bson:"status_persetujuan_manager,omitempty"`
+	Status_persetujuan_kadiv   int32     `json:"status_persetujuan_kadiv,omitempty" bson:"status_persetujuan_kadiv,omitempty"`
 	Status_persetujuan         int32     `json:"status_persetujuan,omitempty" bson:"status_persetujuan,omitempty"`
 	Tanggal_persetujuan        time.Time `json:"tanggal_persetujuan,omitempty" bson:"tanggal_persetujuan,omitempty"`
 	Kategori_program           int32     `json:"kategori_program,omitempty" bson:"kategori_program,omitempty"`

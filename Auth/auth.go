@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+
+	"github.com/bbliong/sim-bmm/helper"
+
 	"github.com/bbliong/sim-bmm/config"
 	"github.com/bbliong/sim-bmm/models"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -44,14 +48,23 @@ func SignIn(c *gin.Context) {
 
 	// Menentukan waktu koneksi query
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	//filter := bson.D{{"username", creds.Username}, {"password", creds.Password}}
-	filter := creds
+	filter := bson.D{{"username", creds.Username}}
+
+	//filter := creds.Username
 	errSQL := collection.FindOne(ctx, filter).Decode(&account)
 	if errSQL != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		fmt.Println(errSQL)
 		c.JSON(500, gin.H{
 			"Message": "Internal Server Error ",
+		})
+		return
+	}
+	if !helper.CheckPassword(creds.Password, account.Password) {
+		// If the structure of the body is wrong, return an HTTP error
+		fmt.Println(errSQL)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"Message": "Username atau password tidak cocok ",
 		})
 		return
 	}
@@ -147,28 +160,4 @@ func Refresh(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 	return
-}
-
-func isAdmin(role int32) bool {
-	return role == 1
-}
-
-func isPIC(role int32) bool {
-	return role == 2
-}
-
-func isMGR(role int32) bool {
-	return role == 3
-}
-
-func isKadiv(role int32) bool {
-	return role == 4
-}
-
-func isAdmP(role int32) bool {
-	return role == 5
-}
-
-func isKeuangan(role int32) bool {
-	return role == 6
 }

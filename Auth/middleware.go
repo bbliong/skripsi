@@ -25,10 +25,7 @@ func Auth(c *gin.Context) {
 	})
 
 	if token != nil && err == nil {
-		fmt.Println("Token Verified")
-
 		// untuk memberikan id pada global store jadi ketika mau ngambil data ga usah cek ulang tinggal ambil idnya
-		fmt.Println(claims.Role)
 		c.Set("decoded", claims)
 		c.Next()
 	} else {
