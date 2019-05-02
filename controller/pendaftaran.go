@@ -59,61 +59,96 @@ func CreatePendaftaran(c *gin.Context) {
 	case 1:
 		Pendaftaran := models.PendaftaranKSM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		Pendaftaran.Persetujuan.Status_persetujuan = 0
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "KOMUNITAS SEHAT MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	case 2:
 		Pendaftaran := models.PendaftaranRBM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "RUMAH BERKAH MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori PAUD
 	case 3:
 		Pendaftaran := models.PendaftaranPAUD{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "PANGAN UNTUK DHUAFA"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori KAFALA
 	case 4:
 		Pendaftaran := models.PendaftaranKAFALA{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "KAFALA"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori JSM
 	case 5:
 		Pendaftaran := models.PendaftaranJSM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "JAMINAN SOSIAL MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori DZM
 	case 6:
 		Pendaftaran := models.PendaftaranDZM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "DUSUN ZAKAT MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori BSU
 	case 7:
 		Pendaftaran := models.PendaftaranBSU{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "BMM SAHABAT UKM"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori Rescue
 	case 8:
 		Pendaftaran := models.PendaftaranRescue{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "BMM RESCUE"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori BTM
 	case 9:
 		Pendaftaran := models.PendaftaranBTM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "BEASISWA TAHFIZH MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori BSM
 	case 10:
 		Pendaftaran := models.PendaftaranBSM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "BEASISWA SARJANA MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori BCM
 	case 11:
 		Pendaftaran := models.PendaftaranBCM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "BEASISWA CIKAL MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	// Kategori ASM
 	case 12:
 		Pendaftaran := models.PendaftaranASM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		Pendaftaran.Persetujuan.Level_persetujuan = 0
+		Pendaftaran.Persetujuan.Kategori_program = "AKSI SEHAT MUAMALAT"
+		Pendaftaran.Muztahiks = getSingleMuztahikById(c, Pendaftaran.Muztahik)
 		Pendaftarans = Pendaftaran
 	default:
 		{
@@ -677,34 +712,34 @@ func FilterRole(role int32) bson.D {
 	// PIC
 	case 2:
 		filter = bson.D{
-			{"persetujuan.status_persetujuan", bson.D{
+			{"persetujuan.level_persetujuan", bson.D{
 				{"$gt", 0},
 			}},
 		}
 	// Manager
 	case 3:
 		filter = bson.D{
-			{"persetujuan.status_persetujuan", bson.D{
+			{"persetujuan.level_persetujuan", bson.D{
 				{"$gt", 1},
 			}},
 		}
 	// Kadiv
 	case 4:
 		filter = bson.D{
-			{"persetujuan.status_persetujuan", bson.D{
+			{"persetujuan.level_persetujuan", bson.D{
 				{"$gt", 2},
 			}},
 		}
 	case 6:
 		filter = bson.D{
-			{"persetujuan.status_persetujuan", bson.D{
+			{"persetujuan.level_persetujuan", bson.D{
 				{"$gt", 3},
 			}},
 		}
 	default:
 		{
 			filter = bson.D{
-				{"persetujuan.status_persetujuan", bson.D{
+				{"persetujuan.level_persetujuan", bson.D{
 					{"$gt", 10},
 				}},
 			}
@@ -746,14 +781,14 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan) bson.D {
 		}
 	case 6:
 		filter = bson.D{
-			{"persetujuan.status_persetujuan", bson.D{
+			{"persetujuan.level_persetujuan", bson.D{
 				{"$gt", 3},
 			}},
 		}
 	default:
 		{
 			filter = bson.D{
-				{"persetujuan.status_persetujuan", bson.D{
+				{"persetujuan.level_persetujuan", bson.D{
 					{"$gt", 10},
 				}},
 			}

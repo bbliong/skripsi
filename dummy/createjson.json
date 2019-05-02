@@ -1,0 +1,235 @@
+// Kategori 4
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :4,
+    "kategoris" : {
+            "ui_id" : "123",
+            "Pengasuh" : "Aria Samudera",
+            "tempat" : "Depok",
+            "tanggal_lahir" : "2019-01-01T00:00:00Z",
+            "mitra" : "Sendiri",
+            "ytm" : "saya",
+            "kelas" : "5 sd",
+            "jumlah_hafalan" : "3",
+            "jumlah_bantuan" : 120000,
+            "jenis_dana" : "wakaf"
+            
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+// Kategori 3
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :3,
+    "kategoris" : {
+            "kategori" : 1,
+            "cabang" : "jakarta",
+            "jumlah_bantuan" : 120000
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+// kategori 5
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :5,
+    "kategoris" : {
+            "kategori" : 1,
+            "afiliasi" : "jakarta",
+            "non_afiliasi" : "jakarta",
+            "bidang" : "teknik",
+            "jumlah_bantuan" : 200000,
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+// kategori 6
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :6,
+    "kategoris" : {
+            "kategori" : 1,
+            "jenis_infrastruktur" : "jakarta",
+            "volume" : "jakarta",
+            "jumlah_bantuan" : 2000000,
+            "jumlah_penduduk_desa" : 200
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+
+// kategori 7
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :7,
+    "kategoris" : {
+            "kategori" : 1,
+            "jenis_produk" : "barang",
+            "jenis_dana" : "wakaf",
+            "jumlah_bantuan" : 2000000,
+            "jumlah_muztahik" : 200,
+            "pendapatan_perhari" : 20000,
+            "aset" : "tanah",
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+
+
+// kategori 8
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :8,
+    "kategoris" : {
+            "kategori" : 1,
+            "skala_bencana" : "provinsi",
+            "tanggal_respon_bencana" : "2019-01-01T00:00:00Z",
+            "jumlah_bantuan" : 2000000,
+            "tahapan_bencana" : "2",
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+
+// kategori 9
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :9,
+    "kategoris" : {
+            "kategori" : 1,
+            "tempat" : "depok",
+            "tanggal_lahir" : "2019-01-01T00:00:00Z",
+            "alamat" : "depok",
+            "mitra" : "dompet duafa",
+            "kelas" : "5 sd",
+            "jumlah_hafalan" : "23",
+            "jumlah_bantuan" : 1200000,
+            "jenis_dana" : "wakaf",
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+// kategori 10
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :10,
+    "kategoris" : {
+            "kategori" : 1,
+            "tempat" : "depok",
+            "tanggal_lahir" : "2019-01-01T00:00:00Z",
+            "alamat" : "depok",
+            "semester" : "4",
+            "mitra" : "dompet dhuafa",
+            "jumlah_hafalan" : "23",
+            "jumlah_bantuan" : 1200000,
+            "jenis_dana" : "wakaf",
+            "karya" : "wakaf",
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+
+// kategori 11
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :11,
+    "kategoris" : {
+            "kategori" : 1,
+            "tempat" : "depok",
+            "tanggal_lahir" : "2019-01-01T00:00:00Z",
+            "alamat" : "depok",
+            "mitra" : "dompet dhuafa",
+            "jumlah_hafalan" : "23",
+            "jumlah_bantuan" : 1200000,
+            "jumlah_muztahik" : 20,
+            "jenis_dana" : "wakaf",
+            "karya" : "wakaf",
+            "kelas" : "5 sd ",
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}
+
+
+// kategori 12
+{
+    "muztahik_id" : "5cb9aef109ece412685cffe4",
+    "kategori" :12,
+    "kategoris" : {
+            "kategori" : 1,
+            "komunitas" : "komunitas sepeda",
+            "kegiatan" : "bersepeda",
+            "jumlah_bantuan" : 200000,
+    },
+    "persetujuan": {
+            "Proposal": 2,
+            "disposisi_pic": "demo",
+            "perihal": "demo",
+            "tanggal_disposisi": "2019-01-01T00:00:00Z",
+            "kategori_program": "rbm",
+            "sumber_dana": "demo"
+        }
+}

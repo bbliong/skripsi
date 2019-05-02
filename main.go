@@ -20,6 +20,7 @@ func main() {
 	{
 		api.POST("/signin", auth.SignIn)
 		api.GET("/refresh", auth.Refresh)
+
 		api.Use(auth.Auth)
 		{
 			// Muztahik
@@ -44,6 +45,7 @@ func main() {
 			api.DELETE("/user/:id", controller.DeleteUser)
 
 			api.POST("/user/password", controller.UpdatePassword)
+			api.GET("/excel", controller.ManageProposal)
 		}
 
 	}

@@ -49,9 +49,10 @@ type Persetujuan struct {
 	Status_persetujuan_pic     int32     `json:"status_persetujuan_pic,omitempty" bson:"status_persetujuan_pic,omitempty"`
 	Status_persetujuan_manager int32     `json:"status_persetujuan_manager,omitempty" bson:"status_persetujuan_manager,omitempty"`
 	Status_persetujuan_kadiv   int32     `json:"status_persetujuan_kadiv,omitempty" bson:"status_persetujuan_kadiv,omitempty"`
+	Level_persetujuan          int32     `json:"level_persetujuan" bson:"level_persetujuan"`
 	Status_persetujuan         int32     `json:"status_persetujuan,omitempty" bson:"status_persetujuan,omitempty"`
 	Tanggal_persetujuan        time.Time `json:"tanggal_persetujuan,omitempty" bson:"tanggal_persetujuan,omitempty"`
-	Kategori_program           int32     `json:"kategori_program,omitempty" bson:"kategori_program,omitempty"`
+	Kategori_program           string    `json:"kategori_program,omitempty" bson:"kategori_program,omitempty"`
 	Sumber_dana                string    `json:"sumber_dana,omitempty" bson:"sumber_dana,omitempty"`
 	Ppd_pic                    time.Time `json:"ppd_pic,omitempty" bson:"ppd_pic,omitempty"`
 	Ppd_manager                time.Time `json:"ppd_manager,omitempty" bson:"ppd_manager,omitempty"`
@@ -145,7 +146,8 @@ type PendaftaranRescue struct {
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
-	Persetujuan      Br                 `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
+	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
+	Kategoris        Br                 `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 }
 
