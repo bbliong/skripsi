@@ -16,14 +16,17 @@ type Credentials struct {
 type Claims struct {
 	ID   primitive.ObjectID `json:"Id,omitempty"  bson:"_id,omitempty"`
 	Role int32              `json:"role,omitempty"  bson:"role,omitempty"`
+	Name string             `json:"nama" bson:"nama,omitempty"`
 	jwt.StandardClaims
 }
 
 type Users struct {
-	ID       primitive.ObjectID `json:"Id,omitempty" bson:"_id,omitempty"`
-	Username string             `json:"username" binding:"required" bson:"username,omitempty"`
-	Password string             `json:"password" binding:"required" bson:"password,omitempty"`
-	Role     int32              `json:"role,omitempty" binding:"required"  bson:"role,omitempty"` //Admin : 1 , PIC : 2, MGR : 3, KADIV  :4, Admin Register : 5, Keuangan : 6
+	ID           primitive.ObjectID `json:"Id,omitempty" bson:"_id,omitempty"`
+	Name         string             `json:"nama" bson:"nama,omitempty"`
+	Details_role string             `json:"details_role" bson:"details_role,omitempty"`
+	Username     string             `json:"username" binding:"required" bson:"username,omitempty"`
+	Password     string             `json:"password" binding:"required" bson:"password,omitempty"`
+	Role         int32              `json:"role,omitempty" binding:"required"  bson:"role,omitempty"` //Admin : 1 , PIC : 2, MGR : 3, KADIV  :4, Admin Register : 5, Keuangan : 6
 }
 
 func (c Claims) IsAdmin() bool {

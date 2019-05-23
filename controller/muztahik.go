@@ -30,6 +30,17 @@ func GetAllMuztahik(c *gin.Context) {
 	var (
 		Muztahiks []models.Muztahik
 	)
+
+	search := c.Request.URL.Query()
+	filter := bson.M{}
+	if len(search) > 0 {
+		filter["$or"] = []bson.M{}
+		for key, val := range search {
+			fmt.Println(key, val[0])
+			filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: primitive.Regex{Pattern: val[0], Options: ""}})
+		}
+	}
+
 	// Memilih Tabel
 	collection := db.Collection("muztahik")
 
@@ -39,11 +50,11 @@ func GetAllMuztahik(c *gin.Context) {
 	// untuk filter data
 	// projection := bson.D{
 	// 	{"kecamatan", 0},
-	// 	{"kabupaten/kota", 0},
+	// 	{"kabkot", 0},
 	// }
 
 	//get data taro di cursor
-	cursor, err := collection.Find(ctx, bson.M{})
+	cursor, err := collection.Find(ctx, filter)
 
 	// set projection
 	//cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
@@ -133,13 +144,13 @@ func CreateMuztahik(c *gin.Context) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	filter := bson.D{{"nama", Muztahik.Nama}}
-
+	filter := bson.D{{"nama", Muztahik.Nama}, {"nik_no_yayasan", Muztahik.Nik_no_yayasan}}
+	fmt.Println(filter)
 	errSQL := collection.FindOne(ctx, filter).Decode(&MuztahikBson)
 	if errSQL == nil {
 		// If the structure of the body is wrong, return an HTTP error
-		c.JSON(200, gin.H{
-			"Message": "Data Exists",
+		c.JSON(500, gin.H{
+			"Message": "Data muztahik dengan Nama " + Muztahik.Nama + " dan NIK " + Muztahik.Nik_no_yayasan + " Sudah terdaftar" ,
 		})
 		return
 	}

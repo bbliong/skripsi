@@ -5,26 +5,34 @@ import "time"
 // Komunitas Sehat Muamalat
 
 type Ksm struct {
-	Kategori       int32 `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Jumlah_bantuan int32 `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+	Asnaf          string  `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program    SubProg `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
+	Kategori       int32   `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Jumlah_bantuan int32   `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
 }
 
 // Rumah Berkah Muamalat
 type Rbm struct {
-	Kategori        int32 `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Jumlah_muztahik int32 `json:"jumlah_muztahik,omitempty" bson:"jumlah_muztahik,omitempty"`
-	Jumlah_bantuan  int32 `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+	Kategori        int32   `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Asnaf           string  `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program     SubProg `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
+	Jumlah_muztahik int32   `json:"jumlah_muztahik,omitempty" bson:"jumlah_muztahik,omitempty"`
+	Jumlah_bantuan  int32   `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
 }
 
 // Pangan Untuk Dhuafa
 type Paud struct {
-	Kategori       int32  `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Cabang         string `json:"cabang,omitempty" bson:"cabang,omitempty"`
-	Jumlah_bantuan int32  `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+	Kategori       int32   `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Asnaf          string  `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program    SubProg `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
+	Cabang         string  `json:"cabang,omitempty" bson:"cabang,omitempty"`
+	Jumlah_bantuan int32   `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
 }
 
 // Kafala (Program Kerjasama)
 type Kafala struct {
+	Asnaf          string    `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program    SubProg   `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
 	Ui_id          string    `json:"ui_id,omitempty" bson:"ui_id,omitempty"`
 	Pengasuh       string    `json:"pengasuh,omitempty" bson:"pengasuh,omitempty"`
 	Tempat         string    `json:"tempat,omitempty" bson:"tempat,omitempty"`
@@ -39,35 +47,43 @@ type Kafala struct {
 
 // Jaminan Sosial Muamalat
 type Jsm struct {
-	Kategori       int32  `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Afiliasi       string `json:"afiliasi,omitempty" bson:"afiliasi,omitempty"`
-	Non_afiliasi   string `json:"non_afiliasi,omitempty" bson:"non_afiliasi,omitempty"`
-	Bidang         string `json:"bidang,omitempty" bson:"bidang,omitempty"`
-	Jumlah_bantuan int32  `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+	Asnaf          string  `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program    SubProg `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
+	Kategori       int32   `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Afiliasi       string  `json:"afiliasi,omitempty" bson:"afiliasi,omitempty"`
+	Non_afiliasi   string  `json:"non_afiliasi,omitempty" bson:"non_afiliasi,omitempty"`
+	Bidang         string  `json:"bidang,omitempty" bson:"bidang,omitempty"`
+	Jumlah_bantuan int32   `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
 }
 
 // Dusun Zakat Muamalat
 type Dzm struct {
-	Kategori             int32  `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Jenis_infrastruktur  string `json:"jenis_infrastruktur,omitempty" bson:"jenis_infrastruktur,omitempty"`
-	Volume               string `json:"volume,omitempty" bson:"volume,omitempty"`
-	Jumlah_bantuan       int32  `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
-	Jumlah_penduduk_desa int32  `json:"jumlah_penduduk_desa,omitempty" bson:"jumlah_penduduk_desa,omitempty"`
+	Asnaf                string  `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program          SubProg `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
+	Kategori             int32   `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Jenis_infrastruktur  string  `json:"jenis_infrastruktur,omitempty" bson:"jenis_infrastruktur,omitempty"`
+	Volume               string  `json:"volume,omitempty" bson:"volume,omitempty"`
+	Jumlah_bantuan       int32   `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+	Jumlah_penduduk_desa int32   `json:"jumlah_penduduk_desa,omitempty" bson:"jumlah_penduduk_desa,omitempty"`
 }
 
 // Bmm Sahabat Ukm
 type Bsu struct {
-	Kategori           int32  `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Jumlah_bantuan     int32  `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
-	Jumlah_muztahik    int32  `json:"jumlah_muztahik,omitempty" bson:"jumlah_muztahik,omitempty"`
-	Jenis_dana         string `json:"jenis_dana,omitempty" bson:"jenis_dana,omitempty"`
-	Pendapatan_perhari int32  `json:"pendapatan_perhari,omitempty" bson:"Pendapatan_perhari,omitempty"`
-	Jenis_produk       string `json:"jenis_produk,omitempty" bson:"jenis_produk,omitempty"`
-	Aset               string `json:"aset,omitempty" bson:"aset,omitempty"`
+	Asnaf              string  `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program        SubProg `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
+	Kategori           int32   `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Jumlah_bantuan     int32   `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+	Jumlah_muztahik    int32   `json:"jumlah_muztahik,omitempty" bson:"jumlah_muztahik,omitempty"`
+	Jenis_dana         string  `json:"jenis_dana,omitempty" bson:"jenis_dana,omitempty"`
+	Pendapatan_perhari int32   `json:"pendapatan_perhari,omitempty" bson:"Pendapatan_perhari,omitempty"`
+	Jenis_produk       string  `json:"jenis_produk,omitempty" bson:"jenis_produk,omitempty"`
+	Aset               string  `json:"aset,omitempty" bson:"aset,omitempty"`
 }
 
 // Bmm Rescue
 type Br struct {
+	Asnaf                  string    `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program            SubProg   `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
 	Kategori               int32     `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Skala_bencana          string    `json:"skala_bencana,omitempty" bson:"skala_bencana,omitempty"`
 	Tanggal_respon_bencana time.Time `json:"tanggal_respon_bencana,omitempty" bson:"tanggal_respon_bencana,omitempty"`
@@ -77,6 +93,8 @@ type Br struct {
 
 // Beasiswa Tahfizh Muamalat
 type Btm struct {
+	Asnaf          string    `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program    SubProg   `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
 	Kategori       int32     `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Tempat         string    `json:"tempat,omitempty" bson:"tempat,omitempty"`
 	Tanggal_lahir  time.Time `json:"tanggal_lahir,omitempty" bson:"tanggal_lahir,omitempty"`
@@ -90,6 +108,8 @@ type Btm struct {
 
 // Beasiswa Sarjana Muamalat
 type Bsm struct {
+	Asnaf          string    `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program    SubProg   `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
 	Kategori       int32     `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Tempat         string    `json:"tempat,omitempty" bson:"tempat,omitempty"`
 	Tanggal_lahir  time.Time `json:"tanggal_lahir,omitempty" bson:"tanggal_lahir,omitempty"`
@@ -104,6 +124,8 @@ type Bsm struct {
 
 // Beasiswa Cikal Muamalat
 type Bcm struct {
+	Asnaf           string    `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program     SubProg   `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
 	Kategori        int32     `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Tempat          string    `json:"tempat,omitempty" bson:"tempat,omitempty"`
 	Tanggal_lahir   time.Time `json:"tanggal_lahir,omitempty" bson:"tanggal_lahir,omitempty"`
@@ -119,8 +141,15 @@ type Bcm struct {
 
 // Aksi Sehat Muamalat
 type Asm struct {
-	Kategori       int32  `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Komunitas      string `json:"komunitas,omitempty" bson:"komunitas,omitempty"`
-	Kegiatan       string `json:"kegiatan,omitempty" bson:"kegiatan,omitempty"`
-	Jumlah_bantuan int32  `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+	Asnaf          string  `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
+	Sub_program    SubProg `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
+	Kategori       int32   `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Komunitas      string  `json:"komunitas,omitempty" bson:"komunitas,omitempty"`
+	Kegiatan       string  `json:"kegiatan,omitempty" bson:"kegiatan,omitempty"`
+	Jumlah_bantuan int32   `json:"jumlah_bantuan,omitempty" bson:"jumlah_bantuan,omitempty"`
+}
+
+type SubProg struct {
+	Kode string `json:"kode,omitempty" bson:"kode,omitempty"`
+	Nama string `json:"nama,omitempty" bson:"nama,omitempty"`
 }

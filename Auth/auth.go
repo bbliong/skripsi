@@ -69,10 +69,11 @@ func SignIn(c *gin.Context) {
 		return
 	}
 	// Menambhakan expired time dan membuat token
-	expirationTime := time.Now().Add(60 * time.Minute)
+	expirationTime := time.Now().Add(1 * time.Hour)
 	// menambhakan username dan claims
 	claims := &models.Claims{
 		ID:   account.ID,
+		Name: account.Name,
 		Role: account.Role,
 		StandardClaims: jwt.StandardClaims{
 			// In JWT, the expiry time is expressed as unix milliseconds
@@ -92,6 +93,9 @@ func SignIn(c *gin.Context) {
 
 	result = gin.H{
 		"token": tokenString,
+		"id":    claims.ID,
+		"nama":  claims.Name,
+		"role":  claims.Role,
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -118,33 +122,24 @@ func Refresh(c *gin.Context) {
 		c.JSON(http.StatusOK, result)
 		return
 	}
+
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
 			result = gin.H{
 				"Message": "Unauthorized",
 			}
+		} else if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) < -3*time.Hour {
+			// Melihta apakah expires timenya  melebihi
+			result = gin.H{
+				"Message": "Bad Request can't be refresh it, please login again",
+			}
+			c.JSON(501, result)
+			return
 		}
-		result = gin.H{
-			"Message": "Bad Request",
-		}
-		fmt.Println(err)
-		c.JSON(501, result)
-		return
-	}
-
-	// We ensure that a new token is not issued until enough time has elapsed
-	// In this case, a new token will only be issued if the old token is within
-	// 30 seconds of expiry. Otherwise, return a bad request status
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 300*time.Second {
-		result = gin.H{
-			"Message": "Bad Request",
-		}
-		c.JSON(501, result)
-		return
 	}
 
 	// Now, create a new token for the current use, with a renewed expiration time
-	expirationTime := time.Now().Add(10 * time.Minute)
+	expirationTime := time.Now().Add(1 * time.Hour)
 	claims.ExpiresAt = expirationTime.Unix()
 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tknStr, err := token.SignedString(jwtKey)
@@ -156,6 +151,9 @@ func Refresh(c *gin.Context) {
 
 	result = gin.H{
 		"token": tknStr,
+		"id":    claims.ID,
+		"nama":  claims.Name,
+		"role":  claims.Role,
 	}
 
 	c.JSON(http.StatusOK, result)

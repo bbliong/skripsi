@@ -6,6 +6,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type Kat struct {
+	Id       primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Kategori int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
+}
+
 // Muztahik Struct
 type Muztahik struct {
 	Id             primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
@@ -13,9 +18,10 @@ type Muztahik struct {
 	Nik_no_yayasan string             `json:"nik,omitempty" bson:"nik_no_yayasan,omitempty"`
 	Alamat         string             `json:"alamat,omitempty" bson:"alamat,omitempty"`
 	Kecamatan      string             `json:"kecamatan,omitempty" bson:"kecamatan,omitempty"`
-	Kabupaten      string             `json:"kabkot,omitempty" bson:"kabupaten/kota,omitempty"`
+	Kabupaten      string             `json:"kabkot,omitempty" bson:"kabkot,omitempty"`
 	Provinsi       string             `json:"provinsi,omitempty" bson:"provinsi,omitempty"`
-	No_hp          string             `json:"noHp,omitempty" bson:"no_hp,omitempty"`
+	No_hp          string             `json:"nohp,omitempty" bson:"no_hp,omitempty"`
+	Email          string             `json:"email,omitempty" bson:"email,omitempty"`
 }
 
 // PUA (Pendaftaran Update Admin ) // Struct untuk update Admin
@@ -67,7 +73,6 @@ type PendaftaranKSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Ksm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -78,18 +83,17 @@ type PendaftaranRBM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
-	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
-	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
-	Kategoris        Rbm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
-	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
+
+	Muztahik    primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
+	Persetujuan Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
+	Kategoris   Rbm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
+	Muztahiks   Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 }
 
 type PendaftaranPAUD struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Paud               `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -100,18 +104,17 @@ type PendaftaranKAFALA struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
-	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
-	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
-	Kategoris        Kafala             `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
-	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
+
+	Muztahik    primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
+	Persetujuan Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
+	Kategoris   Kafala             `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
+	Muztahiks   Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 }
 
 type PendaftaranJSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Jsm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -122,7 +125,6 @@ type PendaftaranDZM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Dzm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -133,7 +135,6 @@ type PendaftaranBSU struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Bsu                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -144,7 +145,6 @@ type PendaftaranRescue struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Br                 `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -155,7 +155,6 @@ type PendaftaranBTM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Btm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -166,7 +165,6 @@ type PendaftaranBSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Bsm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -177,7 +175,6 @@ type PendaftaranBCM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Bcm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
@@ -188,7 +185,6 @@ type PendaftaranASM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
-	Asnaf            int32              `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
 	Kategoris        Asm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`

@@ -2,16 +2,18 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"github.com/gin-gonic/gin/binding"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/bbliong/sim-bmm/config"
 	"github.com/bbliong/sim-bmm/models"
@@ -29,9 +31,7 @@ func CreatePendaftaran(c *gin.Context) {
 	var (
 		err          error
 		Pendaftarans interface{}
-		Kat          struct {
-			Kategori int32 `json:"kategori,omitempty" bson:"kategori,omitempty"`
-		}
+		Kat          models.Kat
 	)
 
 	claims := c.MustGet("decoded").(*models.Claims)
@@ -47,14 +47,44 @@ func CreatePendaftaran(c *gin.Context) {
 
 	err = c.ShouldBindBodyWith(&Kat, binding.JSON)
 	if err != nil {
-		fmt.Println(err)
 		// If the structure of the body is wrong, return an HTTP error
 		c.JSON(500, gin.H{
 			"Message": "Error while parsing ",
 		})
 		return
 	}
-	switch Kat.Kategori {
+	fmt.Println(Kat)
+	Pendaftarans, err = switchKategoriPendaftaran(Kat.Kategori, c)
+
+	if err != nil {
+		result := gin.H{
+			"Status": err,
+		}
+		fmt.Println(err)
+		c.JSON(501, result)
+		return
+	}
+
+	collection := db.Collection("pendaftaran")
+
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+
+	result, _ := collection.InsertOne(ctx, Pendaftarans)
+	c.JSON(200, gin.H{
+		"Data":    result,
+		"Message": "Berhasil mendaftarkan ",
+	})
+	return
+
+}
+
+func switchKategoriPendaftaran(kat int32, c *gin.Context) (interface{}, error) {
+	var (
+		Pendaftarans interface{}
+		err          error
+	)
+
+	switch kat {
 	// Kategori KSM
 	case 1:
 		Pendaftaran := models.PendaftaranKSM{}
@@ -152,33 +182,17 @@ func CreatePendaftaran(c *gin.Context) {
 		Pendaftarans = Pendaftaran
 	default:
 		{
-			result := gin.H{
-				"Status": "Internal Server Error",
-			}
-			c.JSON(501, result)
-			return
+			return nil, fmt.Errorf("Kategori tidak ditemukan")
 		}
 	}
-	collection := db.Collection("pendaftaran")
-
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-
-	result, _ := collection.InsertOne(ctx, Pendaftarans)
-	c.JSON(200, gin.H{
-		"Data":    result,
-		"Message": "Berhasil mendaftarkan ",
-	})
-	return
-
+	return Pendaftarans, err
 }
 
 // GetAllPendaftaran fungsi untuk mengambil seluruh data Pendaftaran
 func GetAllPendaftaran(c *gin.Context) {
 
 	var (
-		Kat struct {
-			Kategori int32 `json:"kategori,omitempty" bson:"kategori,omitempty"`
-		}
+		Kat          models.Kat
 		Pendaftarans []interface{}
 	)
 
@@ -200,7 +214,7 @@ func GetAllPendaftaran(c *gin.Context) {
 	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		result := gin.H{
-			"Status": "Internal Server Error",
+			"Status": err,
 		}
 		c.JSON(501, result)
 		return
@@ -221,10 +235,7 @@ func GetAllPendaftaran(c *gin.Context) {
 
 		if Kat.Kategori == 0 {
 			// If the structure of the body is wrong, return an HTTP error
-			c.JSON(200, gin.H{
-				"Message": "Tidak ada Kategori Program ",
-			})
-			return
+			fmt.Println("Kategori tidak ada ")
 		} else {
 			switch Kat.Kategori {
 			// Kategori KSM
@@ -302,7 +313,7 @@ func GetAllPendaftaran(c *gin.Context) {
 			default:
 				{
 					result := gin.H{
-						"Status": "Internal Server Error",
+						"Status": err,
 					}
 					c.JSON(501, result)
 					return
@@ -313,7 +324,7 @@ func GetAllPendaftaran(c *gin.Context) {
 	}
 	if err := cursor.Err(); err != nil {
 		result := gin.H{
-			"Status": "Internal Server Error",
+			"Status": err,
 		}
 		c.JSON(501, result)
 		return
@@ -321,6 +332,86 @@ func GetAllPendaftaran(c *gin.Context) {
 
 	result := gin.H{
 		"data": Pendaftarans,
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+// GetAllPendaftaran fungsi untuk mengambil seluruh data Pendaftaran
+func GetAllPendaftaranCount(c *gin.Context) {
+
+	var (
+		Kat  models.Kat
+		Kats = map[string]int32{
+			"KSM":    0,
+			"RBM":    0,
+			"PAUD":   0,
+			"KAFALA": 0,
+			"JSM":    0,
+			"DZM":    0,
+			"BSU":    0,
+			"BR":     0,
+			"BTM":    0,
+			"BSM":    0,
+			"BCM":    0,
+			"ASM":    0,
+		}
+	)
+
+	// Memilih Tabel
+	collection := db.Collection("pendaftaran")
+
+	// Menentukan waktu koneksi query
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+
+	projection := bson.D{
+		{"_id", 1},
+		{"kategori", 1},
+	}
+
+	//Set Projection
+	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	if err != nil {
+		result := gin.H{
+			"Status": err,
+		}
+		c.JSON(501, result)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	// Loping data cursor
+	for cursor.Next(ctx) {
+		cursor.Decode(&Kat)
+		switch Kat.Kategori {
+		case 1:
+			Kats["KSM"]++
+		case 2:
+			Kats["RBM"]++
+		case 3:
+			Kats["PAUD"]++
+		case 4:
+			Kats["KAFALA"]++
+		case 5:
+			Kats["JSM"]++
+		case 6:
+			Kats["DZM"]++
+		case 7:
+			Kats["BSU"]++
+		case 8:
+			Kats["BR"]++
+		case 9:
+			Kats["BTM"]++
+		case 10:
+			Kats["BSM"]++
+		case 11:
+			Kats["BCM"]++
+		case 12:
+			Kats["ASM"]++
+		}
+	}
+
+	result := gin.H{
+		"data": Kats,
 	}
 	c.JSON(http.StatusOK, result)
 }
@@ -340,9 +431,9 @@ func getSingleMuztahikById(c *gin.Context, id primitive.ObjectID) models.Muztahi
 		// If the structure of the body is wrong, return an HTTP error
 		fmt.Println(errSQL)
 		c.JSON(500, gin.H{
-			"Message": "Internal Server Error ",
+			"Message": "Data Id not found",
 		})
-		return models.Muztahik{}
+		panic(errSQL)
 	}
 	return Muztahik
 }
@@ -352,12 +443,14 @@ func UpdatePendaftaran(c *gin.Context) {
 
 	var (
 		Persetujuan models.Persetujuan
+		result      *mongo.UpdateResult
+		errs        error
 	)
 
 	_id, _ := primitive.ObjectIDFromHex(c.Param("id"))
 
-	err := json.NewDecoder(c.Request.Body).Decode(&Persetujuan)
-	fmt.Printf("%+v", Persetujuan)
+	err := c.ShouldBindBodyWith(&Persetujuan, binding.JSON)
+
 	if err != nil {
 		//fmt.Println(err)
 		// If the structure of the body is wrong, return an HTTP error
@@ -375,10 +468,16 @@ func UpdatePendaftaran(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	updateFilter := UpdateFilter(claims.Role, Persetujuan)
-	result, errs := collection.UpdateOne(ctx, filter, bson.D{
-		{"$set", updateFilter},
-	})
+	updateFilter, err, insertFilter := UpdateFilter(claims.Role, Persetujuan, c)
+	if insertFilter != nil {
+		result, errs = collection.UpdateOne(ctx, filter, bson.D{
+			{"$set", insertFilter},
+		})
+	} else {
+		result, errs = collection.UpdateOne(ctx, filter, bson.D{
+			{"$set", updateFilter},
+		})
+	}
 
 	if errs != nil {
 		c.JSON(500, gin.H{
@@ -613,7 +712,7 @@ func UpdatePendaftaranView(c *gin.Context) {
 	default:
 		{
 			result := gin.H{
-				"Status": "Internal Server Error",
+				"Status": "Kategori Not FOund",
 			}
 			c.JSON(501, result)
 			return
@@ -651,7 +750,7 @@ func DeletePendaftaran(c *gin.Context) {
 		// If the structure of the body is wrong, return an HTTP error
 		fmt.Println(errSQL)
 		c.JSON(500, gin.H{
-			"Message": "Internal Server Error ",
+			"Message": errSQL,
 		})
 		return
 	}
@@ -748,14 +847,241 @@ func FilterRole(role int32) bson.D {
 	return filter
 }
 
-func UpdateFilter(role int32, persetujuan models.Persetujuan) bson.D {
+func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (bson.D, error, interface{}) {
 
-	var filter bson.D
+	var (
+		err     error
+		Kat     models.Kat
+		KatBaru models.Kat
+		filter  bson.D
+		//Pendaftarans interface{}
+	)
+
 	switch role {
-	// Admin
 	case 1, 5:
-		filter = bson.D{}
-	// PIC
+		err = c.ShouldBindBodyWith(&Kat, binding.JSON)
+		if err != nil {
+			fmt.Println(err)
+			// If the structure of the body is wrong, return an HTTP error
+			c.JSON(500, gin.H{
+				"Message": "Error while parsing ",
+			})
+			return bson.D{}, err, nil
+		}
+
+		// Melihat apakah ada perubahan pada kategori yang dituju, jika ada maka seluruh persetujuan akan dihapus dan diulang kembali
+
+		// Memilih Tabel
+		collection := db.Collection("pendaftaran")
+		// Menentukan waktu koneksi query
+		ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+
+		// ambil dari parameter lalu diubah jadi object id
+		Kat.Id, _ = primitive.ObjectIDFromHex(c.Param("id"))
+
+		filter := bson.D{{"_id", Kat.Id}}
+		errSQL := collection.FindOne(ctx, filter).Decode(&KatBaru)
+		if errSQL != nil {
+			// If the structure of the body is wrong, return an HTTP error
+			fmt.Printf("%+v", Kat)
+			fmt.Println(errSQL)
+			c.JSON(500, gin.H{
+				"Message": errSQL,
+			})
+			return bson.D{}, errSQL, nil
+		}
+		if Kat != KatBaru {
+			insert, err := switchKategoriPendaftaran(Kat.Kategori, c)
+			return bson.D{}, err, insert
+		}
+
+		switch Kat.Kategori {
+		// Kategori KSM
+		case 1:
+			Pendaftaran := models.PendaftaranKSM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			}
+		case 2:
+			Pendaftaran := models.PendaftaranRBM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+			}
+		// Kategori PAUD
+		case 3:
+			Pendaftaran := models.PendaftaranPAUD{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.cabang", Pendaftaran.Kategoris.Cabang},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			}
+		// Kategori KAFALA
+		case 4:
+			Pendaftaran := models.PendaftaranKAFALA{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.ui_id", Pendaftaran.Kategoris.Ui_id},
+				{"pendaftaran.kategoris.pengasuh", Pendaftaran.Kategoris.Pengasuh},
+				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"pendaftaran.kategoris.ytm", Pendaftaran.Kategoris.Ytm},
+				{"pendaftaran.kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			}
+		// Kategori JSM
+		case 5:
+			Pendaftaran := models.PendaftaranJSM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.afiliasi", Pendaftaran.Kategoris.Afiliasi},
+				{"pendaftaran.kategoris.non_afiliasi", Pendaftaran.Kategoris.Non_afiliasi},
+				{"pendaftaran.kategoris.bidang", Pendaftaran.Kategoris.Bidang},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			}
+		// Kategori DZM
+		case 6:
+			Pendaftaran := models.PendaftaranDZM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.jenis_infrastruktur", Pendaftaran.Kategoris.Jenis_infrastruktur},
+				{"pendaftaran.kategoris.volume", Pendaftaran.Kategoris.Volume},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.jumlah_penduduk_desa", Pendaftaran.Kategoris.Jumlah_penduduk_desa},
+			}
+		// Kategori BSU
+		case 7:
+			Pendaftaran := models.PendaftaranBSU{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"pendaftaran.kategoris.pendapatan_perhari", Pendaftaran.Kategoris.Pendapatan_perhari},
+				{"pendaftaran.kategoris.jenis_produk", Pendaftaran.Kategoris.Jenis_produk},
+				{"pendaftaran.kategoris.aset", Pendaftaran.Kategoris.Aset},
+			}
+		// Kategori Rescue
+		case 8:
+			Pendaftaran := models.PendaftaranRescue{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.skala_bencana", Pendaftaran.Kategoris.Skala_bencana},
+				{"pendaftaran.kategoris.tanggal_respon_bencana", Pendaftaran.Kategoris.Tanggal_respon_bencana},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.tahapan_bencana", Pendaftaran.Kategoris.Tahapan_bencana},
+			}
+		// Kategori BTM
+		case 9:
+			Pendaftaran := models.PendaftaranBTM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"pendaftaran.kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"pendaftaran.kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			}
+		// Kategori BSM
+		case 10:
+			Pendaftaran := models.PendaftaranBSM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"pendaftaran.kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"pendaftaran.kategoris.semester", Pendaftaran.Kategoris.Semester},
+				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"pendaftaran.kategoris.karya", Pendaftaran.Kategoris.Karya},
+			}
+		// Kategori BCM
+		case 11:
+			Pendaftaran := models.PendaftaranBCM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"pendaftaran.kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"pendaftaran.kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"pendaftaran.kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+				{"pendaftaran.kategoris.karya", Pendaftaran.Kategoris.Karya},
+			}
+		// Kategori ASM
+		case 12:
+			Pendaftaran := models.PendaftaranASM{}
+			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+			filter = bson.D{
+				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
+				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"pendaftaran.kategoris.komunitas", Pendaftaran.Kategoris.Komunitas},
+				{"pendaftaran.kategoris.kegiatan", Pendaftaran.Kategoris.Kegiatan},
+				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			}
+		default:
+			{
+				filter = bson.D{}
+			}
+		}
+	// // PIC
 	case 2:
 		filter = bson.D{
 			{"persetujuan.pic_nama", persetujuan.Pic_nama},
@@ -781,18 +1107,14 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan) bson.D {
 		}
 	case 6:
 		filter = bson.D{
-			{"persetujuan.level_persetujuan", bson.D{
-				{"$gt", 3},
-			}},
+			{"persetujuan.jumlah_pencairan", persetujuan.Jumlah_pencairan},
+			{"persetujuan.tanggal_pencairan", persetujuan.Tanggal_pencairan},
+			{"persetujuan.keterangan", persetujuan.Keterangan},
 		}
 	default:
 		{
-			filter = bson.D{
-				{"persetujuan.level_persetujuan", bson.D{
-					{"$gt", 10},
-				}},
-			}
+			filter = bson.D{}
 		}
 	}
-	return filter
+	return filter, nil, nil
 }
