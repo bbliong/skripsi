@@ -6,6 +6,7 @@ import (
 	//"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	// "github.com/itsjamie/gin-cors"
+	"github.com/gin-gonic/contrib/static"
 	cors "github.com/rs/cors/wrapper/gin"
 )
 
@@ -15,6 +16,7 @@ func main() {
 	router.Use(cors.AllowAll())
 
 	//Membuat port untuk handlernya
+	router.Use(static.Serve("/img", static.LocalFile("./img", true)))
 
 	api := router.Group("/api")
 	{
@@ -30,14 +32,14 @@ func main() {
 
 		api.POST("/signin", auth.SignIn)
 		api.GET("/refresh", auth.Refresh)
-
+		api.GET("/kategori", controller.GetAllKategori)
 		api.Use(auth.Auth)
 		{
 			// Muztahik
 			api.GET("/muztahiks", controller.GetAllMuztahik)
 			api.GET("/muztahik/:id", controller.GetMuztahik)
 			api.POST("/muztahik", controller.CreateMuztahik)
-			api.PUT("/muztahik/:id", controller.UpdateMuztahik)
+			api.PUT("/muztahik", controller.UpdateMuztahik)
 			api.DELETE("/muztahik/:id", controller.DeleteMuztahik)
 
 			// Pendaftaran
@@ -55,8 +57,10 @@ func main() {
 			api.PUT("/user/:id", controller.UpdateUser)
 			api.DELETE("/user/:id", controller.DeleteUser)
 
+			// Function
 			api.POST("/user/password", controller.UpdatePassword)
 			api.GET("/excel", controller.ManageProposal)
+			api.POST("/upload", controller.UploadImage)
 		}
 
 	}

@@ -22,6 +22,7 @@ type Muztahik struct {
 	Provinsi       string             `json:"provinsi,omitempty" bson:"provinsi,omitempty"`
 	No_hp          string             `json:"nohp,omitempty" bson:"no_hp,omitempty"`
 	Email          string             `json:"email,omitempty" bson:"email,omitempty"`
+	Photo          string             `json:"photo,omitempty" bson:"photo,omitempty"`
 }
 
 // PUA (Pendaftaran Update Admin ) // Struct untuk update Admin

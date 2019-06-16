@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	// "go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/bbliong/sim-bmm/config"
 
@@ -16,8 +16,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-var db *mongo.Database
 
 func init() {
 	// // Mengambil Koneksi
@@ -36,8 +34,7 @@ func GetAllMuztahik(c *gin.Context) {
 	if len(search) > 0 {
 		filter["$or"] = []bson.M{}
 		for key, val := range search {
-			fmt.Println(key, val[0])
-			filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: primitive.Regex{Pattern: val[0], Options: ""}})
+			filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: primitive.Regex{Pattern: val[0], Options: "i"}})
 		}
 	}
 
@@ -110,7 +107,7 @@ func GetMuztahik(c *gin.Context) {
 		// If the structure of the body is wrong, return an HTTP error
 		fmt.Println(errSQL)
 		c.JSON(500, gin.H{
-			"Message": "Internal Server Error ",
+			"Message": "No user founded ",
 		})
 		return
 	}
@@ -130,7 +127,7 @@ func CreateMuztahik(c *gin.Context) {
 	)
 
 	err := json.NewDecoder(c.Request.Body).Decode(&Muztahik)
-
+	fmt.Println(c.Request.Body)
 	if err != nil {
 		fmt.Println(err)
 		// If the structure of the body is wrong, return an HTTP error
@@ -150,7 +147,7 @@ func CreateMuztahik(c *gin.Context) {
 	if errSQL == nil {
 		// If the structure of the body is wrong, return an HTTP error
 		c.JSON(500, gin.H{
-			"Message": "Data muztahik dengan Nama " + Muztahik.Nama + " dan NIK " + Muztahik.Nik_no_yayasan + " Sudah terdaftar" ,
+			"Message": "Data muztahik dengan Nama " + Muztahik.Nama + " dan NIK " + Muztahik.Nik_no_yayasan + " Sudah terdaftar",
 		})
 		return
 	}
@@ -171,7 +168,7 @@ func UpdateMuztahik(c *gin.Context) {
 		Muztahik models.Muztahik
 	)
 
-	_id, _ := primitive.ObjectIDFromHex(c.Param("id"))
+	// _id, _ := primitive.ObjectIDFromHex(c.Param("id"))
 
 	err := json.NewDecoder(c.Request.Body).Decode(&Muztahik)
 
@@ -184,21 +181,30 @@ func UpdateMuztahik(c *gin.Context) {
 		return
 	}
 
+	// Update Table Muztahik
 	collection := db.Collection("muztahik")
-
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-
-	filter := bson.D{{"_id", _id}}
-
+	filter := bson.D{{"_id", Muztahik.Id}}
 	result, errs := collection.UpdateOne(ctx, filter, bson.D{{"$set", Muztahik}})
 
-	if errs != nil {
+	// update Table Pendaftaran
+	collectionPendaftaran := db.Collection("pendaftaran")
+	filterPendaftaran := bson.D{{"muztahik_id", Muztahik.Id}}
+	_, errP := collectionPendaftaran.UpdateMany(ctx, filterPendaftaran,
+		bson.D{
+			{"$set", bson.D{
+				{"muztahiks", Muztahik},
+			}},
+		},
+	)
+
+	if errs != nil || errP != nil {
 		c.JSON(500, gin.H{
 			"Message": "Error while updating",
 		})
 		return
 	}
-	if result.MatchedCount < 1 {
+	if result.MatchedCount < 1  {
 		c.JSON(200, gin.H{
 			"Message": "Id Not Found",
 		})

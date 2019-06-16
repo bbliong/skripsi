@@ -204,7 +204,26 @@ func GetAllPendaftaran(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	filter := FilterRole(claims.Role)
+	filterRole := FilterRole(claims.Role)
+
+	search := c.Request.URL.Query()
+	filter := bson.M{}
+	if len(search) > 0 {
+		filter["$or"] = []bson.M{}
+		for key, val := range search {
+			if key == "muztahik_id" {
+				_id, _ := primitive.ObjectIDFromHex(val[0])
+				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: _id})
+			} else {
+				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: primitive.Regex{Pattern: val[0], Options: "i"}})
+			}
+
+		}
+	}
+
+	if len(filterRole) != 0 {
+		filter["$or"] = append(filter["$or"].([]bson.M), filterRole)
+	}
 
 	// Set Projection
 	//projection := Filter(claims.Role)
@@ -468,18 +487,21 @@ func UpdatePendaftaran(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	updateFilter, err, insertFilter := UpdateFilter(claims.Role, Persetujuan, c)
+	updateFilters, err, insertFilter := UpdateFilter(claims.Role, Persetujuan, c)
+
 	if insertFilter != nil {
 		result, errs = collection.UpdateOne(ctx, filter, bson.D{
 			{"$set", insertFilter},
 		})
 	} else {
+		fmt.Printf("%+v", updateFilters)
 		result, errs = collection.UpdateOne(ctx, filter, bson.D{
-			{"$set", updateFilter},
+			{"$set", updateFilters},
 		})
 	}
 
 	if errs != nil {
+		fmt.Print(errs)
 		c.JSON(500, gin.H{
 			"Message": "Error while updating",
 		})
@@ -510,7 +532,7 @@ func UpdatePendaftaranView(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	if claims.IsKadiv() || claims.IsMGR() || claims.IsPIC() {
+	if claims.IsKadiv() || claims.IsMGR() || claims.IsPIC() || claims.IsAdmin() {
 		fmt.Println("You have permission for this access")
 	} else {
 		c.JSON(500, gin.H{
@@ -802,58 +824,59 @@ func FilterProjection(role int) bson.D {
 	return projection
 }
 
-func FilterRole(role int32) bson.D {
-	var filter bson.D
+func FilterRole(role int32) bson.M {
+	var filter bson.M
 	switch role {
 	// Admin
 	case 1, 5:
-		filter = bson.D{}
+		filter = bson.M{}
 	// PIC
 	case 2:
-		filter = bson.D{
-			{"persetujuan.level_persetujuan", bson.D{
-				{"$gt", 0},
-			}},
+		filter = bson.M{
+			"persetujuan.level_persetujuan": bson.M{
+				"$gt": 0,
+			},
 		}
 	// Manager
 	case 3:
-		filter = bson.D{
-			{"persetujuan.level_persetujuan", bson.D{
-				{"$gt", 1},
-			}},
+		filter = bson.M{
+			"persetujuan.level_persetujuan": bson.M{
+				"$gt": 1,
+			},
 		}
 	// Kadiv
 	case 4:
-		filter = bson.D{
-			{"persetujuan.level_persetujuan", bson.D{
-				{"$gt", 2},
-			}},
+		filter = bson.M{
+			"persetujuan.level_persetujuan": bson.M{
+				"$gt": 2,
+			},
 		}
 	case 6:
-		filter = bson.D{
-			{"persetujuan.level_persetujuan", bson.D{
-				{"$gt", 3},
-			}},
+		filter = bson.M{
+			"persetujuan.level_persetujuan": bson.M{
+				"$gt": 3,
+			},
 		}
 	default:
 		{
-			filter = bson.D{
-				{"persetujuan.level_persetujuan", bson.D{
-					{"$gt", 10},
-				}},
+			filter = bson.M{
+				"persetujuan.level_persetujuan": bson.M{
+					"$gt": 10,
+				},
 			}
 		}
 	}
+
 	return filter
 }
 
 func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (bson.D, error, interface{}) {
 
 	var (
-		err     error
-		Kat     models.Kat
-		KatBaru models.Kat
-		filter  bson.D
+		err          error
+		Kat          models.Kat
+		KatBaru      models.Kat
+		updateFilter bson.D
 		//Pendaftarans interface{}
 	)
 
@@ -900,190 +923,191 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 1:
 			Pendaftaran := models.PendaftaranKSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			updateFilter = bson.D{
+				// {"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 			}
 		case 2:
 			Pendaftaran := models.PendaftaranRBM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
 			}
 		// Kategori PAUD
 		case 3:
 			Pendaftaran := models.PendaftaranPAUD{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.cabang", Pendaftaran.Kategoris.Cabang},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.cabang", Pendaftaran.Kategoris.Cabang},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 			}
 		// Kategori KAFALA
 		case 4:
 			Pendaftaran := models.PendaftaranKAFALA{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.ui_id", Pendaftaran.Kategoris.Ui_id},
-				{"pendaftaran.kategoris.pengasuh", Pendaftaran.Kategoris.Pengasuh},
-				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"pendaftaran.kategoris.ytm", Pendaftaran.Kategoris.Ytm},
-				{"pendaftaran.kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.ui_id", Pendaftaran.Kategoris.Ui_id},
+				{"kategoris.pengasuh", Pendaftaran.Kategoris.Pengasuh},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.ytm", Pendaftaran.Kategoris.Ytm},
+				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
 			}
 		// Kategori JSM
 		case 5:
 			Pendaftaran := models.PendaftaranJSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.afiliasi", Pendaftaran.Kategoris.Afiliasi},
-				{"pendaftaran.kategoris.non_afiliasi", Pendaftaran.Kategoris.Non_afiliasi},
-				{"pendaftaran.kategoris.bidang", Pendaftaran.Kategoris.Bidang},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.afiliasi", Pendaftaran.Kategoris.Afiliasi},
+				{"kategoris.non_afiliasi", Pendaftaran.Kategoris.Non_afiliasi},
+				{"kategoris.bidang", Pendaftaran.Kategoris.Bidang},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 			}
 		// Kategori DZM
 		case 6:
 			Pendaftaran := models.PendaftaranDZM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.jenis_infrastruktur", Pendaftaran.Kategoris.Jenis_infrastruktur},
-				{"pendaftaran.kategoris.volume", Pendaftaran.Kategoris.Volume},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.jumlah_penduduk_desa", Pendaftaran.Kategoris.Jumlah_penduduk_desa},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.jenis_infrastruktur", Pendaftaran.Kategoris.Jenis_infrastruktur},
+				{"kategoris.volume", Pendaftaran.Kategoris.Volume},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jumlah_penduduk_desa", Pendaftaran.Kategoris.Jumlah_penduduk_desa},
 			}
 		// Kategori BSU
 		case 7:
 			Pendaftaran := models.PendaftaranBSU{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
-				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				{"pendaftaran.kategoris.pendapatan_perhari", Pendaftaran.Kategoris.Pendapatan_perhari},
-				{"pendaftaran.kategoris.jenis_produk", Pendaftaran.Kategoris.Jenis_produk},
-				{"pendaftaran.kategoris.aset", Pendaftaran.Kategoris.Aset},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"kategoris.pendapatan_perhari", Pendaftaran.Kategoris.Pendapatan_perhari},
+				{"kategoris.jenis_produk", Pendaftaran.Kategoris.Jenis_produk},
+				{"kategoris.aset", Pendaftaran.Kategoris.Aset},
 			}
 		// Kategori Rescue
 		case 8:
 			Pendaftaran := models.PendaftaranRescue{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.skala_bencana", Pendaftaran.Kategoris.Skala_bencana},
-				{"pendaftaran.kategoris.tanggal_respon_bencana", Pendaftaran.Kategoris.Tanggal_respon_bencana},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.tahapan_bencana", Pendaftaran.Kategoris.Tahapan_bencana},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.skala_bencana", Pendaftaran.Kategoris.Skala_bencana},
+				{"kategoris.tanggal_respon_bencana", Pendaftaran.Kategoris.Tanggal_respon_bencana},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.tahapan_bencana", Pendaftaran.Kategoris.Tahapan_bencana},
 			}
 		// Kategori BTM
 		case 9:
 			Pendaftaran := models.PendaftaranBTM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"pendaftaran.kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"pendaftaran.kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
 			}
 		// Kategori BSM
 		case 10:
 			Pendaftaran := models.PendaftaranBSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"pendaftaran.kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"pendaftaran.kategoris.semester", Pendaftaran.Kategoris.Semester},
-				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				{"pendaftaran.kategoris.karya", Pendaftaran.Kategoris.Karya},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.semester", Pendaftaran.Kategoris.Semester},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"kategoris.karya", Pendaftaran.Kategoris.Karya},
 			}
 		// Kategori BCM
 		case 11:
 			Pendaftaran := models.PendaftaranBCM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-				{"pendaftaran.kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"pendaftaran.kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-				{"pendaftaran.kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"pendaftaran.kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-				{"pendaftaran.kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"pendaftaran.kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				{"pendaftaran.kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
-				{"pendaftaran.kategoris.karya", Pendaftaran.Kategoris.Karya},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+				{"kategoris.karya", Pendaftaran.Kategoris.Karya},
 			}
 		// Kategori ASM
 		case 12:
 			Pendaftaran := models.PendaftaranASM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			filter = bson.D{
-				{"pendaftaran.tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"pendaftaran.kategori", Pendaftaran.Kategori_program},
-				{"pendaftaran.kategoris..asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"pendaftaran.kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"pendaftaran.kategoris.komunitas", Pendaftaran.Kategoris.Komunitas},
-				{"pendaftaran.kategoris.kegiatan", Pendaftaran.Kategoris.Kegiatan},
-				{"pendaftaran.kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			updateFilter = bson.D{
+				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.komunitas", Pendaftaran.Kategoris.Komunitas},
+				{"kategoris.kegiatan", Pendaftaran.Kategoris.Kegiatan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 			}
 		default:
 			{
-				filter = bson.D{}
+				updateFilter = bson.D{}
 			}
 		}
 	// // PIC
 	case 2:
-		filter = bson.D{
+		updateFilter = bson.D{
 			{"persetujuan.pic_nama", persetujuan.Pic_nama},
 			{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
 			{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
@@ -1091,7 +1115,7 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		}
 	// Manager
 	case 3:
-		filter = bson.D{
+		updateFilter = bson.D{
 			{"persetujuan.manager_nama", persetujuan.Manager_nama},
 			{"persetujuan.manager_tanggal", persetujuan.Manager_tanggal},
 			{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
@@ -1099,22 +1123,22 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		}
 	// Kadiv
 	case 4:
-		filter = bson.D{
+		updateFilter = bson.D{
 			{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
 			{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
 			{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
 			{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 		}
 	case 6:
-		filter = bson.D{
+		updateFilter = bson.D{
 			{"persetujuan.jumlah_pencairan", persetujuan.Jumlah_pencairan},
 			{"persetujuan.tanggal_pencairan", persetujuan.Tanggal_pencairan},
 			{"persetujuan.keterangan", persetujuan.Keterangan},
 		}
 	default:
 		{
-			filter = bson.D{}
+			updateFilter = bson.D{}
 		}
 	}
-	return filter, nil, nil
+	return updateFilter, nil, nil
 }

@@ -154,7 +154,7 @@ func ManageProposal(c *gin.Context) {
 				_ = f.InsertRow("Sheet1", KSM()+1)
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(KSM()), KSMIndex)
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(KSM()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(KSM()), "Tidak")
 				} else {
@@ -219,7 +219,7 @@ func ManageProposal(c *gin.Context) {
 				_ = f.InsertRow("Sheet1", RBM()+1)
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(RBM()), RBMIndex)
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(RBM()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(RBM()), "Tidak")
 				} else {
@@ -287,7 +287,7 @@ func ManageProposal(c *gin.Context) {
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(PAUD()), PAUDIndex)
 				fmt.Println(KSM(), "index PAUD")
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(PAUD()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(PAUD()), "Tidak")
 				} else {
@@ -420,7 +420,7 @@ func ManageProposal(c *gin.Context) {
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(JSM()), JSMIndex)
 				fmt.Println(KSM(), "index JSM")
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(JSM()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(JSM()), "Tidak")
 				} else {
@@ -488,7 +488,7 @@ func ManageProposal(c *gin.Context) {
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(DZM()), DZMIndex)
 				fmt.Println(KSM(), "index DZM")
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(DZM()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(DZM()), "Tidak")
 				} else {
@@ -555,7 +555,7 @@ func ManageProposal(c *gin.Context) {
 				_ = f.InsertRow("Sheet1", BSU()+1)
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(BSU()), BSUIndex)
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(BSU()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(BSU()), "Tidak")
 				} else {
@@ -627,7 +627,7 @@ func ManageProposal(c *gin.Context) {
 				_ = f.InsertRow("Sheet1", BR()+1)
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(BR()), BRIndex)
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(BR()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(BR()), "Tidak")
 				} else {
@@ -760,7 +760,7 @@ func ManageProposal(c *gin.Context) {
 				_ = f.InsertRow("Sheet1", BSM()+1)
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(BSM()), BSMIndex)
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(BSM()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(BSM()), "Tidak")
 				} else {
@@ -832,7 +832,7 @@ func ManageProposal(c *gin.Context) {
 				_ = f.InsertRow("Sheet1", BCM()+1)
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(BCM()), BCMIndex)
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(BCM()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(BCM()), "Tidak")
 				} else {
@@ -904,7 +904,7 @@ func ManageProposal(c *gin.Context) {
 				_ = f.InsertRow("Sheet1", ASM()+1)
 				f.SetCellValue("Sheet1", "A"+strconv.Itoa(ASM()), ASMIndex)
 
-				if Pendaftaran.Kategoris.Kategori == 1 {
+				if Pendaftaran.Kategoris.Kategori == "1" {
 					f.SetCellValue("Sheet1", "B"+strconv.Itoa(ASM()), "Ya")
 					f.SetCellValue("Sheet1", "C"+strconv.Itoa(ASM()), "Tidak")
 				} else {
