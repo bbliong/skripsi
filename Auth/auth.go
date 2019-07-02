@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -53,16 +52,14 @@ func SignIn(c *gin.Context) {
 	//filter := creds.Username
 	errSQL := collection.FindOne(ctx, filter).Decode(&account)
 	if errSQL != nil {
-		// If the structure of the body is wrong, return an HTTP error
-		fmt.Println(errSQL)
+		// di cek tidak ada
 		c.JSON(500, gin.H{
 			"Message": "Internal Server Error ",
 		})
 		return
 	}
 	if !helper.CheckPassword(creds.Password, account.Password) {
-		// If the structure of the body is wrong, return an HTTP error
-		fmt.Println(errSQL)
+		// salah password
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Message": "Username atau password tidak cocok ",
 		})

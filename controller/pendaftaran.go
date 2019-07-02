@@ -206,31 +206,37 @@ func GetAllPendaftaran(c *gin.Context) {
 
 	filterRole := FilterRole(claims.Role)
 
+	// Fungi jika terdapat filter yang dikirim kan lewat parameter
 	search := c.Request.URL.Query()
 	filter := bson.M{}
+
+	if len(filterRole) != 0 {
+		filter["persetujuan.level_persetujuan"] = filterRole
+	}
+
 	if len(search) > 0 {
-		filter["$or"] = []bson.M{}
+
 		for key, val := range search {
 			if key == "muztahik_id" {
 				_id, _ := primitive.ObjectIDFromHex(val[0])
-				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: _id})
+				filter[key] = _id
 			} else {
+				if _, exist := filter["$or"]; !exist {
+					filter["$or"] = []bson.M{}
+				}
 				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: primitive.Regex{Pattern: val[0], Options: "i"}})
 			}
-
 		}
 	}
 
-	if len(filterRole) != 0 {
-		filter["$or"] = append(filter["$or"].([]bson.M), filterRole)
-	}
-
 	// Set Projection
-	//projection := Filter(claims.Role)
-	//cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	fmt.Println(filter)
+	filterProjection := FilterProjection(claims.Role)
+	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(filterProjection))
 
 	//get data taro di cursor
-	cursor, err := collection.Find(ctx, filter)
+	//cursor, err := collection.Find(ctx, filter)
+
 	if err != nil {
 		result := gin.H{
 			"Status": err,
@@ -489,6 +495,16 @@ func UpdatePendaftaran(c *gin.Context) {
 
 	updateFilters, err, insertFilter := UpdateFilter(claims.Role, Persetujuan, c)
 
+	switch claims.Role {
+	case 1:
+	case 2:
+	case 3:
+	case 7:
+		if Persetujuan.Level_persetujuan < 1 {
+			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 1})
+		}
+	}
+
 	if insertFilter != nil {
 		result, errs = collection.UpdateOne(ctx, filter, bson.D{
 			{"$set", insertFilter},
@@ -532,7 +548,7 @@ func UpdatePendaftaranView(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	if claims.IsKadiv() || claims.IsMGR() || claims.IsPIC() || claims.IsAdmin() {
+	if claims.IsKadiv() || claims.IsMGR() || claims.IsPIC() || claims.IsAdmin() || claims.IsVerifikator() {
 		fmt.Println("You have permission for this access")
 	} else {
 		c.JSON(500, gin.H{
@@ -554,7 +570,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori KSM
 	case 1:
 		Pendaftaran := models.PendaftaranKSM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			c.JSON(500, gin.H{
@@ -569,7 +589,10 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori RBMs
 	case 2:
 		Pendaftaran := models.PendaftaranRBM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Printf("%+v", errSQL)
@@ -584,7 +607,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori PAUD
 	case 3:
 		Pendaftaran := models.PendaftaranPAUD{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -599,7 +626,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori KAFALA
 	case 4:
 		Pendaftaran := models.PendaftaranKAFALA{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -614,7 +645,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori JSM
 	case 5:
 		Pendaftaran := models.PendaftaranJSM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -629,7 +664,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori DZM
 	case 6:
 		Pendaftaran := models.PendaftaranDZM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -644,7 +683,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori BSU
 	case 7:
 		Pendaftaran := models.PendaftaranBSU{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -659,7 +702,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori Rescue
 	case 8:
 		Pendaftaran := models.PendaftaranRescue{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -674,7 +721,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori BTM
 	case 9:
 		Pendaftaran := models.PendaftaranBTM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -689,7 +740,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori BSM
 	case 10:
 		Pendaftaran := models.PendaftaranBSM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -704,7 +759,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori BCM
 	case 11:
 		Pendaftaran := models.PendaftaranBCM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -719,7 +778,11 @@ func UpdatePendaftaranView(c *gin.Context) {
 	// Kategori ASM
 	case 12:
 		Pendaftaran := models.PendaftaranASM{}
-		errSQL := collection.FindOne(ctx, filter).Decode(&Pendaftaran)
+
+		// Set Projection
+		filterProjection := FilterProjection(claims.Role)
+		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
+
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -790,12 +853,44 @@ func DeletePendaftaran(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func FilterProjection(role int) bson.D {
+func FilterProjection(role int32) bson.D {
 	var projection bson.D
 	switch role {
 	// Admin
 	case 1:
-		projection = bson.D{}
+		projection = bson.D{
+			// {"persetujuan.level_persetujuan", 1},
+			// {"persetujuan.kategori_program", 1},
+			{"persetujuan.proposal", 0},
+			{"persetujuan.disposisi_pic", 0},
+			{"persetujuan.perihal", 0},
+			{"persetujuan.tanggal_disposisi", 0},
+			{"persetujuan.verifikator_nama", 0},
+			{"persetujuan.manager_nama", 0},
+			{"persetujuan.pic_nama", 0},
+			{"persetujuan.kadiv_nama", 0},
+			{"persetujuan.verifikator_tanggal", 0},
+			{"persetujuan.manager_tanggal", 0},
+			{"persetujuan.kadiv_tanggal", 0},
+			{"persetujuan.pic_tanggal", 0},
+			{"persetujuan.keterangan_pic", 0},
+			{"persetujuan.keterangan_manager", 0},
+			{"persetujuan.keterangan_kadiv", 0},
+			{"persetujuan.status_persetujuan_pic", 0},
+			{"persetujuan.status_persetujuan_manager", 0},
+			{"persetujuan.status_persetujuan_kadiv", 0},
+			{"persetujuan.status_persetujuan", 0},
+			{"persetujuan.tanggal_persetujuan", 0},
+			{"persetujuan.sumber_dana", 0},
+			{"persetujuan.ppd_pic", 0},
+			{"persetujuan.ppd_manager", 0},
+			{"persetujuan.ppd_kadiv", 0},
+			{"persetujuan.ppd_keuangan", 0},
+			{"persetujuan.jumlah_pencairan", 0},
+			{"persetujuan.tanggal_pencairan", 0},
+			{"persetujuan.keterangan", 0},
+			{"verifikasi", 0},
+		}
 	// PIC
 	case 2:
 		projection = bson.D{
@@ -819,8 +914,42 @@ func FilterProjection(role int) bson.D {
 	case 5:
 	// Keuangan
 	case 6:
-
+	// Verfikator
+	case 7:
+		projection = bson.D{
+			// {"persetujuan.level_persetujuan", 1},
+			// {"persetujuan.kategori_program", 1},
+			{"persetujuan.proposal", 0},
+			{"persetujuan.disposisi_pic", 0},
+			{"persetujuan.perihal", 0},
+			{"persetujuan.tanggal_disposisi", 0},
+			{"persetujuan.verifikator_nama", 0},
+			{"persetujuan.manager_nama", 0},
+			{"persetujuan.pic_nama", 0},
+			{"persetujuan.kadiv_nama", 0},
+			{"persetujuan.verifikator_tanggal", 0},
+			{"persetujuan.manager_tanggal", 0},
+			{"persetujuan.kadiv_tanggal", 0},
+			{"persetujuan.pic_tanggal", 0},
+			{"persetujuan.keterangan_pic", 0},
+			{"persetujuan.keterangan_manager", 0},
+			{"persetujuan.keterangan_kadiv", 0},
+			{"persetujuan.status_persetujuan_pic", 0},
+			{"persetujuan.status_persetujuan_manager", 0},
+			{"persetujuan.status_persetujuan_kadiv", 0},
+			{"persetujuan.status_persetujuan", 0},
+			{"persetujuan.tanggal_persetujuan", 0},
+			{"persetujuan.sumber_dana", 0},
+			{"persetujuan.ppd_pic", 0},
+			{"persetujuan.ppd_manager", 0},
+			{"persetujuan.ppd_kadiv", 0},
+			{"persetujuan.ppd_keuangan", 0},
+			{"persetujuan.jumlah_pencairan", 0},
+			{"persetujuan.tanggal_pencairan", 0},
+			{"persetujuan.keterangan", 0},
+		}
 	}
+
 	return projection
 }
 
@@ -829,40 +958,43 @@ func FilterRole(role int32) bson.M {
 	switch role {
 	// Admin
 	case 1, 5:
-		filter = bson.M{}
+		// }
+		filter = bson.M{
+			"$gte": 0,
+		}
 	// PIC
 	case 2:
+		// filter = bson.M{
+		// 	"persetujuan.level_persetujuan": bson.M{
+		// 		"$gt": 1,
+		// 	},
+		// }
 		filter = bson.M{
-			"persetujuan.level_persetujuan": bson.M{
-				"$gt": 0,
-			},
+			"$gt": 1,
 		}
 	// Manager
 	case 3:
 		filter = bson.M{
-			"persetujuan.level_persetujuan": bson.M{
-				"$gt": 1,
-			},
+			"$gt": 2,
 		}
 	// Kadiv
 	case 4:
 		filter = bson.M{
-			"persetujuan.level_persetujuan": bson.M{
-				"$gt": 2,
-			},
+			"$gt": 3,
 		}
 	case 6:
 		filter = bson.M{
-			"persetujuan.level_persetujuan": bson.M{
-				"$gt": 3,
-			},
+			"$gt": 4,
+		}
+	case 7:
+		filter = bson.M{
+			"$gte": 0,
+			"$lte": 1,
 		}
 	default:
 		{
 			filter = bson.M{
-				"persetujuan.level_persetujuan": bson.M{
-					"$gt": 10,
-				},
+				"$gt": 10,
 			}
 		}
 	}
@@ -881,7 +1013,7 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 	)
 
 	switch role {
-	case 1, 5:
+	case 1, 5, 7:
 		err = c.ShouldBindBodyWith(&Kat, binding.JSON)
 		if err != nil {
 			fmt.Println(err)
@@ -923,182 +1055,388 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 1:
 			Pendaftaran := models.PendaftaranKSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				// {"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				}
 			}
 		case 2:
 			Pendaftaran := models.PendaftaranRBM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+				}
 			}
 		// Kategori PAUD
 		case 3:
 			Pendaftaran := models.PendaftaranPAUD{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.cabang", Pendaftaran.Kategoris.Cabang},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.cabang", Pendaftaran.Kategoris.Cabang},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				}
 			}
 		// Kategori KAFALA
 		case 4:
 			Pendaftaran := models.PendaftaranKAFALA{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.ui_id", Pendaftaran.Kategoris.Ui_id},
-				{"kategoris.pengasuh", Pendaftaran.Kategoris.Pengasuh},
-				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"kategoris.ytm", Pendaftaran.Kategoris.Ytm},
-				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.ui_id", Pendaftaran.Kategoris.Ui_id},
+					{"kategoris.pengasuh", Pendaftaran.Kategoris.Pengasuh},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+					{"kategoris.ytm", Pendaftaran.Kategoris.Ytm},
+					{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				}
 			}
 		// Kategori JSM
 		case 5:
 			Pendaftaran := models.PendaftaranJSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.afiliasi", Pendaftaran.Kategoris.Afiliasi},
-				{"kategoris.non_afiliasi", Pendaftaran.Kategoris.Non_afiliasi},
-				{"kategoris.bidang", Pendaftaran.Kategoris.Bidang},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.afiliasi", Pendaftaran.Kategoris.Afiliasi},
+					{"kategoris.non_afiliasi", Pendaftaran.Kategoris.Non_afiliasi},
+					{"kategoris.bidang", Pendaftaran.Kategoris.Bidang},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				}
 			}
 		// Kategori DZM
 		case 6:
 			Pendaftaran := models.PendaftaranDZM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.jenis_infrastruktur", Pendaftaran.Kategoris.Jenis_infrastruktur},
-				{"kategoris.volume", Pendaftaran.Kategoris.Volume},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.jumlah_penduduk_desa", Pendaftaran.Kategoris.Jumlah_penduduk_desa},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.jenis_infrastruktur", Pendaftaran.Kategoris.Jenis_infrastruktur},
+					{"kategoris.volume", Pendaftaran.Kategoris.Volume},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.jumlah_penduduk_desa", Pendaftaran.Kategoris.Jumlah_penduduk_desa},
+				}
 			}
 		// Kategori BSU
 		case 7:
 			Pendaftaran := models.PendaftaranBSU{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
-				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				{"kategoris.pendapatan_perhari", Pendaftaran.Kategoris.Pendapatan_perhari},
-				{"kategoris.jenis_produk", Pendaftaran.Kategoris.Jenis_produk},
-				{"kategoris.aset", Pendaftaran.Kategoris.Aset},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+					{"kategoris.pendapatan_perhari", Pendaftaran.Kategoris.Pendapatan_perhari},
+					{"kategoris.jenis_produk", Pendaftaran.Kategoris.Jenis_produk},
+					{"kategoris.aset", Pendaftaran.Kategoris.Aset},
+				}
 			}
 		// Kategori Rescue
 		case 8:
 			Pendaftaran := models.PendaftaranRescue{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.skala_bencana", Pendaftaran.Kategoris.Skala_bencana},
-				{"kategoris.tanggal_respon_bencana", Pendaftaran.Kategoris.Tanggal_respon_bencana},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.tahapan_bencana", Pendaftaran.Kategoris.Tahapan_bencana},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.skala_bencana", Pendaftaran.Kategoris.Skala_bencana},
+					{"kategoris.tanggal_respon_bencana", Pendaftaran.Kategoris.Tanggal_respon_bencana},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.tahapan_bencana", Pendaftaran.Kategoris.Tahapan_bencana},
+				}
 			}
 		// Kategori BTM
 		case 9:
 			Pendaftaran := models.PendaftaranBTM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+					{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+					{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				}
 			}
 		// Kategori BSM
 		case 10:
 			Pendaftaran := models.PendaftaranBSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"kategoris.semester", Pendaftaran.Kategoris.Semester},
-				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				{"kategoris.karya", Pendaftaran.Kategoris.Karya},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+					{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+					{"kategoris.semester", Pendaftaran.Kategoris.Semester},
+					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+					{"kategoris.karya", Pendaftaran.Kategoris.Karya},
+				}
 			}
 		// Kategori BCM
 		case 11:
 			Pendaftaran := models.PendaftaranBCM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
-				{"kategoris.karya", Pendaftaran.Kategoris.Karya},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+					{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+					{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+					{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+					{"kategoris.karya", Pendaftaran.Kategoris.Karya},
+				}
 			}
 		// Kategori ASM
 		case 12:
 			Pendaftaran := models.PendaftaranASM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			updateFilter = bson.D{
-				{"tangal_proposal", Pendaftaran.Tanggal_proposal},
-				{"kategori", Pendaftaran.Kategori_program},
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-				{"kategoris.komunitas", Pendaftaran.Kategoris.Komunitas},
-				{"kategoris.kegiatan", Pendaftaran.Kategoris.Kegiatan},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			if role == 7 {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				}
+			} else {
+				updateFilter = bson.D{
+					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+					{"judul_proposal", Pendaftaran.Judul_proposal},
+					{"kategori", Pendaftaran.Kategori_program},
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+					{"kategoris.komunitas", Pendaftaran.Kategoris.Komunitas},
+					{"kategoris.kegiatan", Pendaftaran.Kategoris.Kegiatan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				}
 			}
 		default:
 			{

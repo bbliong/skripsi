@@ -15,6 +15,8 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.AllowAll())
 
+	router.Use(static.Serve("/", static.LocalFile("./frontend", true)))
+
 	//Membuat port untuk handlernya
 	router.Use(static.Serve("/img", static.LocalFile("./img", true)))
 

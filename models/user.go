@@ -52,3 +52,7 @@ func (c Claims) IsAdmP() bool {
 func (c Claims) IsKeuangan() bool {
 	return c.Role == 6
 }
+
+func (c Claims) IsVerifikator() bool {
+	return c.Role == 7
+}

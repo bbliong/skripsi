@@ -68,7 +68,6 @@ func GetAllMuztahik(c *gin.Context) {
 	for cursor.Next(ctx) {
 		var Muztahik models.Muztahik
 		cursor.Decode(&Muztahik)
-		fmt.Println(Muztahik)
 		// masukan kedalam array struct
 		Muztahiks = append(Muztahiks, Muztahik)
 	}
@@ -237,7 +236,6 @@ func DeleteMuztahik(c *gin.Context) {
 	result, errSQL := collection.DeleteOne(ctx, filter)
 	if errSQL != nil {
 		// If the structure of the body is wrong, return an HTTP error
-		fmt.Println(errSQL)
 		c.JSON(500, gin.H{
 			"Message": "Internal Server Error ",
 		})

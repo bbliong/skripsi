@@ -35,6 +35,7 @@ type Paud struct {
 
 // Kafala (Program Kerjasama)
 type Kafala struct {
+	Kategori       string `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Asnaf          string    `json:"asnaf,omitempty" bson:"asnaf,omitempty"`
 	Sub_program    string    `json:"sub_program,omitempty" bson:"sub_program,omitempty"`
 	Ui_id          string    `json:"ui_id,omitempty" bson:"ui_id,omitempty"`
