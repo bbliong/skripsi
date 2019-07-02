@@ -19,7 +19,7 @@ func Connect() *mongo.Database {
 		log.Fatal("Error loading .env file")
 	}
 
-	CONNECTIONSTRING := os.Getenv("DBTYPE") + "://" + os.Getenv("DBSERVER") + ":" + os.Getenv("DBPORT")
+	CONNECTIONSTRING := os.Getenv("DBTYPE") + "://" + os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("DBSERVER") + ":" + os.Getenv("DBPORT") + "/" + os.Getenv("DBNAME")
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(CONNECTIONSTRING))
 
