@@ -1,12 +1,17 @@
 package main
 
 import (
+	"path"
+	"path/filepath"
+
+	"github.com/gin-gonic/contrib/static"
+
 	"github.com/bbliong/sim-bmm/Auth"
 	"github.com/bbliong/sim-bmm/controller"
 	//"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	// "github.com/itsjamie/gin-cors"
-	"github.com/gin-gonic/contrib/static"
+
 	cors "github.com/rs/cors/wrapper/gin"
 )
 
@@ -15,9 +20,9 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.AllowAll())
 
-	router.Use(static.Serve("/", static.LocalFile("./frontend", true)))
+	// router.Use(static.Serve("/", static.LocalFile("./frontend", true)))
 
-	//Membuat port untuk handlernya
+	// //Membuat port untuk handlernya
 	router.Use(static.Serve("/img", static.LocalFile("./img", true)))
 
 	api := router.Group("/api")
@@ -67,5 +72,19 @@ func main() {
 
 	}
 
+	// router.Use(static.Serve("/", static.LocalFile("./frontend", true)))
+
+	// Masalah 404
+	router.NoRoute(func(c *gin.Context) {
+		dir, file := path.Split(c.Request.RequestURI)
+		ext := filepath.Ext(file)
+
+		if file == "" || ext == "" {
+			c.File("./frontend/index.html")
+		} else {
+			// strings.Split(file, "?")
+			c.File("./frontend" + path.Join(dir, file))
+		}
+	})
 	router.Run(":3000")
 }
