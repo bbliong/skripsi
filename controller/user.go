@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/bbliong/sim-bmm/config"
 	"github.com/bbliong/sim-bmm/helper"
@@ -29,7 +32,7 @@ func GetAllUser(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	if claims.IsAdmin() {
+	if claims.IsAdmin() || claims.IsMGR() {
 		fmt.Println("You have permission for this access")
 	} else {
 		c.JSON(500, gin.H{
@@ -44,17 +47,38 @@ func GetAllUser(c *gin.Context) {
 	// Menentukan waktu koneksi query
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	// untuk filter data
-	// projection := bson.D{
-	// 	{"kecamatan", 0},
-	// 	{"kabupaten/kota", 0},
-	// }
+	// Fungi jika terdapat filter yang dikirim kan lewat parameter
+	search := c.Request.URL.Query()
+	filter := bson.M{}
 
+	if len(search) > 0 {
+		for key, val := range search {
+			if key == "role" {
+				i, err := strconv.Atoi(val[0])
+				if err != nil {
+					i = 0
+				}
+				if _, exist := filter["$or"]; !exist {
+					filter["$or"] = []bson.M{}
+				}
+				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{
+					"role": bson.M{
+						"$gte": i,
+						"$lte": i + 1,
+					},
+				})
+			} else {
+				if _, exist := filter["$or"]; !exist {
+					filter["$or"] = []bson.M{}
+				}
+				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: primitive.Regex{Pattern: val[0], Options: "i"}})
+			}
+		}
+	}
+	fmt.Println(filter)
 	//get data taro di cursor
-	cursor, err := collection.Find(ctx, bson.M{})
-
-	// set projection
-	//cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := collection.Find(ctx, filter)
+	fmt.Println(cursor.Next(ctx))
 	if err != nil {
 		result := gin.H{
 			"Status": "Internal Server Error",
@@ -68,7 +92,6 @@ func GetAllUser(c *gin.Context) {
 	for cursor.Next(ctx) {
 		var User models.Users
 		cursor.Decode(&User)
-		fmt.Println(User)
 		// masukan kedalam array struct
 		Users = append(Users, User)
 	}
@@ -166,6 +189,7 @@ func CreateUser(c *gin.Context) {
 	filter := bson.D{{"nama", User.Username}}
 
 	errSQL := collection.FindOne(ctx, filter).Decode(&UserBson)
+
 	if errSQL == nil {
 		// If the structure of the body is wrong, return an HTTP error
 		c.JSON(200, gin.H{
@@ -187,6 +211,7 @@ func CreateUser(c *gin.Context) {
 // CreateUser fungsi untuk membuat data User
 func UpdateUser(c *gin.Context) {
 
+	fmt.Println("halo")
 	var (
 		User models.Users
 	)
@@ -219,10 +244,21 @@ func UpdateUser(c *gin.Context) {
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
 	filter := bson.D{{"_id", _id}}
+	var errs error
+	var result *mongo.UpdateResult
 
-	User.Password, err = helper.HashPassword(User.Password)
-
-	result, errs := collection.UpdateOne(ctx, filter, bson.D{{"$set", User}})
+	if User.Password == "" {
+		updateFilter := bson.D{
+			{"usernamea", User.Username},
+			{"nama", User.Name},
+			{"email", User.Email},
+			{"role", User.Role},
+		}
+		result, errs = collection.UpdateOne(ctx, filter, bson.D{{"$set", updateFilter}})
+	} else {
+		User.Password, err = helper.HashPassword(User.Password)
+		result, errs = collection.UpdateOne(ctx, filter, bson.D{{"$set", User}})
+	}
 
 	if errs != nil {
 		c.JSON(500, gin.H{

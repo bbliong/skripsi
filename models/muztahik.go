@@ -40,15 +40,21 @@ func (m Muztahik) IsEmpty() bool {
 }
 
 type Persetujuan struct {
-	Proposal                   int32      `json:"Proposal,omitempty" bson:"proposal,omitempty"`
-	Disposisi_pic              string     `json:"disposisi_pic,omitempty" bson:"disposisi_pic,omitempty"`
-	Perihal                    string     `json:"perihal,omitempty" bson:"perihal,omitempty"`
-	Tanggal_disposisi          *time.Time `json:"tanggal_disposisi,omitempty" bson:"tanggal_disposisi ,omitempty"`
-	Verifikator_nama           string     `json:"verifikator_nama,omitempty" bson:"verifikator_nama,omitempty"`
-	Manager_nama               string     `json:"manager_nama,omitempty" bson:"manager_nama,omitempty"`
-	Pic_nama                   string     `json:"pic_nama,omitempty" bson:"pic_nama,omitempty"`
-	Kadiv_nama                 string     `json:"kadiv_nama,omitempty" bson:"kadiv_nama,omitempty"`
-	Verifikator_tanggal        *time.Time `json:"verifikator_tanggal,omitempty" bson:"verifikator_tanggal,omitempty"`
+	Proposal          int32              `json:"Proposal,omitempty" bson:"proposal,omitempty"`
+	Disposisi_pic     string             `json:"disposisi_pic,omitempty" bson:"disposisi_pic,omitempty"`
+	Disposisi_pic_id  primitive.ObjectID `json:"disposisi_pic_id,omitempty" bson:"disposisi_pic_id,omitempty"`
+	Manager           primitive.ObjectID `json:"manager_id,omitempty" bson:"manager_id,omitempty"`
+	Perihal           string             `json:"perihal,omitempty" bson:"perihal,omitempty"`
+	Tanggal_disposisi *time.Time         `json:"tanggal_disposisi,omitempty" bson:"tanggal_disposisi ,omitempty"`
+
+	//Field akan di update setiap simpan UPD
+	Verifikator_nama    string     `json:"verifikator_nama,omitempty" bson:"verifikator_nama,omitempty"`
+	Verifikator_tanggal *time.Time `json:"verifikator_tanggal,omitempty" bson:"verifikator_tanggal,omitempty"`
+
+	Manager_nama string `json:"manager_nama,omitempty" bson:"manager_nama,omitempty"`
+	Pic_nama     string `json:"pic_nama,omitempty" bson:"pic_nama,omitempty"`
+	Kadiv_nama   string `json:"kadiv_nama,omitempty" bson:"kadiv_nama,omitempty"`
+
 	Manager_tanggal            *time.Time `json:"manager_tanggal,omitempty" bson:"manager_tanggal,omitempty"`
 	Kadiv_tanggal              *time.Time `json:"kadiv_tanggal,omitempty" bson:"kadiv_tanggal,omitempty"`
 	Pic_tanggal                *time.Time `json:"pic_tanggal,omitempty" bson:"pic_tanggal,omitempty"`
@@ -82,6 +88,7 @@ type PendaftaranKSM struct {
 	Kategoris        Ksm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranRBM struct {
@@ -94,6 +101,7 @@ type PendaftaranRBM struct {
 	Kategoris        Rbm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranPAUD struct {
@@ -106,6 +114,7 @@ type PendaftaranPAUD struct {
 	Kategoris        Paud               `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranKAFALA struct {
@@ -118,6 +127,7 @@ type PendaftaranKAFALA struct {
 	Kategoris        Kafala             `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranJSM struct {
@@ -130,6 +140,7 @@ type PendaftaranJSM struct {
 	Kategoris        Jsm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranDZM struct {
@@ -142,6 +153,7 @@ type PendaftaranDZM struct {
 	Kategoris        Dzm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranBSU struct {
@@ -154,6 +166,7 @@ type PendaftaranBSU struct {
 	Kategoris        Bsu                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranRescue struct {
@@ -166,6 +179,7 @@ type PendaftaranRescue struct {
 	Kategoris        Br                 `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranBTM struct {
@@ -178,6 +192,7 @@ type PendaftaranBTM struct {
 	Kategoris        Btm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranBSM struct {
@@ -190,6 +205,7 @@ type PendaftaranBSM struct {
 	Kategoris        Bsm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranBCM struct {
@@ -202,6 +218,7 @@ type PendaftaranBCM struct {
 	Kategoris        Bcm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type PendaftaranASM struct {
@@ -214,6 +231,7 @@ type PendaftaranASM struct {
 	Kategoris        Asm                `json:"kategoris,omitempty" bson:"kategoris,omitempty"`
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
+	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 }
 
 type Verifikasi struct {
@@ -239,4 +257,19 @@ type Hasil_verif struct {
 	Kelengkapan_adm  string `json:"kelengkapan_adm,omitempty" bson:"kelengkapan_adm,omitempty"`
 	Direkomendasikan string `json:"direkomendasikan,omitempty" bson:"direkomendasikan,omitempty"`
 	Dokumentasi      string `json:"dokumentasi,omitempty" bson:"dokumentasi,omitempty"`
+}
+
+type Upd struct {
+	Tujuan             []string  `json:"tujuan,omitempty" bson:"tujuan,omitempty"`
+	Latar_belakang     []string  `json:"latar_belakang,omitempty" bson:"latar_belakang,omitempty"`
+	Analisis_kelayakan []string  `json:"analisis_kelayakan,omitempty" bson:"analisis_kelayakan,omitempty"`
+	Program_penyaluran Program_p `json:"program_penyaluran,omitempty" bson:"program_penyaluran,omitempty"`
+	Rekomendasi        []string  `json:"rekomendasi,omitempty" bson:"rekomendasi,omitempty"`
+	Url                string    `json:"url,omitempty" bson:"url,omitempty"`
+}
+
+type Program_p struct {
+	Pelaksana_teknis string `json:"pelaksana_teknis,omitempty" bson:"pelaksana_teknis,omitempty"`
+	Alur_biaya       string `json:"alur_biaya,omitempty" bson:"alur_biaya,omitempty"`
+	Penanggung_jawab string `json:"penanggung_jawab,omitempty" bson:"penanggung_jawab,omitempty"`
 }

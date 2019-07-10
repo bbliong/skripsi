@@ -1,0 +1,27 @@
+{
+  "name": "global-variable",
+  "description": "Polymer element that allows share data between non-relatives elements.",
+  "main": "global-variable.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.6.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0",
+    "paper-input": "^1.1.22"
+  },
+  "homepage": "https://github.com/trofrigo/global-variable",
+  "version": "0.1.4",
+  "_release": "0.1.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.4",
+    "commit": "d2a926fb2581d98687e4f5dfe1923bd41225708f"
+  },
+  "_source": "https://github.com/trofrigo/global-variable.git",
+  "_target": "^0.1.4",
+  "_originalSource": "trofrigo/global-variable",
+  "_direct": true
+}

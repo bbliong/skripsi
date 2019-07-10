@@ -1,52 +1,33 @@
-define(["exports","./my-app.js"],function(_exports,_myApp){"use strict";Object.defineProperty(_exports,"__esModule",{value:!0});_exports.PasswordFieldElement=_exports.$vaadinPasswordField=void 0;const $_documentContainer=document.createElement("template");$_documentContainer.innerHTML=`<custom-style>
-  <style>
-    @font-face {
-      font-family: 'vaadin-password-field-icons';
-      src: url(data:application/font-woff;charset=utf-8;base64,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) format('woff');
-      font-weight: normal;
-      font-style: normal;
-    }
-  </style>
-</custom-style><dom-module id="vaadin-password-field-template">
-  <template>
-    <style>
-      /* Hide the native eye icon for IE/Edge */
-      ::-ms-reveal {
-        display: none;
-      }
+/**
+ * @license
+ * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
 
-      [part="reveal-button"][hidden] {
-        display: none !important;
-      }
-    </style>
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import './shared-styles.js';
 
-    <div part="reveal-button" on-mousedown="_revealButtonMouseDown" on-touchend="_togglePasswordVisibilityTouchend" on-click="_togglePasswordVisibility" hidden\$="[[revealButtonHidden]]">
-    </div>
-  </template>
-  
-</dom-module>`;document.head.appendChild($_documentContainer.content);let memoizedTemplate;class PasswordFieldElement extends _myApp.TextFieldElement{static get is(){return"vaadin-password-field"}static get version(){return"2.4.3"}static get properties(){return{revealButtonHidden:{type:Boolean,value:!1},passwordVisible:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_passwordVisibleChange",readOnly:!0}}}static get template(){if(!memoizedTemplate){memoizedTemplate=super.template.cloneNode(!0);const thisTemplate=_myApp.DomModule.import(this.is+"-template","template"),revealButton=thisTemplate.content.querySelector("[part=\"reveal-button\"]"),styles=thisTemplate.content.querySelector("style"),inputField=memoizedTemplate.content.querySelector("[part=\"input-field\"]");inputField.appendChild(revealButton);memoizedTemplate.content.appendChild(styles)}return memoizedTemplate}ready(){super.ready();this.inputElement.type="password";this.inputElement.autocapitalize="off";this.addEventListener("focusout",()=>{if(!this._passwordVisibilityChanging){this._setPasswordVisible(!1);if(this._cachedChangeEvent){this._onChange(this._cachedChangeEvent)}}})}_onChange(e){const slotted=this.querySelector(`${this._slottedTagName}[slot="${this._slottedTagName}"]`);if(slotted){e.stopPropagation()}if(this._passwordVisibilityChanging){this._cachedChangeEvent=e}else{this._cachedChangeEvent=null;super._onChange(e)}}_revealButtonMouseDown(e){if(this.hasAttribute("focused")){e.preventDefault()}}_togglePasswordVisibilityTouchend(e){e.preventDefault();this._togglePasswordVisibility();this.inputElement.focus()}_togglePasswordVisibility(){this._passwordVisibilityChanging=!0;this.inputElement.blur();this._setPasswordVisible(!this.passwordVisible);this.inputElement.focus();this._passwordVisibilityChanging=!1}_passwordVisibleChange(passwordVisible){this.inputElement.type=passwordVisible?"text":"password"}}_exports.PasswordFieldElement=PasswordFieldElement;customElements.define(PasswordFieldElement.is,PasswordFieldElement);var vaadinPasswordField={PasswordFieldElement:PasswordFieldElement};_exports.$vaadinPasswordField=vaadinPasswordField;const $_documentContainer$1=_myApp.html$1`<dom-module id="lumo-password-field" theme-for="vaadin-password-field">
-  <template>
-    <style>
-      [part="reveal-button"]::before {
-        content: var(--lumo-icons-eye);
-      }
+// iron component
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/iron-localstorage/iron-localstorage.js';
 
-      :host([password-visible]) [part="reveal-button"]::before {
-        content: var(--lumo-icons-eye-disabled);
-      }
+// vaadin component
+import '@vaadin/vaadin-button/vaadin-button.js';
+import '@vaadin/vaadin-text-field/vaadin-text-field.js';
+import '@vaadin/vaadin-text-field/vaadin-password-field.js';
 
-      /* Make it easy to hide the button across the whole app */
-      [part="reveal-button"] {
-        display: var(--lumo-password-field-reveal-button-display, block);
-      }
+//paper component
+import '@polymer/paper-toast/paper-toast.js';
 
-      /* FIXME: ShadyCSS workaround for slotted input in Edge */
-      [part="input-field"] ::slotted(input)::-ms-reveal {
-        display: none;
-      }
-    </style>
-  </template>
-</dom-module>`;document.head.appendChild($_documentContainer$1.content);class Login extends _myApp.PolymerElement{static get template(){return _myApp.html`
+
+
+class Login extends PolymerElement {
+    static get template() {
+        return html`
             <style include="shared-styles">
                 :host {
                 display: block;
@@ -118,8 +99,8 @@ define(["exports","./my-app.js"],function(_exports,_myApp){"use strict";Object.d
                             <img src="./images/logo-bmm.png" width="auto" height="110">
                         </div>
                         <div class="input">
-                            <vaadin-text-field label="Username" placeholder="Enter Username" value="{{userInput.username}}"></vaadin-text-field>
-                            <vaadin-password-field label="Password" placeholder="Enter password" value="{{userInput.password}}"></vaadin-password-field>
+                            <vaadin-text-field label="Username" placeholder="Enter Username" value="{{userInput.username}}" class="login"></vaadin-text-field>
+                            <vaadin-password-field label="Password" placeholder="Enter password" value="{{userInput.password}}" class="login"></vaadin-password-field>
                             <vaadin-button on-click="_loginAccess">Login</vaadin-button>
                         </div>
 
@@ -129,7 +110,6 @@ define(["exports","./my-app.js"],function(_exports,_myApp){"use strict";Object.d
             </div>
             <iron-ajax
                 id="LoginPost"
-                auto
                 headers='{"Access-Control-Allow-Origin": "*"}'
                 handle-as="json"
                 method="POST"
@@ -140,4 +120,70 @@ define(["exports","./my-app.js"],function(_exports,_myApp){"use strict";Object.d
             </iron-ajax>
             <app-location route="{{route}}"></app-location>
             <iron-localstorage name="login-bmm" value="{{storedUser}}"></iron-localstorage>
-        `}static get properties(){return{userInput:{type:Object,notify:!0,value:()=>{return{username:"",password:""}}},storedUser:Object,error:String}}_loginAccess(){console.log(MyAppGlobals.apiPath);this.$.LoginPost.url=MyAppGlobals.apiPath+"/api/signin";this.$.LoginPost.body=this.userInput;this.$.LoginPost.generateRequest()}_loginResponse(event){var response=event.detail.response;if(response.token){this.error="";this.storedUser={name:response.nama,access_token:response.token,role:response.role,loggedin:!0};localStorage.setItem("login-bmm",JSON.stringify(this.storedUser));this.set("route.path","/panel")}}_loginError(event){console.log(event);this.$.toast.open()}}window.customElements.define("bmm-login",Login)});
+        `;
+    }
+
+    static get properties(){
+        return {
+            userInput  : {
+                type : Object,
+                notify : true,
+                value : () => {
+                    return { 
+                        "username" : "",
+                        "password" : ""
+                    }
+                }
+            },
+            storedUser: Object,
+            error : String,
+        }
+    }
+
+    ready(){
+        super.ready()
+        var that =this
+        var login =  this.shadowRoot.querySelectorAll(".login")
+        for (var i = 0; i < login.length; i++) {
+            login[i].addEventListener("keyup", function(e){
+                if (e.keyCode == 13) {
+                    console.log("prent")
+                    that._loginAccess()
+                }
+            })
+        }
+    }
+
+    _loginAccess(){
+        console.log("halo")
+        this.$.LoginPost.url= MyAppGlobals.apiPath + "/api/signin"
+        this.$.LoginPost.body  = this.userInput
+        this.$.LoginPost.generateRequest();
+    }
+
+    _loginResponse(event){
+        var response = event.detail.response;
+        
+        if(response.token) {
+            this.error =""
+            this.storedUser = {
+                name :response.nama,
+                access_token : response.token,
+                role : response.role,
+                loggedin :true
+            }
+            localStorage.setItem('login-bmm', JSON.stringify(this.storedUser))
+            this.set('route.path', '/panel');
+        }
+
+    }
+
+    _loginError(event){
+        console.log(event)
+        this.$.toast.open();
+    }
+}
+
+    
+
+window.customElements.define('bmm-login', Login);

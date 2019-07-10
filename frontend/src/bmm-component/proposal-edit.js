@@ -1,4 +1,45 @@
-define(["require","../my-app.js"],function(_require,_myApp){"use strict";_require=babelHelpers.interopRequireWildcard(_require);class ProposalEdit extends _myApp.PolymerElement{static get template(){return _myApp.html`
+/**
+ * @license
+ * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
+import './../shared-styles.js';
+
+//polymer
+
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/iron-pages/iron-pages.js';
+import '@polymer/app-route/app-location.js';
+import '@polymer/paper-toast/paper-toast.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/iron-localstorage/iron-localstorage.js';
+
+
+//Vaadin
+import '@vaadin/vaadin-text-field/vaadin-text-field.js';
+import '@vaadin/vaadin-text-field/vaadin-text-area.js';
+import '@vaadin/vaadin-form-layout/vaadin-form-layout.js';
+import '@vaadin/vaadin-select/vaadin-select.js';
+import '@vaadin/vaadin-list-box/vaadin-list-box.js';
+import '@vaadin/vaadin-item/vaadin-item.js';
+
+//Other
+import 'global-variable-migration/global-data.js';
+import 'global-variable-migration/global-variable.js';
+
+
+
+class ProposalEdit extends PolymerElement {
+  static get template() {
+    return html`
       <style include="shared-styles">
         :host {
           display: block;
@@ -48,18 +89,18 @@ define(["require","../my-app.js"],function(_require,_myApp){"use strict";_requir
         <h1>Pendaftaran Proposal</h1>
           <div class="wrap">
             <iron-pages selected="[[selectedKategori]]"  attr-for-selected="name">
-              <bmm-kategori-ksm name="1" subKategori="{{subkategori}}"></bmm-kategori-ksm>
-              <bmm-kategori-rbm name="2" subKategori="{{subkategori}}"></bmm-kategori-rbm>
-              <bmm-kategori-paud name="3" subKategori="{{subkategori}}"></bmm-kategori-paud>
-              <bmm-kategori-kafala name="4" subKategori="{{subkategori}}"></bmm-kategori-kafala>
-              <bmm-kategori-jsm name="5" subKategori="{{subkategori}}"></bmm-kategori-jsm>
-              <bmm-kategori-dzm name="6" subKategori="{{subkategori}}"></bmm-kategori-dzm>
-              <bmm-kategori-bsu name="7" subKategori="{{subkategori}}"></bmm-kategori-bsu>
-              <bmm-kategori-br name="8" subKategori="{{subkategori}}"></bmm-kategori-br>
-              <bmm-kategori-btm name="9" subKategori="{{subkategori}}"></bmm-kategori-btm>
-              <bmm-kategori-bsm name="10" subKategori="{{subkategori}}"></bmm-kategori-bsm>
-              <bmm-kategori-bcm name="11" subKategori="{{subkategori}}"></bmm-kategori-bcm>
-              <bmm-kategori-asm name="12" subKategori="{{subkategori}}"></bmm-kategori-asm>
+              <bmm-kategori-ksm name="1" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-ksm>
+              <bmm-kategori-rbm name="2" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-rbm>
+              <bmm-kategori-paud name="3" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-paud>
+              <bmm-kategori-kafala name="4" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-kafala>
+              <bmm-kategori-jsm name="5" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-jsm>
+              <bmm-kategori-dzm name="6" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-dzm>
+              <bmm-kategori-bsu name="7" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-bsu>
+              <bmm-kategori-br name="8" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-br>
+              <bmm-kategori-btm name="9" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-btm>
+              <bmm-kategori-bsm name="10" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-bsm>
+              <bmm-kategori-bcm name="11" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-bcm>
+              <bmm-kategori-asm name="12" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-asm>
             </iron-pages>
         </div> 
 
@@ -100,8 +141,199 @@ define(["require","../my-app.js"],function(_require,_myApp){"use strict";_requir
           debounce-duration="300">
       </iron-ajax>
 
+      <iron-ajax
+          auto 
+          id="managerDPP"
+          headers='{"Access-Control-Allow-Origin": "*" }'
+          handle-as="json"
+          method="GET"
+          on-response="_handleManager"
+          on-error="_errorManager"
+          Content-Type="application/json"
+          debounce-duration="300">
+      </iron-ajax>
+      
       <div class="toast">
          <paper-toast text="{{toastError}}" id="toastError" ></paper-toast>
       </div>
 
-    `}static get properties(){return{Kategori:{type:Array,notify:!0},storedUser:{type:Object,notify:!0},regObj:{type:Object,notify:!0,value:function(){return{}}},nama:{type:String,notify:!0},toastError:String,resID:String,selectedKategori:Number,subkategori:{type:Array,notify:!0,value:function(){return[]}}}}inisialRegObj(){this.regObj={}}static get observers(){return["_routePageChanged(routeData.*)","_kategoriSelected(selectedKategori)"]}_routePageChanged(page){this.$.datass.url=MyAppGlobals.apiPath+"/api/kategori";this.$.datass.headers.authorization=this.storedUser.access_token;this.$.datass.generateRequest()}_handleProposal(e){this.regObj=e.detail.response.Data;this.selectedKategori=this.routeData.kat}_handleProposalError(e){this.set("route.path","/panel/proposal")}_handleProposalPost(e){this.set("route.path","/panel/proposal")}_handleProposalPostError(e){this.set("route.path","/panel/proposal")}_handleKategori(e){var response=e.detail.response;this.subkategori=response.data.filter(x=>x.KodeP==this.routeData.kat)[0].sub;this.$.getData.url=MyAppGlobals.apiPath+"/api/pendaftaran/"+this.routeData.kat+"/"+this.routeData.id;this.$.getData.headers.authorization=this.storedUser.access_token}_errorKategori(e){}sendData(){console.log(this.regObj);this.$.postData.url=MyAppGlobals.apiPath+"/api/pendaftaran/"+this.routeData.id;this.$.postData.headers.authorization=this.storedUser.access_token;this.$.postData.body=this.regObj;this.$.postData.generateRequest()}_kategoriSelected(e){switch(e){case"1":new Promise((res,rej)=>_require.default(["../bmm-kategori/ksm.js"],res,rej)).then(bundle=>bundle&&bundle.$ksm||{});break;case"2":new Promise((res,rej)=>_require.default(["../bmm-kategori/rbm.js"],res,rej)).then(bundle=>bundle&&bundle.$rbm||{});break;case"3":new Promise((res,rej)=>_require.default(["../bmm-kategori/paud.js"],res,rej)).then(bundle=>bundle&&bundle.$paud||{});break;case"4":new Promise((res,rej)=>_require.default(["../bmm-kategori/kafala.js"],res,rej)).then(bundle=>bundle&&bundle.$kafala||{});break;case"5":new Promise((res,rej)=>_require.default(["../bmm-kategori/jsm.js"],res,rej)).then(bundle=>bundle&&bundle.$jsm||{});break;case"6":new Promise((res,rej)=>_require.default(["../bmm-kategori/dzm.js"],res,rej)).then(bundle=>bundle&&bundle.$dzm||{});break;case"7":new Promise((res,rej)=>_require.default(["../bmm-kategori/bsu.js"],res,rej)).then(bundle=>bundle&&bundle.$bsu||{});break;case"8":new Promise((res,rej)=>_require.default(["../bmm-kategori/br.js"],res,rej)).then(bundle=>bundle&&bundle.$br||{});break;case"9":new Promise((res,rej)=>_require.default(["../bmm-kategori/btm.js"],res,rej)).then(bundle=>bundle&&bundle.$btm||{});break;case"10":new Promise((res,rej)=>_require.default(["../bmm-kategori/bsm.js"],res,rej)).then(bundle=>bundle&&bundle.$bsm||{});break;case"11":new Promise((res,rej)=>_require.default(["../bmm-kategori/bcm.js"],res,rej)).then(bundle=>bundle&&bundle.$bcm||{});break;case"12":new Promise((res,rej)=>_require.default(["../bmm-kategori/asm.js"],res,rej)).then(bundle=>bundle&&bundle.$asm||{});break;case"view404":new Promise((res,rej)=>_require.default(["../my-view404.js"],res,rej)).then(bundle=>bundle&&bundle.$myView404||{});break;}}}window.customElements.define("bmm-proposal-edit",ProposalEdit)});
+    `;
+  }
+
+  static get properties(){
+    return{
+      Kategori : {
+        type : Array,
+        notify : true
+      },
+      storedUser : {
+        type : Object,
+        notify : true
+      },
+      regObj  : {
+        type : Object,
+        notify : true,
+        value : function(){
+          return {
+          }
+        }
+      },
+      User : {
+        type : Array,
+        notify : true,
+        value : function(){
+          return [
+
+          ]
+        }
+      },
+      nama  : {
+        type : String,
+        notify : true
+      },
+      toastError : String,
+      resID : String,
+      selectedKategori : Number,
+      subkategori : {
+        type : Array,
+        notify : true,
+        value : function(){
+          return []
+        }
+      },
+    }
+  }
+
+  inisialRegObj(){
+    this.regObj = {
+    }
+  }
+
+  static get observers() {
+    return [
+      '_routePageChanged(routeData.*)',
+      '_kategoriSelected(selectedKategori)'
+    ];
+  }
+  // Define ketika polymer pertama kali di load 
+  
+  _routePageChanged(page) {
+    this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
+    this.$.datass.headers['authorization'] = this.storedUser.access_token;
+    this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2"  
+    this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
+    this.$.datass.generateRequest();
+    // this.$.getData.generateRequest();
+  }
+
+  // Handle user manager
+
+  _handleManager(e){
+    var response = e.detail.response;
+    this.User = response.data
+    console.log(response)
+  }
+
+  _errorManager(e){
+    console.log(e)
+  }
+  // end user manager
+
+  // FUngsi untuk handle post data proposal
+
+  _handleProposal(e){
+    this.regObj = e.detail.response.Data
+    this.selectedKategori = this.routeData.kat
+  }
+
+  _handleProposalError(e){
+    this.set('route.path', '/panel/proposal');
+  }
+  
+
+  // Fungsi untuk handle post proposal update
+
+  _handleProposalPost(e){
+    this.set('route.path', '/panel/proposal');
+  }
+
+  _handleProposalPostError(e){
+    this.set('route.path', '/panel/proposal');
+  }
+
+  // Fungsi untuk handle kategori
+  _handleKategori(e){
+    var response = e.detail.response;
+    this.subkategori = response.data.filter(x => x.KodeP == this.routeData.kat)[0].sub
+    this.$.getData.url= MyAppGlobals.apiPath + "/api/pendaftaran/"+ this.routeData.kat  + "/" + this.routeData.id
+    this.$.getData.headers['authorization'] = this.storedUser.access_token;
+  }
+  _errorKategori(e){
+
+  }
+  
+
+  sendData(){
+    console.log( this.regObj)
+    this.$.postData.url= MyAppGlobals.apiPath + "/api/pendaftaran/" + this.routeData.id
+    this.$.postData.headers['authorization'] = this.storedUser.access_token;
+    this.$.postData.body  = this.regObj
+    // console.log(this.$.postData.body)
+    this.$.postData.generateRequest();
+  }
+
+  // fungsi untuk handle pendaftaran
+  // _addPendaftaran(e){
+  //   console.log(e)
+  // }
+
+
+  _kategoriSelected(e){
+    switch(e) {
+      case "1":
+        import('./../bmm-kategori/ksm.js');
+        break;
+      case "2":
+        import('./../bmm-kategori/rbm.js');
+        break;
+      case "3":
+        import('./../bmm-kategori/paud.js');
+        break;
+      case "4":
+        import('./../bmm-kategori/kafala.js');
+        break;
+      case "5":
+        import('./../bmm-kategori/jsm.js');
+        break;
+      case "6":
+        import('./../bmm-kategori/dzm.js');
+        break;
+      case "7":
+        import('./../bmm-kategori/bsu.js');
+        break;
+      case "8":
+        import('./../bmm-kategori/br.js');
+        break;
+      case "9":
+        import('./../bmm-kategori/btm.js');
+        break;
+      case "10":
+        import('./../bmm-kategori/bsm.js');
+        break;
+      case "11":
+        import('./../bmm-kategori/bcm.js');
+        break;
+      case "12":
+        import('./../bmm-kategori/asm.js');
+        break;
+      case 'view404':
+        import('./../my-view404.js');
+        break;
+
+  
+    }
+  
+  }
+}
+
+window.customElements.define('bmm-proposal-edit', ProposalEdit);

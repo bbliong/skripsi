@@ -1,4 +1,45 @@
-define(["require","../my-app.js"],function(_require,_myApp){"use strict";_require=babelHelpers.interopRequireWildcard(_require);class ProposalAdd extends _myApp.PolymerElement{static get template(){return _myApp.html`
+/**
+ * @license
+ * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
+import './../shared-styles.js';
+
+//polymer
+
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/iron-pages/iron-pages.js';
+import '@polymer/app-route/app-location.js';
+import '@polymer/paper-toast/paper-toast.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/iron-localstorage/iron-localstorage.js';
+
+
+//Vaadin
+import '@vaadin/vaadin-text-field/vaadin-text-field.js';
+import '@vaadin/vaadin-text-field/vaadin-text-area.js';
+import '@vaadin/vaadin-form-layout/vaadin-form-layout.js';
+import '@vaadin/vaadin-select/vaadin-select.js';
+import '@vaadin/vaadin-list-box/vaadin-list-box.js';
+import '@vaadin/vaadin-item/vaadin-item.js';
+
+//Other
+import 'global-variable-migration/global-data.js';
+import 'global-variable-migration/global-variable.js';
+
+
+
+class ProposalAdd extends PolymerElement {
+  static get template() {
+    return html`
       <style include="shared-styles">
         :host {
           display: block;
@@ -62,18 +103,18 @@ define(["require","../my-app.js"],function(_require,_myApp){"use strict";_requir
         </vaadin-form-layout>    
         <div class="wrap">
           <iron-pages selected="[[selectedKategori.Kode]]"  attr-for-selected="name">
-            <bmm-kategori-ksm name="Ksm" subKategori="{{subkategori}}"></bmm-kategori-ksm>
-            <bmm-kategori-rbm name="Rbm" subKategori="{{subkategori}}"></bmm-kategori-rbm>
-            <bmm-kategori-paud name="Paud" subKategori="{{subkategori}}"></bmm-kategori-paud>
-            <bmm-kategori-kafala name="Kafala" subKategori="{{subkategori}}"></bmm-kategori-kafala>
-            <bmm-kategori-jsm name="Jsm" subKategori="{{subkategori}}"></bmm-kategori-jsm>
-            <bmm-kategori-dzm name="Dzm" subKategori="{{subkategori}}"></bmm-kategori-dzm>
-            <bmm-kategori-bsu name="Bsu" subKategori="{{subkategori}}"></bmm-kategori-bsu>
-            <bmm-kategori-br name="Br" subKategori="{{subkategori}}"></bmm-kategori-br>
-            <bmm-kategori-btm name="Btm" subKategori="{{subkategori}}"></bmm-kategori-btm>
-            <bmm-kategori-bsm name="Bsm" subKategori="{{subkategori}}"></bmm-kategori-bsm>
-            <bmm-kategori-bcm name="Bcm" subKategori="{{subkategori}}"></bmm-kategori-bcm>
-            <bmm-kategori-asm name="Asm" subKategori="{{subkategori}}"></bmm-kategori-asm>
+            <bmm-kategori-ksm name="Ksm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-ksm>
+            <bmm-kategori-rbm name="Rbm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-rbm>
+            <bmm-kategori-paud name="Paud" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-paud>
+            <bmm-kategori-kafala name="Kafala" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-kafala>
+            <bmm-kategori-jsm name="Jsm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-jsm>
+            <bmm-kategori-dzm name="Dzm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-dzm>
+            <bmm-kategori-bsu name="Bsu" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-bsu>
+            <bmm-kategori-br name="Br" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-br>
+            <bmm-kategori-btm name="Btm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-btm>
+            <bmm-kategori-bsm name="Bsm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-bsm>
+            <bmm-kategori-bcm name="Bcm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-bcm>
+            <bmm-kategori-asm name="Asm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-asm>
           </iron-pages>
         </div> 
 
@@ -91,6 +132,17 @@ define(["require","../my-app.js"],function(_require,_myApp){"use strict";_requir
           method="GET"
           on-response="_handleKategori"
           on-error="_errorKategori"
+          Content-Type="application/json"
+          debounce-duration="300">
+      </iron-ajax>
+      <iron-ajax
+          auto 
+          id="managerDPP"
+          headers='{"Access-Control-Allow-Origin": "*" }'
+          handle-as="json"
+          method="GET"
+          on-response="_handleManager"
+          on-error="_errorManager"
           Content-Type="application/json"
           debounce-duration="300">
       </iron-ajax>
@@ -117,4 +169,200 @@ define(["require","../my-app.js"],function(_require,_myApp){"use strict";_requir
       </iron-ajax>
 
 
-    `}static get properties(){return{Kategori:{type:Array,notify:!0,value:function(){return[]}},selectedKategori:{type:Object,notify:!0},storedUser:{type:Object,notify:!0},regObj:{type:Object,notify:!0,value:function(){return{}}},nama:{type:String,notify:!0},subkategori:{type:Array,notify:!0,value:function(){return[]}},toastError:String,resID:String}}static get observers(){return["_kategoriSelected(selectedKategori)","_routePageChanged(route.*)"]}_routePageChanged(page){this.$.datass.url=MyAppGlobals.apiPath+"/api/kategori";this.$.datass.headers.authorization=this.storedUser.access_token;this.$.getData.url=MyAppGlobals.apiPath+"/api/muztahik/"+this.routeData.view;this.$.getData.headers.authorization=this.storedUser.access_token;this.selectedKategori=null}_handleKategori(e){var response=e.detail.response;this.Kategori=response.data}_errorKategori(e){console.log(e)}_kategoriSelected(e){if(null!==e){this.subkategori=e.sub;switch(e.Kode){case"Ksm":new Promise((res,rej)=>_require.default(["../bmm-kategori/ksm.js"],res,rej)).then(bundle=>bundle&&bundle.$ksm||{});break;case"Rbm":new Promise((res,rej)=>_require.default(["../bmm-kategori/rbm.js"],res,rej)).then(bundle=>bundle&&bundle.$rbm||{});break;case"Paud":new Promise((res,rej)=>_require.default(["../bmm-kategori/paud.js"],res,rej)).then(bundle=>bundle&&bundle.$paud||{});break;case"Kafala":new Promise((res,rej)=>_require.default(["../bmm-kategori/kafala.js"],res,rej)).then(bundle=>bundle&&bundle.$kafala||{});break;case"Jsm":new Promise((res,rej)=>_require.default(["../bmm-kategori/jsm.js"],res,rej)).then(bundle=>bundle&&bundle.$jsm||{});break;case"Dzm":new Promise((res,rej)=>_require.default(["../bmm-kategori/dzm.js"],res,rej)).then(bundle=>bundle&&bundle.$dzm||{});break;case"Bsu":new Promise((res,rej)=>_require.default(["../bmm-kategori/bsu.js"],res,rej)).then(bundle=>bundle&&bundle.$bsu||{});break;case"Br":new Promise((res,rej)=>_require.default(["../bmm-kategori/br.js"],res,rej)).then(bundle=>bundle&&bundle.$br||{});break;case"Btm":new Promise((res,rej)=>_require.default(["../bmm-kategori/btm.js"],res,rej)).then(bundle=>bundle&&bundle.$btm||{});break;case"Bsm":new Promise((res,rej)=>_require.default(["../bmm-kategori/bsm.js"],res,rej)).then(bundle=>bundle&&bundle.$bsm||{});break;case"Bcm":new Promise((res,rej)=>_require.default(["../bmm-kategori/bcm.js"],res,rej)).then(bundle=>bundle&&bundle.$bcm||{});break;case"Asm":new Promise((res,rej)=>_require.default(["../bmm-kategori/asm.js"],res,rej)).then(bundle=>bundle&&bundle.$asm||{});break;case"view404":new Promise((res,rej)=>_require.default(["../my-view404.js"],res,rej)).then(bundle=>bundle&&bundle.$myView404||{});break;}}}sendData(){this.$.postData.url=MyAppGlobals.apiPath+"/api/pendaftaran";this.$.postData.headers.authorization=this.storedUser.access_token;this.$.postData.body={muztahik_id:this.regObj.muztahik._id,kategori:this.selectedKategori.KodeP,kategoris:this.regObj.kategoris,persetujuan:{Proposal:1,disposisi_pic:this.storedUser.name,tanggal_disposisi:new Date().toISOString()}};this.$.postData.generateRequest()}_handleProposal(e){this.set("route.path","/panel/proposal")}_handleProposalError(e){console.log(e)}_handleMuztahik(e){var data={muztahik:e.detail.response.data,kategoris:{}};this.regObj=data}_handleMuztahikError(e){this.set("route.path","/panel/muztahik")}}window.customElements.define("bmm-proposal-add",ProposalAdd)});
+    `;
+  }
+
+  static get properties(){
+    return{
+      Kategori : {
+        type : Array,
+        notify : true,
+        value : function(){
+          return [
+
+          ]
+        }
+      },
+      User : {
+        type : Array,
+        notify : true,
+        value : function(){
+          return [
+
+          ]
+        }
+      },
+      selectedKategori : {
+        type : Object,
+        notify : true
+      },
+      storedUser : {
+        type : Object,
+        notify : true
+      },
+      regObj  : {
+        type : Object,
+        notify : true,
+        value : function(){
+          return {       
+          }
+        }
+      },
+      nama  : {
+        type : String,
+        notify : true
+      },
+      subkategori : {
+        type : Array,
+        notify : true,
+        value : function(){
+          return []
+        }
+      },
+      toastError : String,
+      resID : String
+    }
+  }
+
+
+  static get observers() {
+    return [
+      '_kategoriSelected(selectedKategori)',
+      '_routePageChanged(route.*)'
+    ];
+  }
+
+
+  //  Trigger untuk ketika load
+  _routePageChanged(page) {
+      // this.inisialRegObj()
+      this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
+      this.$.datass.headers['authorization'] = this.storedUser.access_token;
+      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2"  
+      this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
+      this.$.getData.url= MyAppGlobals.apiPath + "/api/muztahik/" + this.routeData.view
+      this.$.getData.headers['authorization'] = this.storedUser.access_token;
+      this.selectedKategori = null
+  }
+
+  // Fungsi untuk handle kategori
+  _handleKategori(e){
+    var response = e.detail.response;
+    this.Kategori = response.data
+  }
+  _errorKategori(e){
+    console.log(e)
+  }
+
+  _handleManager(e){
+    var response = e.detail.response;
+    this.User = response.data
+  }
+
+  _errorManager(e){
+    console.log(e)
+  }
+
+  _kategoriSelected(e){
+    if( e !== null){
+      this.subkategori = e.sub
+      switch (e.Kode) {
+       case 'Ksm':
+         import('./../bmm-kategori/ksm.js');
+         break;
+       case 'Rbm':
+         import('./../bmm-kategori/rbm.js');
+         break;
+       case 'Paud':
+         import('./../bmm-kategori/paud.js');
+         break;
+       case 'Kafala':
+         import('./../bmm-kategori/kafala.js');
+         break;
+       case 'Jsm':
+         import('./../bmm-kategori/jsm.js');
+         break;
+       case 'Dzm':
+         import('./../bmm-kategori/dzm.js');
+         break;
+       case 'Bsu':
+         import('./../bmm-kategori/bsu.js');
+         break;
+       case 'Br':
+         import('./../bmm-kategori/br.js');
+         break;
+       case 'Btm':
+         import('./../bmm-kategori/btm.js');
+         break;
+       case 'Bsm':
+         import('./../bmm-kategori/bsm.js');
+         break;
+       case 'Bcm':
+         import('./../bmm-kategori/bcm.js');
+         break;
+       case 'Asm':
+         import('./../bmm-kategori/asm.js');
+         break;
+       case 'view404':
+         import('./../my-view404.js');
+         break;
+     } 
+    }
+    
+  }
+  sendData(){
+    this.$.postData.url= MyAppGlobals.apiPath + "/api/pendaftaran"
+    this.$.postData.headers['authorization'] = this.storedUser.access_token;
+    this.$.postData.body  = {
+      muztahik_id : this.regObj.muztahik._id, 
+      judul_proposal : this.regObj.judul_proposal,
+      tanggalProposal : this.regObj.tanggalProposal,
+      kategori : this.selectedKategori.KodeP,
+      kategoris : this.regObj.kategoris,
+      persetujuan : {
+          "Proposal" : 1,
+          "manager_id" :  this.regObj.persetujuan.manager_id,
+      }
+    }
+  console.log(  this.$.postData.body)
+  this.$.postData.generateRequest();
+  }
+
+
+  // FUngsi untuk handle post data proposal
+
+  _handleProposal(e){
+    this.set('route.path', '/panel/proposal');
+  }
+  _handleProposalError(e){
+    console.log(e)
+  }
+
+  // FUngsi untuk handle post data muztahik
+
+  _handleMuztahik(e){
+    // Ini digunakan karena tidak bisa define sub object dalam sub object, jadi define dulu baru di taruh
+    var date = this.formatDate(new Date())
+    var data = {
+      tanggalProposal :  new Date(date).toISOString(),
+      muztahik : e.detail.response.data,
+      kategoris : {},
+      persetujuan  : {}
+    }
+    this.regObj =   data
+  }
+
+  _handleMuztahikError(e){
+    this.set('route.path', '/panel/muztahik');
+  }
+
+  formatDate(date){
+    var dd = date.getDate();
+    var mm = date.getMonth()+1; 
+    var yyyy = date.getFullYear();
+    return yyyy + "-" + mm +  "-"+dd
+  }
+
+}
+
+window.customElements.define('bmm-proposal-add', ProposalAdd);

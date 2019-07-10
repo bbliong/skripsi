@@ -1,4 +1,32 @@
-define(["../my-app.js"],function(_myApp){"use strict";class Jsm extends _myApp.PolymerElement{static get template(){return _myApp.html`
+/**
+ * @license
+ * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '../shared-styles.js';
+
+//Other
+import 'global-variable-migration/global-data.js';
+import 'global-variable-migration/global-variable.js'
+
+//Vaadin
+import '@vaadin/vaadin-item/vaadin-item.js';
+import '@vaadin/vaadin-select/vaadin-select.js';
+import '@vaadin/vaadin-list-box/vaadin-list-box.js';
+import '@vaadin/vaadin-text-field/vaadin-text-field.js';
+import '@vaadin/vaadin-form-layout/vaadin-form-layout.js';
+import '@vaadin/vaadin-date-picker/vaadin-date-picker.js';
+import '@vaadin/vaadin-text-field/vaadin-number-field.js';
+
+class Jsm extends PolymerElement {
+  static get template() {
+    return html`
       <style include="shared-styles">
         :host {
           display: block;
@@ -35,7 +63,7 @@ define(["../my-app.js"],function(_myApp){"use strict";class Jsm extends _myApp.P
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
-              <vaadin-select value="{{ regObj.kategoris.sub_program }}" colspan="2" label="sub-kategori">
+              <vaadin-select value="{{ regObj.kategoris.sub_program }}" label="sub-kategori">
                 <template>
                   <vaadin-list-box>
                   <dom-repeat items="{{subkategori}}">
@@ -46,11 +74,91 @@ define(["../my-app.js"],function(_myApp){"use strict";class Jsm extends _myApp.P
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
-
+              <vaadin-select value="{{ regObj.persetujuan.manager_id }}" label="Manager tertuju">
+                <template>
+                  <vaadin-list-box>
+                  <dom-repeat items="{{user}}">
+                    <template>
+                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                    </template>
+                  </dom-repeat>
+                  </vaadin-list-box>
+                </template>
+              </vaadin-select>
               <vaadin-text-field label="Afiliasi" value="{{regObj.kategoris.afiliasi}}"></vaadin-text-field>
               <vaadin-text-field label="Non Afiliasi" value="{{regObj.kategoris.non_afiliasi}}"></vaadin-text-field>
               <vaadin-text-field label="Bidang" value="{{regObj.kategoris.bidang}}"></vaadin-text-field>
               <vaadin-number-field label="Jumlah Bantuan" value="{{regObj.kategoris.jumlah_bantuan}}"></vaadin-number-field>
           </vaadin-form-layout>
       </div>
-    `}static get properties(){return{subKategori:{type:Array,notify:!0},regObj:{type:Object,notify:!0,value:function(){return{judul_proposal:"-",kategoris:{jumlah_bantuan:"0",afiliasi:"-",non_afiliasi:"-",bidang:"-"},tanggalProposal:this.formatDate(new Date)}}}}}static get observers(){return["_changeStoI(regObj.kategoris.*)","_changeDateProposal(regObj.tanggalProposal)"]}_changeStoI(f){var array=f.path.split(".");console.log(array);if("jumlah_bantuan"==array[2]){f.base[array[2]]=parseInt(f.value)}}_changeDateProposal(f){if(""!==f&&"undefined"!==typeof f){var date=this.$.tanggal_proposal,that=this;date.value=this.formatDate(new Date(f));date.addEventListener("change",function(){if(""!==date.value){that.regObj.tanggalProposal=new Date(date.value).toISOString()}})}}formatDate(date){var dd=date.getDate(),mm=date.getMonth()+1,yyyy=date.getFullYear();return yyyy+"-"+mm+"-"+dd}}window.customElements.define("bmm-kategori-jsm",Jsm)});
+    `;
+  }
+
+  static get properties(){
+    return{
+      subKategori : {
+        type : Array,
+        notify : true
+      },
+      regObj  : {
+        type : Object,
+        notify : true,
+        value : function(){
+          return {
+            
+            "judul_proposal" : "-",
+            "kategoris" : {
+              "jumlah_bantuan" : "0",
+              "afiliasi" : "-",
+              "non_afiliasi" : "-",
+              "bidang" : "-"
+            },
+            "persetujuan" : {
+              "manager_id" : "-",
+            },
+            "tanggalProposal" : this.formatDate(new Date()),
+          }
+        }
+      },
+    }
+  }
+  static get observers() {
+    return [
+      '_changeStoI(regObj.kategoris.*)',
+      '_changeDateProposal(regObj.tanggalProposal)',
+    ];
+  }
+
+    // Fungsi convert ke int 
+    _changeStoI(f){
+      var array = f.path.split(".");
+      console.log(array)
+      if (array[2] == "jumlah_bantuan"){
+        f.base[array[2]] = parseInt(f.value)
+      }
+    }
+
+    _changeDateProposal(f){
+      if (f !== "" && typeof f !== "undefined" ){
+        var date = this.$.tanggal_proposal
+        var that =this
+        date.value = this.formatDate(new Date(f))
+        date.addEventListener("change", function(){
+          if(date.value !== ""){
+            that.regObj.tanggalProposal = new Date(date.value).toISOString()
+          }
+        })
+      }
+    }
+
+    formatDate(date){
+      var dd = date.getDate();
+      var mm = date.getMonth()+1; 
+      var yyyy = date.getFullYear();
+      return yyyy + "-" + mm +  "-"+dd
+    }
+
+
+}
+
+window.customElements.define('bmm-kategori-jsm', Jsm);

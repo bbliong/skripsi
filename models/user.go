@@ -26,7 +26,8 @@ type Users struct {
 	Details_role string             `json:"details_role" bson:"details_role,omitempty"`
 	Username     string             `json:"username" binding:"required" bson:"username,omitempty"`
 	Password     string             `json:"password" binding:"required" bson:"password,omitempty"`
-	Role         int32              `json:"role,omitempty" binding:"required"  bson:"role,omitempty"` //Admin : 1 , PIC : 2, MGR : 3, KADIV  :4, Admin Register : 5, Keuangan : 6
+	Email        string             `json:"email" binding:"required" bson:"email,omitempty"`
+	Role         int32              `json:"role,omitempty" binding:"required"  bson:"role,omitempty"` //Admin : 1 , STAFF : 2, MGR : 3, KADIV  :4, Admin Register : 5, Keuangan : 6
 }
 
 func (c Claims) IsAdmin() bool {

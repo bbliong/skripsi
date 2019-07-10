@@ -1,4 +1,32 @@
-define(["../my-app.js"],function(_myApp){"use strict";class Br extends _myApp.PolymerElement{static get template(){return _myApp.html`
+/**
+ * @license
+ * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '../shared-styles.js';
+
+//Other
+import 'global-variable-migration/global-data.js';
+import 'global-variable-migration/global-variable.js'
+
+//Vaadin
+import '@vaadin/vaadin-item/vaadin-item.js';
+import '@vaadin/vaadin-select/vaadin-select.js';
+import '@vaadin/vaadin-list-box/vaadin-list-box.js';
+import '@vaadin/vaadin-text-field/vaadin-text-field.js';
+import '@vaadin/vaadin-date-picker/vaadin-date-picker.js';
+import '@vaadin/vaadin-form-layout/vaadin-form-layout.js';
+import '@vaadin/vaadin-text-field/vaadin-number-field.js';
+
+class Br extends PolymerElement {
+  static get template() {
+    return html`
       <style include="shared-styles">
         :host {
           display: block;
@@ -36,7 +64,7 @@ define(["../my-app.js"],function(_myApp){"use strict";class Br extends _myApp.Po
                 </template>
               </vaadin-select>
              
-              <vaadin-select value="{{ regObj.kategoris.sub_program }}" colspan="2" label="sub-kategori">
+              <vaadin-select value="{{ regObj.kategoris.sub_program }}" label="sub-kategori">
                 <template>
                   <vaadin-list-box>
                   <dom-repeat items="{{subkategori}}">
@@ -47,7 +75,17 @@ define(["../my-app.js"],function(_myApp){"use strict";class Br extends _myApp.Po
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
-
+              <vaadin-select value="{{ regObj.persetujuan.manager_id }}" label="Manager tertuju">
+                <template>
+                  <vaadin-list-box>
+                  <dom-repeat items="{{user}}">
+                    <template>
+                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                    </template>
+                  </dom-repeat>
+                  </vaadin-list-box>
+                </template>
+              </vaadin-select>
               <vaadin-date-picker label="Tanggal Respon Bencana" placeholder="Pilih tanggal" id="tanggal_bencana" value="[[regObj.kategoris.tanggal_respon_bencana]]"  colspan="2"></vaadin-date-picker>
 
               <vaadin-text-field label="Skala Bencana" value="{{regObj.kategoris.skala_bencana}}"></vaadin-text-field>
@@ -56,4 +94,87 @@ define(["../my-app.js"],function(_myApp){"use strict";class Br extends _myApp.Po
               <vaadin-text-field label="Tahapan Bencana" value="{{regObj.kategoris.tahapan_bencana}}"></vaadin-text-field>
           </vaadin-form-layout>
       </div>
-    `}static get properties(){return{subKategori:{type:Array,notify:!0},regObj:{type:Object,notify:!0,value:function(){return{judul_proposal:"-",kategoris:{skala_bencana:"-",tahapan_bencana:"-",jumlah_bantuan:"0",tanggal_respon_bencana:"0000-00-00"},tanggalProposal:this.formatDate(new Date)}}}}}static get observers(){return["_changeStoI(regObj.kategoris.*)","_changeDateProposal(regObj.tanggalProposal)","_changeDateTglBencana(regObj.kategoris.tanggal_respon_bencana)"]}_changeStoI(f){var array=f.path.split(".");if("jumlah_bantuan"==array[2]){f.base[array[2]]=parseInt(f.value)}}_changeDateProposal(f){if(""!==f&&"undefined"!==typeof f){var date=this.$.tanggal_proposal,that=this;date.value=this.formatDate(new Date(f));date.addEventListener("change",function(){if(""!==date.value){that.regObj.tanggalProposal=new Date(date.value).toISOString()}})}}_changeDateTglBencana(f){if(""!==f){var date=this.$.tanggal_bencana,that=this;date.value=this.formatDate(new Date(f));date.addEventListener("change",function(){if(""!==date.value){that.regObj.kategoris.tanggal_respon_bencana=new Date(date.value).toISOString()}})}}formatDate(date){var dd=date.getDate(),mm=date.getMonth()+1,yyyy=date.getFullYear();return yyyy+"-"+mm+"-"+dd}}window.customElements.define("bmm-kategori-br",Br)});
+    `;
+  }
+
+  static get properties(){
+    return{
+      subKategori : {
+        type : Array,
+        notify : true
+      },
+      regObj  : {
+        type : Object,
+        notify : true,
+        value : function(){
+          return {
+            "judul_proposal" : "-",
+                "kategoris" : {
+                  "skala_bencana" : "-",
+                  "tahapan_bencana" : "-",
+                  "jumlah_bantuan" : "0",
+                  "tanggal_respon_bencana" : "0000-00-00",
+            },
+            "persetujuan" : {
+              "manager_id" : "-",
+            },
+            "tanggalProposal" : this.formatDate(new Date()),
+          }
+        }
+      }
+  }
+}
+  static get observers() {
+    return [
+      '_changeStoI(regObj.kategoris.*)',
+      '_changeDateProposal(regObj.tanggalProposal)',
+      '_changeDateTglBencana(regObj.kategoris.tanggal_respon_bencana)',
+    
+    ];
+  }
+
+    // Fungsi convert ke int 
+    _changeStoI(f){
+      var array = f.path.split(".");
+      if (array[2] == "jumlah_bantuan"){
+        f.base[array[2]] = parseInt(f.value)
+      }
+    }
+
+    _changeDateProposal(f){
+      if (f !== "" && typeof f !== "undefined" ){
+        var date = this.$.tanggal_proposal
+        var that =this
+        date.value = this.formatDate(new Date(f))
+        date.addEventListener("change", function(){
+          if(date.value !== ""){
+
+            that.regObj.tanggalProposal = new Date(date.value).toISOString()
+          }
+        })
+      }
+    }
+
+    _changeDateTglBencana(f){
+      if (f !== ""){
+        var date = this.$.tanggal_bencana
+        var that =this
+        date.value = this.formatDate(new Date(f))
+        date.addEventListener("change", function(){
+          if(date.value !== ""){
+            that.regObj.kategoris.tanggal_respon_bencana = new Date(date.value).toISOString()
+          }
+        })
+      }
+    }
+
+    formatDate(date){
+      var dd = date.getDate();
+      var mm = date.getMonth()+1; 
+      var yyyy = date.getFullYear();
+      return yyyy + "-" + mm +  "-"+dd
+    }
+
+}
+
+window.customElements.define('bmm-kategori-br', Br);

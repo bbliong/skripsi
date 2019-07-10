@@ -1,10 +1,14 @@
 package controller
 
 import (
+	"strings"
 	"context"
 	"fmt"
 	"strconv"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/bbliong/sim-bmm/models"
 
@@ -44,7 +48,7 @@ func ManageProposal(c *gin.Context) {
 
 	/* ---------------------------- Start of Setup Excel ---------------------------*/
 
-	f, err := excelize.OpenFile("./report/FORMAT.xlsx")
+	f, err := excelize.OpenFile("./public/report/FORMAT.xlsx")
 	if err != nil {
 		fmt.Println(err)
 
@@ -947,7 +951,7 @@ func ManageProposal(c *gin.Context) {
 	// // Save xlsx file by the given path.
 	t := time.Now()
 
-	err = f.SaveAs("./report/Report BMM " + t.Format("02-Jan-2006") + " .xlsx")
+	err = f.SaveAs("./public/report/Report BMM " + t.Format("02-Jan-2006") + " .xlsx")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -956,3 +960,273 @@ func ManageProposal(c *gin.Context) {
 		"data": "report has been created",
 	})
 }
+
+func UpdProposal(c *gin.Context) {
+
+	/* ---------------------------- Start of GET Data ---------------------------*/
+	var (
+		Sheet          string = "USULAN PENYALURAN DANA"
+		nama, kategori string
+	)
+	t := time.Now()
+
+	collection := db.Collection("pendaftaran")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	//claims := c.MustGet("decoded").(*models.Claims)
+	_id, _ := primitive.ObjectIDFromHex(c.Param("id"))
+	Kat, _ := strconv.Atoi(c.Param("kat"))
+	filter := bson.D{{"_id", _id}, {"kategori", Kat}}
+
+	//get data taro di cursor
+	result := collection.FindOne(ctx, filter)
+	// if err != nil {
+	// 	c.JSON(500, gin.H{
+	// 		"data": "Id tidak ditemukan",
+	// 	})
+	// 	return
+	// }
+
+	/* ---------------------------- End of GET Data ---------------------------*/
+
+	/* ---------------------------- Start of Setup Excel ---------------------------*/
+
+	f, err := excelize.OpenFile("./public/report/UPD.xlsx")
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "Data dasar tidak ditemukan",
+		})
+		return
+	}
+
+	StartIndex, TujuanIndex, LatarIndex, AnalisaIndex, ProgramIndex, RekomendasiIndex := 4, 1, 1, 1, 1, 1
+
+	Tujuan := func() int {
+		return StartIndex + TujuanIndex
+	}
+	Latar := func() int {
+		return Tujuan() + LatarIndex
+	}
+	Analisa := func() int {
+		return Latar() + AnalisaIndex
+	}
+	Program := func() int {
+		return Analisa() + ProgramIndex
+	}
+	Rekomendasi := func() int {
+		return Program() + RekomendasiIndex
+	}
+
+	if Kat == 0 {
+		// If the structure of the body is wrong, return an HTTP error
+		// fmt.Println(err)
+	} else {
+		switch Kat {
+		// Kategori KSM
+		case 1:
+			Pendaftaran := &models.PendaftaranKSM{}
+			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+3), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		case 2:
+			Pendaftaran := &models.PendaftaranRBM{}
+			result.Decode(Pendaftaran)
+		// Kategori PAUD
+		case 3:
+			Pendaftaran := &models.PendaftaranPAUD{}
+			result.Decode(Pendaftaran)
+		// Kategori KAFALA
+		case 4:
+			Pendaftaran := &models.PendaftaranKAFALA{}
+			result.Decode(Pendaftaran)
+		// Kategori JSM
+		case 5:
+			Pendaftaran := &models.PendaftaranJSM{}
+			result.Decode(Pendaftaran)
+		// Kategori DZM
+		case 6:
+			Pendaftaran := &models.PendaftaranDZM{}
+			result.Decode(Pendaftaran)
+		// Kategori BSU
+		case 7:
+			Pendaftaran := &models.PendaftaranBSU{}
+			result.Decode(Pendaftaran)
+		// Kategori Rescue
+		case 8:
+			Pendaftaran := &models.PendaftaranRescue{}
+			result.Decode(Pendaftaran)
+		// Kategori BTM
+		case 9:
+			Pendaftaran := &models.PendaftaranBTM{}
+			result.Decode(Pendaftaran)
+		// Kategori BSM
+		case 10:
+			Pendaftaran := &models.PendaftaranBSM{}
+			result.Decode(Pendaftaran)
+		// Kategori BCM
+		case 11:
+			Pendaftaran := &models.PendaftaranBCM{}
+			result.Decode(Pendaftaran)
+		// Kategori ASM
+		case 12:
+			Pendaftaran := &models.PendaftaranASM{}
+			result.Decode(Pendaftaran)	
+		default:
+				{
+					c.JSON(500, gin.H{
+						"data": "Kategori tidak ditemukan",
+					})
+				}
+			}
+		}
+
+	style, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"top","wrap_text":true,"reading_order":0,"relative_indent":1,"shrink_to_fit":true}, "font":{"size":14}}`)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	styleHeader, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"center","vertical":"center","wrap_text":true},"font":{"bold":true,"size":16}}`)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	styleTTD, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"center","vertical":"center","wrap_text":true},"font":{"size":14}}`)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(strconv.Itoa(Rekomendasi()))
+	err = f.SetCellStyle(Sheet, "A5", "H"+strconv.Itoa(Rekomendasi()), style)
+
+	err = f.SetCellStyle(Sheet, "A5", "A"+strconv.Itoa(Rekomendasi()-2), styleHeader)
+
+	err = f.SetCellStyle(Sheet, "A"+strconv.Itoa(Rekomendasi()+3), "F"+strconv.Itoa(Rekomendasi()+10), styleTTD)
+	url := strings.Replace("/public/report/UPD_" + t.Format("02_Jan_2006 15_04_05") + "_" + nama + " " + kategori + ".xlsx", " ", "_", -1)
+	err = f.SaveAs("." + url)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Simpan Data URL
+
+	results, errs := collection.UpdateOne(ctx, filter, bson.D{
+		{"$set",  bson.D{
+			{"upd.url", url },
+		}},
+	})
+
+	if errs != nil {
+		fmt.Print(errs)
+		c.JSON(500, gin.H{
+			"Message": "Error while updating",
+		})
+		return
+	}
+	if results.MatchedCount < 1 {
+		c.JSON(200, gin.H{
+			"Message": "Id Not Found",
+		})
+		return
+	}
+	if results.ModifiedCount < 1 {
+		c.JSON(200, gin.H{
+			"Message": "Data Is Fresh, Nothing change in your data",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"data": "report has been created",
+		"url":  url,
+	})
+	return
+}
+
+// func CheckData(){
+	
+// 	Pendaftaran := CheckType(Kat)
+// 	result.Decode(Pendaftaran)
+
+// 	// Mengambil nilai pendaftaran
+// 	// var reflectValue = reflect.ValueOf(Pendaftaran)
+
+// 	//Cek apakah pointer
+// 	// if reflectValue.Kind() == reflect.Ptr {
+// 	// 	reflectValue = reflectValue.Elem()
+// 	// }
+
+// 	//ga bisa ngambil embbed struct, jadi pake ini tapi tetep ga bisa nge get
+
+// 	var reflectValue = reflect.Indirect(reflect.ValueOf(Pendaftaran))
+// 	// Upd := reflectValue.FieldByName("Upd").Interface()
+// 	fmt.Printf("%+v", reflectValue)
+// 	// Akhirnya stop karna takut banyak error
+// 	panic("stop")
+// }
+
+// func CheckType(Kat int) interface{}{
+// 	// Check kategori akan di return sebagai fungsinya 
+//     switch Kat{
+//         case 1:
+//             return &models.PendaftaranASM{}
+// 	}
+// 	return nil
+// }

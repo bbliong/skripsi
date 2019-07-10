@@ -23,7 +23,7 @@ func main() {
 	// router.Use(static.Serve("/", static.LocalFile("./frontend", true)))
 
 	// //Membuat port untuk handlernya
-	router.Use(static.Serve("/img", static.LocalFile("./img", true)))
+	router.Use(static.Serve("/public", static.LocalFile("./public", true)))
 
 	api := router.Group("/api")
 	{
@@ -55,6 +55,8 @@ func main() {
 			api.GET("/pendaftaran/:kat/:id", controller.UpdatePendaftaranView)
 			api.POST("/pendaftaran", controller.CreatePendaftaran)
 			api.PUT("/pendaftaran/:id", controller.UpdatePendaftaran)
+			api.PUT("/verifikator/:id", controller.UpdatePendaftaran)
+			api.PUT("/upd/:id", controller.UpdatePendaftaran)
 			api.DELETE("/pendaftaran/:id", controller.DeletePendaftaran)
 
 			// User
@@ -66,8 +68,9 @@ func main() {
 
 			// Function
 			api.POST("/user/password", controller.UpdatePassword)
-			api.GET("/excel", controller.ManageProposal)
 			api.POST("/upload", controller.UploadImage)
+			api.GET("/report/proposal", controller.ManageProposal)
+			api.GET("/report/upd/:kat/:id", controller.UpdProposal)
 		}
 
 	}
@@ -80,7 +83,7 @@ func main() {
 		ext := filepath.Ext(file)
 
 		if file == "" || ext == "" {
-			c.File("./frontend/index.html")
+			c.File("./frontend/build/es6-bundled/index.html")
 		} else {
 			// strings.Split(file, "?")
 			c.File("./frontend" + path.Join(dir, file))

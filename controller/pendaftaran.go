@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -214,8 +215,15 @@ func GetAllPendaftaran(c *gin.Context) {
 		filter["persetujuan.level_persetujuan"] = filterRole
 	}
 
-	if len(search) > 0 {
+	if claims.Role == 3 {
+		filter["persetujuan.manager_id"] = claims.ID
+	}
 
+	if claims.Role == 2 {
+		filter["persetujuan.disposisi_pic_id"] = claims.ID
+	}
+
+	if len(search) > 0 {
 		for key, val := range search {
 			if key == "muztahik_id" {
 				_id, _ := primitive.ObjectIDFromHex(val[0])
@@ -230,8 +238,8 @@ func GetAllPendaftaran(c *gin.Context) {
 	}
 
 	// Set Projection
-	fmt.Println(filter)
 	filterProjection := FilterProjection(claims.Role)
+	fmt.Println(filter)
 	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(filterProjection))
 
 	//get data taro di cursor
@@ -249,7 +257,6 @@ func GetAllPendaftaran(c *gin.Context) {
 	// Loping data cursor
 	for cursor.Next(ctx) {
 		cursor.Decode(&Kat)
-
 		if err != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			c.JSON(500, gin.H{
@@ -465,17 +472,21 @@ func getSingleMuztahikById(c *gin.Context, id primitive.ObjectID) models.Muztahi
 
 // CreateMuztahik fungsi untuk membuat data muztahik
 func UpdatePendaftaran(c *gin.Context) {
-
 	var (
-		Persetujuan models.Persetujuan
-		result      *mongo.UpdateResult
-		errs        error
+		result *mongo.UpdateResult
+		errs   error
 	)
+
+	P := struct {
+		Persetujuan models.Persetujuan `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
+	}{}
 
 	_id, _ := primitive.ObjectIDFromHex(c.Param("id"))
 
-	err := c.ShouldBindBodyWith(&Persetujuan, binding.JSON)
+	//verif := c.Param("verifikator")
 
+	url := strings.Split(fmt.Sprintf("%s", c.Request.URL), "/")
+	err := c.ShouldBindBodyWith(&P, binding.JSON)
 	if err != nil {
 		//fmt.Println(err)
 		// If the structure of the body is wrong, return an HTTP error
@@ -493,14 +504,19 @@ func UpdatePendaftaran(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	updateFilters, err, insertFilter := UpdateFilter(claims.Role, Persetujuan, c)
+	updateFilters, err, insertFilter := UpdateFilter(claims, P.Persetujuan, c, url[2])
 
 	switch claims.Role {
 	case 1:
 	case 2:
+
+		if P.Persetujuan.Level_persetujuan == 1 {
+			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 2})
+		} else if P.Persetujuan.Level_persetujuan == 2 {
+			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 3})
+		}
 	case 3:
-	case 7:
-		if Persetujuan.Level_persetujuan < 1 {
+		if P.Persetujuan.Level_persetujuan < 1 {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 1})
 		}
 	}
@@ -577,6 +593,7 @@ func UpdatePendaftaranView(c *gin.Context) {
 
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
+			fmt.Println(errSQL)
 			c.JSON(500, gin.H{
 				"Message": "Data tidak ditemukan ",
 			})
@@ -908,6 +925,38 @@ func FilterProjection(role int32) bson.D {
 		}
 	// Manager
 	case 3:
+		projection = bson.D{
+			// {"persetujuan.level_persetujuan", 1},
+			// {"persetujuan.kategori_program", 1},
+			{"persetujuan.proposal", 0},
+			{"persetujuan.disposisi_pic", 0},
+			{"persetujuan.perihal", 0},
+			{"persetujuan.tanggal_disposisi", 0},
+			{"persetujuan.verifikator_nama", 0},
+			{"persetujuan.manager_nama", 0},
+			{"persetujuan.pic_nama", 0},
+			{"persetujuan.kadiv_nama", 0},
+			{"persetujuan.verifikator_tanggal", 0},
+			{"persetujuan.manager_tanggal", 0},
+			{"persetujuan.kadiv_tanggal", 0},
+			{"persetujuan.pic_tanggal", 0},
+			{"persetujuan.keterangan_pic", 0},
+			{"persetujuan.keterangan_manager", 0},
+			{"persetujuan.keterangan_kadiv", 0},
+			{"persetujuan.status_persetujuan_pic", 0},
+			{"persetujuan.status_persetujuan_manager", 0},
+			{"persetujuan.status_persetujuan_kadiv", 0},
+			{"persetujuan.status_persetujuan", 0},
+			{"persetujuan.tanggal_persetujuan", 0},
+			{"persetujuan.sumber_dana", 0},
+			{"persetujuan.ppd_pic", 0},
+			{"persetujuan.ppd_manager", 0},
+			{"persetujuan.ppd_kadiv", 0},
+			{"persetujuan.ppd_keuangan", 0},
+			{"persetujuan.jumlah_pencairan", 0},
+			{"persetujuan.tanggal_pencairan", 0},
+			{"persetujuan.keterangan", 0},
+		}
 	// Kadiv
 	case 4:
 	// Administrator
@@ -956,8 +1005,8 @@ func FilterProjection(role int32) bson.D {
 func FilterRole(role int32) bson.M {
 	var filter bson.M
 	switch role {
-	// Admin
-	case 1, 5:
+	// Admin // Manager
+	case 1, 5, 3:
 		// }
 		filter = bson.M{
 			"$gte": 0,
@@ -970,13 +1019,9 @@ func FilterRole(role int32) bson.M {
 		// 	},
 		// }
 		filter = bson.M{
-			"$gt": 1,
+			"$gte": 1,
 		}
-	// Manager
-	case 3:
-		filter = bson.M{
-			"$gt": 2,
-		}
+
 	// Kadiv
 	case 4:
 		filter = bson.M{
@@ -1002,7 +1047,7 @@ func FilterRole(role int32) bson.M {
 	return filter
 }
 
-func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (bson.D, error, interface{}) {
+func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.Context, url string) (bson.D, error, interface{}) {
 
 	var (
 		err          error
@@ -1012,11 +1057,12 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		//Pendaftarans interface{}
 	)
 
+	var role = claims.Role
+
 	switch role {
-	case 1, 5, 7:
+	case 1, 5, 2:
 		err = c.ShouldBindBodyWith(&Kat, binding.JSON)
 		if err != nil {
-			fmt.Println(err)
 			// If the structure of the body is wrong, return an HTTP error
 			c.JSON(500, gin.H{
 				"Message": "Error while parsing ",
@@ -1038,8 +1084,6 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		errSQL := collection.FindOne(ctx, filter).Decode(&KatBaru)
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
-			fmt.Printf("%+v", Kat)
-			fmt.Println(errSQL)
 			c.JSON(500, gin.H{
 				"Message": errSQL,
 			})
@@ -1055,9 +1099,34 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 1:
 			Pendaftaran := models.PendaftaranKSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1071,6 +1140,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1080,12 +1151,37 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 				}
 			}
+		//Kategori RRBM
 		case 2:
 			Pendaftaran := models.PendaftaranRBM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1098,6 +1194,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1112,9 +1210,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 3:
 			Pendaftaran := models.PendaftaranPAUD{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1128,6 +1250,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1142,9 +1266,10 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 4:
 			Pendaftaran := models.PendaftaranKAFALA{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1157,6 +1282,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1178,9 +1305,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 5:
 			Pendaftaran := models.PendaftaranJSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1193,6 +1344,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1209,9 +1362,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 6:
 			Pendaftaran := models.PendaftaranDZM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1224,6 +1401,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1240,9 +1419,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 7:
 			Pendaftaran := models.PendaftaranBSU{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1255,6 +1458,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1273,9 +1478,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 8:
 			Pendaftaran := models.PendaftaranRescue{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1288,6 +1517,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1304,9 +1535,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 9:
 			Pendaftaran := models.PendaftaranBTM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1319,6 +1574,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1339,9 +1596,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 10:
 			Pendaftaran := models.PendaftaranBSM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1354,6 +1635,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1375,9 +1658,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 11:
 			Pendaftaran := models.PendaftaranBCM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1390,6 +1697,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1412,9 +1721,33 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 		case 12:
 			Pendaftaran := models.PendaftaranASM{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 7 {
+			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
 					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
 					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
@@ -1427,6 +1760,8 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				}
 			} else {
 				updateFilter = bson.D{
+					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 					{"judul_proposal", Pendaftaran.Judul_proposal},
 					{"kategori", Pendaftaran.Kategori_program},
@@ -1443,17 +1778,13 @@ func UpdateFilter(role int32, persetujuan models.Persetujuan, c *gin.Context) (b
 				updateFilter = bson.D{}
 			}
 		}
-	// // PIC
-	case 2:
-		updateFilter = bson.D{
-			{"persetujuan.pic_nama", persetujuan.Pic_nama},
-			{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-			{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-			{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-		}
-	// Manager
+
+	//Manager
 	case 3:
+		fmt.Println(persetujuan)
 		updateFilter = bson.D{
+			{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+			{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
 			{"persetujuan.manager_nama", persetujuan.Manager_nama},
 			{"persetujuan.manager_tanggal", persetujuan.Manager_tanggal},
 			{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},

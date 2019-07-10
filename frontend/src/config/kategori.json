@@ -1,0 +1,165 @@
+        {
+            "Kode" : "Ksm",
+            "KodeN" : "1.02.00",
+            "KodeP" : 1,
+            "Value" : "Komunitas Sehat Muamalat",
+            "sub" :[
+                {"Kode" : "1.02.01", "Value" : "Khitanan Massal"},
+                {"Kode" : "1.02.02", "Value" : "Donor Darah"},
+                {"Kode" : "1.02.03", "Value" : "Pengadaan alat UKS"},
+                {"Kode" : "1.02.04", "Value" : "Layanan Ambulance"},
+                {"Kode" : "1.02.05", "Value" : "Gerakan Bersih-Bersih Masjid"},
+                {"Kode" : "1.02.06", "Value" : "Pengobatan Gratis"}
+            ]
+        }
+        {
+            "Kode" : "Rbm",
+            "KodeN" : "1.04.00",
+            "KodeP" : 2,
+            "Value" : "Rumah Berkah Muamalat",
+             "sub" :[
+                {"Kode" : "1.04.01", "Value" : "Renovasi Rumah Tidak Layak Huni"},
+                {"Kode" : "1.04.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "Paud",
+            "KodeN" : "1.01.02",
+            "KodeP" : 3,
+            "Value" : "Pangan Untuk Dhuafa",
+            "sub" :[
+                {"Kode" : "", "Value" : ""}
+            ]
+        }
+        {
+            "Kode" : "Kafala",
+            "KodeN" : "2.07.01",
+            "KodeP" : 4,
+            "Value" : "Kafala (Program Kerjasama)",
+            "sub" :[
+                {"Kode" : "2.07.01", "Value" : "Kafala"}
+            ]
+        }
+        {
+            "Kode" : "Jsm",
+            "KodeN" : "1.00.00",
+            "KodeP" : 5,
+            "Value" : "Jaminan Sosial Muamalat",
+            "sub" :[
+                {"Kode" : "1.01.01", "Value" : "Bantuan Iuran BPJS Tenaga Kerja"},
+                {"Kode" : "1.01.02", "Value" : "PAUD"},
+                {"Kode" : "1.01.03", "Value" : "ATM Beras"},
+                {"Kode" : "1.01.04", "Value" : "Kegiatan Sosial Dakwah"},
+                {"Kode" : "1.01.05", "Value" : "Bantuan Pengobatan dan Kegiatan Kesehatan"},
+                {"Kode" : "1.01.06", "Value" : "Bantuan Pengobatan dan Kegiatan Kesehatan"},
+                {"Kode" : "1.01.07", "Value" : "Bantuan Kemanusiaan"},
+                {"Kode" : "1.01.08", "Value" : "Jaminan Biaya Hidup Faqir"},
+                {"Kode" : "1.01.09", "Value" : "Bantuan Mualaf"},
+                {"Kode" : "1.01.10", "Value" : "Kegiatan Fisabillilah"},
+                {"Kode" : "1.01.11", "Value" : "Bantuan Ibnu Sabil"},
+                {"Kode" : "1.01.12", "Value" : "Pembangunan Fasilitas Ibadah dan Pendidikan"}
+            ]
+        }
+        {
+            "Kode" : "Dzm",
+            "KodeN" : "2.05.00",
+            "KodeP" : 6,
+            "Value" : "Dusun Zakat Muamalat",
+            "sub" :[
+                {"Kode" : "2.05.01", "Value" : "Dusun Zakat Muamalat"},
+                {"Kode" : "2.05.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "Bsu",
+            "KodeN" : "2.06.00",
+            "KodeP" : 7,
+            "Value" : "Bmm Sahabat Ukm",
+            "sub" :[
+                {"Kode" : "2.06.01", "Value" : "Muamalat Sahabat UKM"},
+                {"Kode" : "2.06.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "Br",
+            "KodeN" : "1.03.00",
+            "KodeP" : 8,
+            "Value" : "Bmm Rescue",
+            "sub" :[
+                {"Kode" : "1.03.01", "Value" : "Bantuan Bahan Kebutuhan Makanan Pokok"},
+                {"Kode" : "1.03.02", "Value" : "Bantuan Obat-Obatan"},
+                {"Kode" : "1.03.03", "Value" : "Bantuan Pakaian dan Perlengkapan"},
+                {"Kode" : "1.03.04", "Value" : "Bantuan Tenda dan Perlengkapan Lainnya"},
+                {"Kode" : "1.03.05", "Value" : "Operasional"},
+                {"Kode" : "1.03.06", "Value" : "Pelatihan Kebencanaan"}
+            ]
+        }
+        {
+            "Kode" : "Btm",
+            "KodeN" : "2.03.00",
+            "KodeP" : 9,
+            "Value" : "Beasiswa Tahfizh Muamalat",
+            "sub" :[
+                {"Kode" : "2.03.01", "Value" : "Beasiswa Tahfizh Muamalat"},
+                {"Kode" : "2.03.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "Bsm",
+            "KodeN" : "2.02.00",
+            "KodeP" : 10,
+            "Value" : "Beasiswa Sarjana Muamalat",
+            "sub" :[
+                {"Kode" : "2.02.01", "Value" : "Beasiswa Sarjana Muamalat"},
+                {"Kode" : "2.02.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "Bcm",
+            "KodeN" : "2.01.00",
+            "KodeP" : 11,
+            "Value" : "Beasiswa Cikal Muamalat",
+            "sub" :[
+                {"Kode" : "2.01.01", "Value" : "Beasiswa Cikal Muamalat"},
+                {"Kode" : "2.01.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "Asm",
+            "KodeN" : "0.00.00",
+            "KodeP" : 12,
+            "Value" : "Aksi Sehat Muamalat",
+            "sub" :[
+                {"Kode" : "", "Value" : ""}
+            ]
+        }
+        {
+            "Kode" : "PFU",
+            "KodeN" : "1.05.00",
+            "KodeP" : 13,
+            "Value" : "Pengadaan Fasilitas Umum",
+            "sub" :[
+                {"Kode" : "1.05.01", "Value" : "Pembangunan Sarana dan Prasarana Umum"},
+                {"Kode" : "1.05.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "MSBS",
+            "KodeN" : "2.04.00",
+            "KodeP" : 14,
+            "Value" : "Muamalat Solidarity Boarding School",
+            "sub" :[
+                {"Kode" : "2.04.01", "Value" : "Muamalat Solidarity Boarding School"},
+                {"Kode" : "2.04.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
+        {
+            "Kode" : "PHW",
+            "KodeN" : "3.00.00",
+            "KodeP" : 15,
+            "Value" : "Pengembangan Harta Wakaf",
+            "sub" :[
+                {"Kode" : "3.00.01", "Value" : "Pengembangan Harta Wakaf"},
+                {"Kode" : "3.00.02", "Value" : "Perencanaan dan Monitoring Program"}
+            ]
+        }
