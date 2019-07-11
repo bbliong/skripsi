@@ -1,9 +1,6 @@
 package main
 
 import (
-	"path"
-	"path/filepath"
-
 	"github.com/gin-gonic/contrib/static"
 
 	"github.com/bbliong/sim-bmm/Auth"
@@ -76,19 +73,23 @@ func main() {
 
 	}
 
-	// router.Use(static.Serve("/", static.LocalFile("./frontend", true)))
+	router.Use(static.Serve("/", static.LocalFile("./frontend/build/es6-bundled", true)))
 
 	// Masalah 404
-	router.NoRoute(func(c *gin.Context) {
-		dir, file := path.Split(c.Request.RequestURI)
-		ext := filepath.Ext(file)
+	// router.NoRoute(func(c *gin.Context) {
+	// 	dir, file := path.Split(c.Request.RequestURI)
+	// 	ext := filepath.Ext(file)
 
-		if file == "" || ext == "" {
-			c.File("./frontend/build/es6-bundled/index.html")
-		} else {
-			// strings.Split(file, "?")
-			c.File("./frontend" + path.Join(dir, file))
-		}
-	})
+	// 	if file == "" || ext == "" {
+	// 		c.File("./frontend/build/es6-bundled/index.html")
+	// 	} else {
+	// 		split := strings.Split(file, "?")
+	// 		fmt.Println(split)
+	// 		fmt.Println(file)
+	// 		fmt.Println(ext)
+	// 		fmt.Println(path.Join(dir, split[0]))
+	// 		c.File("./frontend/build/es6-bundled" + path.Join(dir, file))
+	// 	}
+	// })
 	router.Run(":3000")
 }
