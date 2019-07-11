@@ -71,6 +71,7 @@ func main() {
 			api.POST("/upload", controller.UploadImage)
 			api.GET("/report/proposal", controller.ManageProposal)
 			api.GET("/report/upd/:kat/:id", controller.UpdProposal)
+			api.GET("/report/verifikasi/:kat/:id", controller.VerifikasiProposal)
 		}
 
 	}

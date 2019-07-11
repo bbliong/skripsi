@@ -10,6 +10,7 @@
 import './../shared-styles.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import('./../config/loader.js');
 
 // vaadin Component
 import '@vaadin/vaadin-item/vaadin-item.js';
@@ -98,16 +99,15 @@ class Proposal extends PolymerElement {
         }
 
         .status-verifikasi {
-              /* border: 2px solid black; */
           color: white;
-          /* width: 100%; */
-          /* height: 100%; */
-          /* padding-top: 10px; */
-          width: auto;
+          width: 150px;
           display: inline;
           border: 1px solid white;
-          border-radius: 20px;
+          border-r: ;
+          width: 4;
           margin-left: 10px;
+          border-radius: 7px;
+          text-align: center;
         }
 
         [part~="cell"].female {
@@ -127,7 +127,17 @@ class Proposal extends PolymerElement {
           background-color: var(--paper-red-500);
         }
 
+        #main {
+          display :none;
+        }
+
+        vaadin-grid {
+          font-size :14px;
+        }
       </style>
+
+      <bmm-loader></bmm-loader>
+
        <!-- app-location binds to the app's URL -->
        <app-location route="{{route}}"></app-location>
 
@@ -138,7 +148,7 @@ class Proposal extends PolymerElement {
           data="{{routeData}}"
           tail="{{subroute}}"></app-route>
 
-      <div class="card">
+      <div class="card" id="main">
       <vaadin-dialog aria-label="polymer templates" id="dialog_pic">
           <template>
            <h3> Pilih PIC </h3>
@@ -239,10 +249,10 @@ class Proposal extends PolymerElement {
 
           <!-- Table  -->
           <vaadin-grid theme="column-borders" column-reordering-allowed multi-sort id="grid" page-size="10" height-by-rows aria-label="Selection using Active Item Example" >
-            <vaadin-grid-sort-column path="muztahiks.nama" id="nama" header="nama" width="300px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column id="tanggal" header="tanggal" width="150px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column path="persetujuan.kategori_program" id="kategori" header="kategori" width="300px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column id="status" header="status" width="200px"></vaadin-grid-sort-column >
+            <vaadin-grid-sort-column path="muztahiks.nama" id="nama" header="nama" width="200px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column id="tanggal" header="tanggal" width="100px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column path="persetujuan.kategori_program" id="kategori" header="kategori" width="220px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column id="status" header="status" width="160px"></vaadin-grid-sort-column >
               <vaadin-grid-column header="Action" id="action" width="150px"></vaadin-grid-column>
           </vaadin-grid>
           <div id="pages"></div>
@@ -315,6 +325,12 @@ class Proposal extends PolymerElement {
         }
       },
   }
+} 
+
+
+connectedCallback() {
+  super.connectedCallback();
+  this._loading(1)
 }
 
   static get observers() {
@@ -328,23 +344,43 @@ class Proposal extends PolymerElement {
   confirmPic(){
     this.$.postData.url= MyAppGlobals.apiPath + "/api/pendaftaran/" + this.regObj._id
     this.$.postData.headers['authorization'] = this.storedUser.access_token;
-    this.$.postData.body  = this.regObj
-    console.log(this.regObj)
+    this.$.postData.body  = {
+      "muztahik_id" : this.regObj._id,
+      "persetujuan" : {
+        "disposisi_pic_id" : this.regObj.disposisi_pic_id,
+        "level_persetujuan" : this.regObj.level_persetujuan
+      }
+    }
+    // console.log( this.$.postData.body)
     this.$.postData.generateRequest();
   }
 
   _activatedChanged(newValue, oldValue){
     if(newValue) {
+      // this._loading(1)
       localStorage.removeItem("register-data");
       this.getData(this.storeData)
       this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2"  
       this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
-      console.log(this.storedUser.role)
       if(this.storedUser.role !== 3){
           this.$.dialog_pic.style = "display:none"
       }
     }
   }
+
+  _loading(show){
+    if(show ==0 ){
+     this.shadowRoot.querySelector("#main").style.display = "block"
+     var that = this
+     setTimeout(function () {
+       that.shadowRoot.querySelector("bmm-loader").style.display = "none"
+     }, 2000);
+    } else { 
+     this.shadowRoot.querySelector("#main").style.display = "none"
+       this.shadowRoot.querySelector("bmm-loader").style.display = "block"
+    }
+   }
+
 
   _clicked(){
     const action = this.$.action
@@ -356,18 +392,28 @@ class Proposal extends PolymerElement {
           var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
           var urlDelete = MyAppGlobals.apiPath + "/api/pendaftaran/"+ rowData.item._id;
           var innerHtml = '<paper-icon-button icon ="settings" class="green">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green" style="display:none">PIC</paper-icon-button>';
-        break;
+          action.width = "100px"
+          break;
         case  2 : 
           var urlEdit = '/panel/proposal/edit-verifikator/'+ rowData.item.kategori + "/" + rowData.item._id ;
-          var innerHtml = '<paper-icon-button icon ="settings" class="green">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
+          var innerHtml = '<paper-button class="green">Verif</paper-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
+          action.width = "150px"
         break;
         case  3 : 
           var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
           var innerHtml = '<paper-icon-button icon ="settings" class="green" style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green">PIC</paper-icon-button>';
+          action.width = "100px"
           break;
+          case  5 : 
+          var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
+          var urlDelete = MyAppGlobals.apiPath + "/api/pendaftaran/"+ rowData.item._id;
+          var innerHtml = '<paper-icon-button icon ="settings" class="green">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green" style="display:none">PIC</paper-icon-button>';
+          action.width = "100px"
+        break;
         case 7 :
           var urlEdit = '/panel/proposal/edit-verifikator/'+ rowData.item.kategori + "/" + rowData.item._id ;
           var innerHtml = '<paper-icon-button icon ="settings" class="green">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
+          action.width = "100px"
         break;
       }
 
@@ -383,10 +429,22 @@ class Proposal extends PolymerElement {
         }
       })
       root.childNodes[2].addEventListener('click', function(e){
-        that.regObj._id = rowData.item._id 
-        that.regObj.disposisi_pic_id = rowData.item.persetujuan.disposisi_pic_id
-        that.regObj.level_persetujuan = rowData.item.persetujuan.level_persetujuan
-        that.shadowRoot.querySelector('vaadin-dialog').opened  =true
+        // that.regObj._id = rowData.item._id 
+        // that.regObj.disposisi_pic_id = rowData.item.persetujuan.disposisi_pic_id
+        // that.regObj.level_persetujuan = rowData.item.persetujuan.level_persetujuan
+        that.regObj = {
+          "_id"  : rowData.item._id ,
+              "disposisi_pic_id"  : rowData.item.persetujuan.disposisi_pic_id,
+              "level_persetujuan" : rowData.item.persetujuan.level_persetujuan
+        }
+
+        // Untuk ambil yang ada di dalem shadowroot
+        var dialog =that.shadowRoot.querySelector('vaadin-dialog')
+        var backdrop = dialog.shadowRoot.querySelector('vaadin-dialog-overlay').shadowRoot.querySelector('#backdrop')
+        backdrop.addEventListener("click", function(){
+         that.regObj = {}
+        })
+        dialog.opened  =true      
       })
 
       if (rowData.item.persetujuan.level_persetujuan >= 2 && that.storedUser.role == 2){
@@ -488,7 +546,6 @@ class Proposal extends PolymerElement {
 
   _handleResponseM(event){
     var response = event.detail.response;
-    console.log(response)
     this.pendaftarans = response.data
     //   const grid = document.querySelector('vaadin-grid');
     //   grid.items  = this.pendaftarans
@@ -614,6 +671,7 @@ class Proposal extends PolymerElement {
     var end = page * grid.pageSize;
     grid.items =  this.pendaftarans.slice(start, end);
     this._clicked()
+    this._loading(0)
   }
 
   /* Fungsi delete */

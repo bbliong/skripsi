@@ -11,6 +11,7 @@ import './../shared-styles.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-module';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import('./../config/loader.js');
 
 // vaadin Component
 import '@vaadin/vaadin-grid/vaadin-grid.js';
@@ -53,7 +54,7 @@ class Muzatahik extends PolymerElement {
         .filter-side {
           position:absolute;
           top : 120px;
-          right :50px;
+          right :70px;
         }
         
         #cekData {
@@ -108,7 +109,16 @@ class Muzatahik extends PolymerElement {
         vaadin-grid-cell-content{
           overflow :unset;
         }
+        vaadin-grid {
+          font-size :14px;
+        }
+
+        #main {
+          display :none;
+        }
+
       </style>
+      <bmm-loader></bmm-loader>
       <!-- app-location binds to the app's URL -->
       <app-location route="{{route}}"></app-location>
 
@@ -119,7 +129,7 @@ class Muzatahik extends PolymerElement {
           data="{{routeData}}"
           tail="{{subroute}}"></app-route>
 
-      <div class="card">
+      <div class="card" id="main">
         <h1>Data Muztahik</h1>
         <iron-ajax
           id="GetMuztahik"
@@ -164,7 +174,7 @@ class Muzatahik extends PolymerElement {
                 </paper-listbox>
           
           </paper-menu-button>
-          <paper-button  raised class="indigo" on-click="_addMuztahik" id="addMuztahik">Tambah</paper-button>
+          <paper-button  raised class="green" on-click="_addMuztahik" id="addMuztahik">Tambah</paper-button>
         </div>
 
         <div class="search">
@@ -180,11 +190,11 @@ class Muzatahik extends PolymerElement {
         <!-- End Filter -->
           <!-- Table  -->
           <vaadin-grid theme="column-borders" column-reordering-allowed multi-sort id="grid" page-size="10" height-by-rows aria-label="Selection using Active Item Example" >
-            <vaadin-grid-sort-column path="nama" id="nama" width="300px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column path="nik" width="200px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column  path="kecamatan" width="200px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column path="kabkot" header="Kabupaten/Kota" width="200px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column path="provinsi" width="200px"></vaadin-grid-sort-column >
+            <vaadin-grid-sort-column path="nama" id="nama" width="200px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column path="nik" width="150px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column  path="kecamatan" width="140px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column path="kabkot" header="Kabupaten/Kota" width="140px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column path="provinsi" width="140px"></vaadin-grid-sort-column >
               <vaadin-grid-column header="Action" id="action"></vaadin-grid-column>
           </vaadin-grid>
           <div id="pages"></div>
@@ -234,8 +244,19 @@ class Muzatahik extends PolymerElement {
           type: Boolean,
           value:false,
           observer: '_activatedChanged'
+        },
+        showLoader : {
+          type : Number,
+          notify : true,
+          value : 0
         }
+        
       }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._loading(1)
   }
 
   static get observers() {
@@ -250,6 +271,19 @@ class Muzatahik extends PolymerElement {
       localStorage.removeItem("register-data");
       this.getData(this.storeData)  
     }
+  }
+
+  _loading(show){
+   if(show ==0 ){
+    this.shadowRoot.querySelector("#main").style.display = "block"
+    var that = this
+    setTimeout(function () {
+      that.shadowRoot.querySelector("bmm-loader").style.display = "none"
+    }, 2000);
+   } else { 
+    this.shadowRoot.querySelector("#main").style.display = "none"
+      this.shadowRoot.querySelector("bmm-loader").style.display = "block"
+   }
   }
 
   _clicked(){
@@ -443,6 +477,7 @@ class Muzatahik extends PolymerElement {
       var end = page * grid.pageSize;
       grid.items =  this.muztahiks.slice(start, end);
       this._clicked()
+      this._loading(0)
     }
 
   }

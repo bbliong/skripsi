@@ -21,16 +21,23 @@ class Menu extends PolymerElement {
 
           padding: 10px;
         }
+        a {
+          font-size : 14px;
+        }
+        paper-icon-button {
+          width : 35px;
+          height  :35px;
+        }
       </style>
 
-        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-            <a name="beranda" href="[[rootPath]]panel/beranda">   <paper-icon-button icon="home"></paper-icon-button> Beranda</a>
-            <a name="muztahik" href="[[rootPath]]panel/muztahik">  <paper-icon-button icon="face"></paper-icon-button> Muztahik</a>
-            <a name="proposal" href="[[rootPath]]panel/proposal">  <paper-icon-button icon="receipt"></paper-icon-button> Proposal</a>
-            <a name="laporan" href="[[rootPath]]panel/laporan">   <paper-icon-button icon="book"></paper-icon-button> Laporan</a>
-            <a name="user" href="[[rootPath]]panel/user">   <paper-icon-button icon="account-circle"></paper-icon-button> Pengguna</a>
-            <a on-click="_logout" style="cursor:pointer">   <paper-icon-button icon="exit-to-app"></paper-icon-button> Keluar</a>
-        </iron-selector>    
+              <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
+               <dom-repeat items="{{SelectedRole}}">
+                  <template>
+                    <a name="{{item.name}}" href="[[rootPath]]panel/{{item.url}}">   <paper-icon-button icon="{{item.icon}}"></paper-icon-button> {{item.text}}</a>
+                  </template>
+                </dom-repeat>
+            <a name="keluar" on-click="_logout" style="cursor:pointer">   <paper-icon-button icon="exit-to-app"></paper-icon-button> Keluar</a>
+        </iron-selector>      
     `;
   }
 
@@ -39,6 +46,142 @@ class Menu extends PolymerElement {
         page : {
           type : String,
           notify : true
+        },
+        SelectedRole : {
+          type : Array,
+          notify : true
+        },
+         AccessMenu : {
+            type : Object,
+            value : function(){
+              return {
+                1 : [
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                  {
+                  name : "muztahik",
+                  url : "muztahik",
+                   icon : "face",
+                   text : "Muztahik"
+                  },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                   {
+                     name : "pengguna",
+                     url : "user",
+                   icon : "account-circle",
+                   text : "Pengguna",
+                  },
+                ], 
+                2 :[
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ], 
+                3  :[
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ], 
+                4 :[
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                  {
+                  name : "muztahik",
+                  url : "muztahik",
+                   icon : "face",
+                   text : "Muztahik"
+                  },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ], 
+                5 : [
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                  {
+                  name : "muztahik",
+                  url : "muztahik",
+                   icon : "face",
+                   text : "Muztahik"
+                  },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ]
+              }
+            }
         }
     }  
   }
@@ -46,6 +189,15 @@ class Menu extends PolymerElement {
     window.location.href = "/login"
     this.storedUser = null
   }
+
+connectedCallback(){
+  super.connectedCallback()
+  var access = localStorage.getItem("login-bmm")
+  this.SelectedRole = this.AccessMenu[JSON.parse(access).role]
 }
 
+}
 window.customElements.define('bmm-menu', Menu);
+
+
+

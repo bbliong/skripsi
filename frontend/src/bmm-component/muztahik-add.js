@@ -113,6 +113,19 @@ class MuztahikAdd extends PolymerElement {
           debounce-duration="300"></iron-ajax>
       </iron-ajax>
 
+
+      <iron-ajax
+          auto 
+          id="managerDPP"
+          headers='{"Access-Control-Allow-Origin": "*" }'
+          handle-as="json"
+          method="GET"
+          on-response="_handleManager"
+          on-error="_errorManager"
+          Content-Type="application/json"
+          debounce-duration="300">
+      </iron-ajax>
+      
     <div class="card">    
       <h1>Pendaftaran Kategori</h1>
         <vaadin-form-layout>
@@ -130,18 +143,18 @@ class MuztahikAdd extends PolymerElement {
         </vaadin-form-layout>    
         <div class="wrap">
           <iron-pages selected="[[selectedKategori.Kode]]"  attr-for-selected="name">
-            <bmm-kategori-ksm name="Ksm" subKategori="{{subkategori}}"></bmm-kategori-ksm>
-            <bmm-kategori-rbm name="Rbm" subKategori="{{subkategori}}"></bmm-kategori-rbm>
-            <bmm-kategori-paud name="Paud" subKategori="{{subkategori}}"></bmm-kategori-paud>
-            <bmm-kategori-kafala name="Kafala" subKategori="{{subkategori}}"></bmm-kategori-kafala>
-            <bmm-kategori-jsm name="Jsm" subKategori="{{subkategori}}"></bmm-kategori-jsm>
-            <bmm-kategori-dzm name="Dzm" subKategori="{{subkategori}}"></bmm-kategori-dzm>
-            <bmm-kategori-bsu name="Bsu" subKategori="{{subkategori}}"></bmm-kategori-bsu>
-            <bmm-kategori-br name="Br" subKategori="{{subkategori}}"></bmm-kategori-br>
-            <bmm-kategori-btm name="Btm" subKategori="{{subkategori}}"></bmm-kategori-btm>
-            <bmm-kategori-bsm name="Bsm" subKategori="{{subkategori}}"></bmm-kategori-bsm>
-            <bmm-kategori-bcm name="Bcm" subKategori="{{subkategori}}"></bmm-kategori-bcm>
-            <bmm-kategori-asm name="Asm" subKategori="{{subkategori}}"></bmm-kategori-asm>
+            <bmm-kategori-ksm name="Ksm" subKategori="{{subkategori}}"  user="{{User}}"></bmm-kategori-ksm>
+            <bmm-kategori-rbm name="Rbm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-rbm>
+            <bmm-kategori-paud name="Paud" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-paud>
+            <bmm-kategori-kafala name="Kafala" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-kafala>
+            <bmm-kategori-jsm name="Jsm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-jsm>
+            <bmm-kategori-dzm name="Dzm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-dzm>
+            <bmm-kategori-bsu name="Bsu" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-bsu>
+            <bmm-kategori-br name="Br" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-br>
+            <bmm-kategori-btm name="Btm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-btm>
+            <bmm-kategori-bsm name="Bsm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-bsm>
+            <bmm-kategori-bcm name="Bcm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-bcm>
+            <bmm-kategori-asm name="Asm" subKategori="{{subkategori}}" user="{{User}}"></bmm-kategori-asm>
           </iron-pages>
         </div> 
 
@@ -195,7 +208,16 @@ class MuztahikAdd extends PolymerElement {
         }
       },
       toastError : String,
-      resID : String
+      resID : String,
+      User : {
+        type : Array,
+        notify : true,
+        value : function(){
+          return [
+
+          ]
+        }
+      },
     }
   }
 
@@ -211,6 +233,9 @@ class MuztahikAdd extends PolymerElement {
       this.$.datass.url = "change" //Fix Problem kategori tidak dikirim lagi
       this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
       this.$.datass.headers['authorization'] = this.storedUser.access_token;
+      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2"  
+      this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
+      
   }
 
 
@@ -359,6 +384,20 @@ class MuztahikAdd extends PolymerElement {
     var yyyy = date.getFullYear();
     return yyyy + "-" + mm +  "-"+dd
   }
+
+    /***********   Handle user manager**********/
+
+   _handleManager(e){
+    var response = e.detail.response;
+    this.User = response.data
+    console.log(response)
+  }
+
+  _errorManager(e){
+    console.log(e)
+  }
+
+    /***********  end user manager **********/
 }
 
 window.customElements.define('bmm-muztahik-add', MuztahikAdd);

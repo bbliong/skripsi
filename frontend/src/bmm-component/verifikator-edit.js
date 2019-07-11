@@ -59,6 +59,10 @@ class VerifikatorEdit extends PolymerElement {
                 width : 24%;
             }
 
+            paper-button {
+              margin-left: 25px;
+            }
+            
             @media(max-width : 800px){
                 .verif {
                     width : 100%;
@@ -111,13 +115,32 @@ class VerifikatorEdit extends PolymerElement {
                 </vaadin-form-layout>         
             </div>
         </div>
+        <dom-repeat items="{{pihakPenerima}}" id="penerima">
+            <template>
+                    <div class="card">
+                        <div class="wrap">
+                        <div class="head">
+                        <h3 style="display:inline-block"> Penerima Manfaat  [[displayIndex(index)]] </h3>
+                        <paper-icon-button icon="remove" id="{{index}}" on-click="_removePenerima">   </paper-icon-button>
+                        </div>
+
+                        <vaadin-text-field label="Nama" value="{{item.nama}}" class="penerima"></vaadin-text-field>
+                        <vaadin-text-field label="Usia" value="{{item.usia}}" class="penerima"></vaadin-text-field>
+                        <vaadin-text-field label="Tanggungan" value="{{item.tanggungan}}" class="penerima"></vaadin-text-field>
+                        <vaadin-text-field label="Alamat" value="{{item.alamat}}" class="penerima"></vaadin-text-field>
+                        <vaadin-text-field label="Telepon" value="{{item.telepon}}" class="penerima"></vaadin-text-field>
+                    </template>           
+                    </div>
+                </div>
+        </dom-repeat> 
+        <paper-button  raised class="indigo" on-click="_addPenerima" id="addPenerima">Tambah Penerima </paper-button>
         <dom-repeat items="{{pihakKonfirmasi}}" id="konfirmasi">
             <template>
                     <div class="card">
                         <div class="wrap">
                         <div class="head">
                         <h3 style="display:inline-block"> Pihak Diverfikasi / Dikonfirmasi  [[displayIndex(index)]] </h3>
-                        <paper-icon-button icon="remove" id="{{index}}" on-click="_removeArray">   </paper-icon-button>
+                        <paper-icon-button icon="remove" id="{{index}}" on-click="_removeKonfirmasi">   </paper-icon-button>
                         </div>
 
                         <vaadin-text-field label="Nama" value="{{item.nama}}" class="verif"></vaadin-text-field>
@@ -184,7 +207,7 @@ class VerifikatorEdit extends PolymerElement {
                 </vaadin-form-layout>
             </div>
         </div>
-     <paper-button  raised class="indigo" on-click="sendData" id="Verifikasi">Verifikasi</paper-button>
+     <paper-button  raised class="indigo" on-click="sendData" id="Verifikasi">Simpan dan Cetak Verifikasi</paper-button>
       <iron-ajax 
           id="postData"
           headers='{"Access-Control-Allow-Origin": "*" }'
@@ -192,6 +215,18 @@ class VerifikatorEdit extends PolymerElement {
           method="PUT"
           on-response="_handleProposalPost"
           on-error="_handleProposalPostError"
+          Content-Type="application/json"
+          debounce-duration="300">
+      </iron-ajax>
+
+      <iron-ajax 
+          id="printData"
+          headers='{"Access-Control-Allow-Origin": "*" }'
+          method="GET"
+          handle-as="json"
+          method="GET"
+          on-response="_handleVerif"
+          on-error="_handleVerifError"
           Content-Type="application/json"
           debounce-duration="300">
       </iron-ajax>
@@ -254,7 +289,22 @@ class VerifikatorEdit extends PolymerElement {
                   }
               ]
           }
-      }
+      },
+      pihakPenerima : {
+        type : Array,
+        notify :  true,
+        value : function(){
+            return[
+                {
+                    "nama" : "",
+                    "usia" : "",
+                    "tanggungan" : "",
+                    "alamat" : "",
+                    "tujuan" : ""
+                }
+            ]
+        }
+    }
     }
   }
 
@@ -290,6 +340,8 @@ class VerifikatorEdit extends PolymerElement {
 
     }
   }
+
+  /* Event untuk konfirmasi */
   _addKonfirmasi(){
      
     var obj = {
@@ -301,11 +353,10 @@ class VerifikatorEdit extends PolymerElement {
         }
     this.pihakKonfirmasi.push(obj)
     this.$.konfirmasi.render();
-    console.log(this.pihakKonfirmasi)
   }
 
   
-  _removeArray(obj){
+  _removeKonfirmasi(obj){
     var id = obj.target.id 
     this.pihakKonfirmasi.splice(id,1);
     this.$.konfirmasi.render();
@@ -317,6 +368,33 @@ class VerifikatorEdit extends PolymerElement {
     this.shadowRoot.querySelector("#item_hasil_"+id).render()
 
   }
+
+
+  /* Event untuk konfirmasi */
+
+
+  /* Event untuk Penerima */
+  _addPenerima(){
+     
+    var obj = {
+      "nama" : "",
+      "usia" : "",
+      "tanggungan" : "",
+      "alamat" : "",
+      "tujuan" : ""
+        }
+    this.pihakPenerima.push(obj)
+    this.$.penerima.render();
+  }
+
+  
+  _removePenerima(obj){
+    var id = obj.target.id 
+    this.pihakPenerima.splice(id,1);
+    this.$.penerima.render();
+  }
+
+  /* Event untuk Penerima */
 
   // Define ketika polymer pertama kali di load 
   
@@ -359,6 +437,11 @@ class VerifikatorEdit extends PolymerElement {
         this.pihakKonfirmasi = this.regObj.verifikasi.pihak_konfirmasi
     }
 
+    //Handle card pihak dverifikasi
+    if(typeof this.regObj.verifikasi.penerima_manfaat !== "undefined"){
+      this.pihakPenerima = this.regObj.verifikasi.penerima_manfaat
+  }
+
   }
 
   _handleProposalError(e){
@@ -368,7 +451,7 @@ class VerifikatorEdit extends PolymerElement {
   // Fungsi untuk handle post proposal update
 
   _handleProposalPost(e){
-    this.set('route.path', '/panel/proposal');
+    this.printData()
   }
 
   _handleProposalPostError(e){
@@ -377,8 +460,9 @@ class VerifikatorEdit extends PolymerElement {
 
 
   sendData(){
-     console.log(this.regObj)
+   
     this.regObj.verifikasi.pihak_konfirmasi = this.pihakKonfirmasi     
+    this.regObj.verifikasi.penerima_manfaat = this.pihakPenerima  
     this.$.postData.url= MyAppGlobals.apiPath + "/api/verifikator/" + this.routeData.id
     this.$.postData.headers['authorization'] = this.storedUser.access_token;
     this.$.postData.body  = this.regObj
@@ -413,6 +497,26 @@ class VerifikatorEdit extends PolymerElement {
       f.base[array[2]] = parseInt(f.value)
     }
   }
+
+     /* Handle cetak */
+
+   _handleVerif(e){
+      if(typeof e.detail.response.url !== "undefined" ){
+         document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
+         this.set('route.path', '/panel/proposal');
+      }
+   }
+   _handleVerifError(e){
+     console.log(e)
+   }
+
+   printData(){
+     console.log("check")
+     this.$.printData.url= MyAppGlobals.apiPath + "/api/report/verifikasi/"+ this.routeData.kat  + "/" + this.routeData.id
+     this.$.printData.headers['authorization'] = this.storedUser.access_token;
+     this.$.printData.generateRequest();
+   }
+
 }
 
 

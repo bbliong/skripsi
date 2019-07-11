@@ -30,16 +30,16 @@ func GetAllUser(c *gin.Context) {
 		Users []models.Users
 	)
 
-	claims := c.MustGet("decoded").(*models.Claims)
+	// claims := c.MustGet("decoded").(*models.Claims)
 
-	if claims.IsAdmin() || claims.IsMGR() {
-		fmt.Println("You have permission for this access")
-	} else {
-		c.JSON(500, gin.H{
-			"Message": "You don't have the permission ",
-		})
-		return
-	}
+	// if claims.IsAdmin() || claims.IsMGR() || claims.IsAdmP() {
+	// 	fmt.Println("You have permission for this access")
+	// } else {
+	// 	c.JSON(500, gin.H{
+	// 		"Message": "You don't have the permission ",
+	// 	})
+	// 	return
+	// }
 
 	// Memilih Tabel
 	collection := db.Collection("users")

@@ -13,6 +13,7 @@ import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import {IronResizableBehavior} from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
 import {NeonAnimationRunnerBehavior} from '@polymer/neon-animation/neon-animation-runner-behavior.js';
+import('./../config/loader.js');
 
 // google Component
 import '@google-web-components/google-chart/google-chart.js';
@@ -57,8 +58,14 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
               width: 600px;
             }
           }
+
+          #main {
+          display :none;
+        }
+
       </style>
-      <div class="card">
+       <bmm-loader></bmm-loader>
+      <div class="card" id="main">
         <h1> Grafik Proposal Masuk Baitulmaal Muamalat</h1>
         <paper-button raised class="indigo" on-click="refreshCount">Refresh</paper-button>
         <google-chart 
@@ -125,7 +132,24 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
 
     }
   }
-  
+
+  // created(){
+  //   this._loading(1)
+  // }
+
+  _loading(show){
+    if(show ==0 ){
+     this.shadowRoot.querySelector("#main").style.display = "block"
+     var that = this
+     setTimeout(function () {
+       that.shadowRoot.querySelector("bmm-loader").style.display = "none"
+     }, 2000);
+    } else { 
+       this.shadowRoot.querySelector("#main").style.display = "none"
+       this.shadowRoot.querySelector("bmm-loader").style.display = "block"
+    }
+   }
+
   static get observers() {
     return [
       'refreshCount(storedUser.*)',
@@ -141,6 +165,7 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
       kategori.push([key, data[key]])
     }
     this.Kategori = kategori
+    this._loading(0)
   }
 
   refreshCount(store){
@@ -152,6 +177,7 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
 
   connectedCallback() {
     super.connectedCallback();
+    this._loading(1)
     this.addEventListener('iron-resize', this.onIronResize.bind(this));
   }
 
@@ -160,7 +186,6 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
   }
 
   handleError(e){
-    console.log(e)
     this.error = e.detail.request.xhr.status
   }
 }

@@ -11,6 +11,7 @@ import './../shared-styles.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-module';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import('./../config/loader.js');
 
 // vaadin Component
 import '@vaadin/vaadin-grid/vaadin-grid.js';
@@ -105,7 +106,15 @@ class User extends PolymerElement {
         vaadin-grid-cell-content{
           overflow :unset;
         }
+        
+        #main {
+          display :none;
+        }
+        vaadin-grid {
+          font-size :14px;
+        }
       </style>
+       <bmm-loader></bmm-loader>
       <!-- app-location binds to the app's URL -->
       <app-location route="{{route}}"></app-location>
 
@@ -116,7 +125,7 @@ class User extends PolymerElement {
           data="{{routeData}}"
           tail="{{subroute}}"></app-route>
 
-      <div class="card">
+      <div class="card" id="main">
         <h1>Data User</h1>
         <iron-ajax
           id="GetUser"
@@ -200,6 +209,24 @@ class User extends PolymerElement {
       // '_routePageChanged(subroute.*)',
     ];
   }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._loading(1)
+  }
+
+  _loading(show){
+    if(show ==0 ){
+     this.shadowRoot.querySelector("#main").style.display = "block"
+     var that = this
+     setTimeout(function () {
+       that.shadowRoot.querySelector("bmm-loader").style.display = "none"
+     }, 2000);
+    } else { 
+     this.shadowRoot.querySelector("#main").style.display = "none"
+       this.shadowRoot.querySelector("bmm-loader").style.display = "block"
+    }
+   }
 
   _activatedChanged(newValue, oldValue){
     if(newValue) {
@@ -357,6 +384,7 @@ class User extends PolymerElement {
       var end = page * grid.pageSize;
       grid.items =  this.users.slice(start, end);
       this._clicked()
+      this._loading(0)
     }
 
   }

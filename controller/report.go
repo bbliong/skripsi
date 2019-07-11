@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"strings"
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -1076,7 +1076,7 @@ func UpdProposal(c *gin.Context) {
 				nama = Pendaftaran.Muztahiks.Nama
 				kategori = Pendaftaran.Persetujuan.Kategori_program
 
-				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+3), "Tgl : "+t.Format("02 Jan 2006 "))
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
 			} else {
 				c.JSON(500, gin.H{
 					"data": "Belum Membuat UPD",
@@ -1086,54 +1086,692 @@ func UpdProposal(c *gin.Context) {
 		case 2:
 			Pendaftaran := &models.PendaftaranRBM{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori PAUD
 		case 3:
 			Pendaftaran := &models.PendaftaranPAUD{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori KAFALA
 		case 4:
 			Pendaftaran := &models.PendaftaranKAFALA{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori JSM
 		case 5:
 			Pendaftaran := &models.PendaftaranJSM{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori DZM
 		case 6:
 			Pendaftaran := &models.PendaftaranDZM{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori BSU
 		case 7:
 			Pendaftaran := &models.PendaftaranBSU{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori Rescue
 		case 8:
 			Pendaftaran := &models.PendaftaranRescue{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori BTM
 		case 9:
 			Pendaftaran := &models.PendaftaranBTM{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori BSM
 		case 10:
 			Pendaftaran := &models.PendaftaranBSM{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori BCM
 		case 11:
 			Pendaftaran := &models.PendaftaranBCM{}
 			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
+				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
 		// Kategori ASM
 		case 12:
 			Pendaftaran := &models.PendaftaranASM{}
-			result.Decode(Pendaftaran)	
-		default:
-				{
-					c.JSON(500, gin.H{
-						"data": "Kategori tidak ditemukan",
-					})
+			result.Decode(Pendaftaran)
+			if Pendaftaran.Upd != nil {
+				// _ = f.InsertRow(sheet, monitoringProposal+1)
+				for key, val := range Pendaftaran.Upd.Tujuan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Tujuan())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Tujuan()), "H"+strconv.Itoa(Tujuan()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Tujuan()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Tujuan()), val)
+					err = f.SetRowHeight(Sheet, Tujuan(), 41.25)
+					TujuanIndex++
 				}
+
+				for key, val := range Pendaftaran.Upd.Latar_belakang {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Latar())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Latar()), "H"+strconv.Itoa(Latar()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Latar()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Latar()), val)
+
+					LatarIndex++
+				}
+				for key, val := range Pendaftaran.Upd.Analisis_kelayakan {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Analisa())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Analisa()), "H"+strconv.Itoa(Analisa()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Analisa()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Analisa()), val)
+
+					AnalisaIndex++
+				}
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()), Pendaftaran.Kategoris.Jumlah_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+1), Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+2), Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+3), Pendaftaran.Upd.Program_penyaluran.Alur_biaya)
+				f.SetCellValue(Sheet, "G"+strconv.Itoa(Program()+4), Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab)
+				ProgramIndex += 5
+				for key, val := range Pendaftaran.Upd.Rekomendasi {
+					if key >= 1 {
+						err = f.InsertRow(Sheet, Rekomendasi())
+						err = f.MergeCell(Sheet, "C"+strconv.Itoa(Rekomendasi()), "H"+strconv.Itoa(Rekomendasi()))
+					}
+					f.SetCellValue(Sheet, "B"+strconv.Itoa(Rekomendasi()), key+1)
+					f.SetCellValue(Sheet, "C"+strconv.Itoa(Rekomendasi()), val)
+					RekomendasiIndex++
+				}
+				nama = Pendaftaran.Muztahiks.Nama
+				kategori = Pendaftaran.Persetujuan.Kategori_program
+
+				f.SetCellValue(Sheet, "D"+strconv.Itoa(Rekomendasi()+4), "Tgl : "+t.Format("02 Jan 2006 "))
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		default:
+			{
+				c.JSON(500, gin.H{
+					"data": "Kategori tidak ditemukan",
+				})
 			}
 		}
+	}
 
 	style, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"top","wrap_text":true,"reading_order":0,"relative_indent":1,"shrink_to_fit":true}, "font":{"size":14}}`)
 
@@ -1153,13 +1791,12 @@ func UpdProposal(c *gin.Context) {
 		fmt.Println(err)
 	}
 
-	fmt.Println(strconv.Itoa(Rekomendasi()))
 	err = f.SetCellStyle(Sheet, "A5", "H"+strconv.Itoa(Rekomendasi()), style)
 
 	err = f.SetCellStyle(Sheet, "A5", "A"+strconv.Itoa(Rekomendasi()-2), styleHeader)
 
 	err = f.SetCellStyle(Sheet, "A"+strconv.Itoa(Rekomendasi()+3), "F"+strconv.Itoa(Rekomendasi()+10), styleTTD)
-	url := strings.Replace("/public/report/UPD_" + t.Format("02_Jan_2006 15_04_05") + "_" + nama + " " + kategori + ".xlsx", " ", "_", -1)
+	url := strings.Replace("/public/report/UPD_"+t.Format("02_Jan_2006 15_04_05")+"_"+nama+" "+kategori+".xlsx", " ", "_", -1)
 	err = f.SaveAs("." + url)
 	if err != nil {
 		fmt.Println(err)
@@ -1168,8 +1805,8 @@ func UpdProposal(c *gin.Context) {
 	// Simpan Data URL
 
 	results, errs := collection.UpdateOne(ctx, filter, bson.D{
-		{"$set",  bson.D{
-			{"upd.url", url },
+		{"$set", bson.D{
+			{"upd.url", url},
 		}},
 	})
 
@@ -1201,7 +1838,7 @@ func UpdProposal(c *gin.Context) {
 }
 
 // func CheckData(){
-	
+
 // 	Pendaftaran := CheckType(Kat)
 // 	result.Decode(Pendaftaran)
 
@@ -1223,10 +1860,1241 @@ func UpdProposal(c *gin.Context) {
 // }
 
 // func CheckType(Kat int) interface{}{
-// 	// Check kategori akan di return sebagai fungsinya 
+// 	// Check kategori akan di return sebagai fungsinya
 //     switch Kat{
 //         case 1:
 //             return &models.PendaftaranASM{}
 // 	}
 // 	return nil
 // }
+
+func VerifikasiProposal(c *gin.Context) {
+
+	/* ---------------------------- Start of GET Data ---------------------------*/
+	var (
+		Sheet          string = "FORM VERIFIKASI"
+		nama, kategori string
+	)
+
+	PihakIndex, PenerimaIndex, HasilIndex := 19, 0, 0
+	Penerima := func() int {
+		return PihakIndex + 2 + PenerimaIndex
+	}
+
+	Hasil := func() int {
+		return Penerima() + 2 + HasilIndex
+	}
+
+	_ = Penerima() + Hasil()
+
+	t := time.Now()
+
+	collection := db.Collection("pendaftaran")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	//claims := c.MustGet("decoded").(*models.Claims)
+	_id, _ := primitive.ObjectIDFromHex(c.Param("id"))
+	Kat, _ := strconv.Atoi(c.Param("kat"))
+	filter := bson.D{{"_id", _id}, {"kategori", Kat}}
+
+	//get data taro di cursor
+	result := collection.FindOne(ctx, filter)
+	// if err != nil {
+	// 	c.JSON(500, gin.H{
+	// 		"data": "Id tidak ditemukan",
+	// 	})
+	// 	return
+	// }
+
+	/* ---------------------------- End of GET Data ---------------------------*/
+
+	/* ---------------------------- Start of Setup Excel ---------------------------*/
+
+	f, err := excelize.OpenFile("./public/report/VERIFIKASI.xlsx")
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "Data dasar tidak ditemukan",
+		})
+		return
+	}
+
+	if Kat == 0 {
+		// If the structure of the body is wrong, return an HTTP error
+		// fmt.Println(err)
+	} else {
+		switch Kat {
+		// Kategori KSM
+		case 1:
+			Pendaftaran := &models.PendaftaranKSM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		case 2:
+			Pendaftaran := &models.PendaftaranRBM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori PAUD
+		case 3:
+			Pendaftaran := &models.PendaftaranPAUD{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori KAFALA
+		case 4:
+			Pendaftaran := &models.PendaftaranKAFALA{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori JSM
+		case 5:
+			Pendaftaran := &models.PendaftaranJSM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori DZM
+		case 6:
+			Pendaftaran := &models.PendaftaranDZM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori BSU
+		case 7:
+			Pendaftaran := &models.PendaftaranBSU{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori Rescue
+		case 8:
+			Pendaftaran := &models.PendaftaranRescue{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori BTM
+		case 9:
+			Pendaftaran := &models.PendaftaranBTM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori BSM
+		case 10:
+			Pendaftaran := &models.PendaftaranBSM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+				if len(Pendaftaran.Verifikasi.Pihak_konfirmasi) < 3 {
+					PihakIndex = 31
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori BCM
+		case 11:
+			Pendaftaran := &models.PendaftaranBCM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		// Kategori ASM
+		case 12:
+			Pendaftaran := &models.PendaftaranASM{}
+			result.Decode(Pendaftaran)
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			if Pendaftaran.Verifikasi != nil {
+				f.SetCellValue(Sheet, "F6", Pendaftaran.Verifikasi.Tanggal_verifikasi)
+				f.SetCellValue(Sheet, "H8", Pendaftaran.Verifikasi.Nama_pelaksana)
+				f.SetCellValue(Sheet, "H9", Pendaftaran.Verifikasi.Jabatan_pelaksana)
+				f.SetCellValue(Sheet, "F11", Pendaftaran.Judul_proposal)
+				f.SetCellValue(Sheet, "F12", Pendaftaran.Verifikasi.Bentuk_bantuan)
+				f.SetCellValue(Sheet, "F13", Pendaftaran.Kategoris.Jumlah_bantuan)
+				for _, val := range Pendaftaran.Verifikasi.Cara_verifikasi {
+					if ok, _ := strconv.Atoi(val); ok == 1 {
+						f.SetCellValue(Sheet, "H15", "V")
+					} else if ok, _ := strconv.Atoi(val); ok == 2 {
+						f.SetCellValue(Sheet, "H16", "V")
+					}
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Pihak_konfirmasi {
+					if key > 2 {
+						break
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+1), val.Lembaga)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+2), val.Jabatan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(PihakIndex+3), val.Telepon)
+					for key, val := range val.Hasil {
+						if key <= 3 {
+							f.SetCellValue(Sheet, "J"+strconv.Itoa(PihakIndex+key), key+1)
+							f.SetCellValue(Sheet, "K"+strconv.Itoa(PihakIndex+key), val)
+						}
+					}
+
+					PihakIndex += 4
+
+				}
+
+				for key, val := range Pendaftaran.Verifikasi.Penerima_manfaat {
+					if key > 0 {
+						for i := 0; i <= 4; i++ {
+							_ = f.DuplicateRow(Sheet, Penerima()+i)
+						}
+
+						f.SetCellValue(Sheet, "E"+strconv.Itoa(Penerima()), key+1)
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()), "Nama")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+1), "Usia")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+2), "Tanggungan")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+3), "Alamat")
+						f.SetCellValue(Sheet, "F"+strconv.Itoa(Penerima()+4), "Telepon")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+1), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+2), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+3), ":")
+						f.SetCellValue(Sheet, "G"+strconv.Itoa(Penerima()+4), ":")
+
+						_ = f.MergeCell(Sheet, "E"+strconv.Itoa(Penerima()), "E"+strconv.Itoa(Penerima()+4))
+
+						arrayKotak := []string{"E", "F", "G", "H", "J", "K"}
+						for _, val := range arrayKotak {
+							styleNumber, err := f.NewStyle(`{"border":[{"type":"left","color":"222222","style":1},{"type":"top","color":"222222","style":1},{"type":"bottom","color":"222222","style":1},{"type":"right","color":"222222","style":1}], "alignment":{"horizontal":"left","vertical":"center","wrap_text":true}}`)
+
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = f.SetCellStyle(Sheet, val+strconv.Itoa(Penerima()), val+strconv.Itoa(Penerima()+4), styleNumber)
+						}
+
+					}
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()), val.Nama)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+1), val.Usia)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+2), val.Tanggungan)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+3), val.Alamat)
+					f.SetCellValue(Sheet, "H"+strconv.Itoa(Penerima()+4), val.Telepon)
+
+					PenerimaIndex += 5
+				}
+				fmt.Println(Hasil())
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()), Pendaftaran.Kategoris.Asnaf)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+1), Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+2), Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan)
+				f.SetCellValue(Sheet, "H"+strconv.Itoa(Hasil()+3), Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi)
+				f.SetCellValue(Sheet, "C"+strconv.Itoa(Hasil()+11), Pendaftaran.Persetujuan.Manager_nama)
+				f.SetCellValue(Sheet, "F"+strconv.Itoa(Hasil()+11), Pendaftaran.Verifikasi.Nama_pelaksana)
+
+			} else {
+				c.JSON(500, gin.H{
+					"data": "Belum Membuat UPD",
+				})
+				return
+			}
+		default:
+			{
+				c.JSON(500, gin.H{
+					"data": "Kategori tidak ditemukan",
+				})
+			}
+		}
+
+		url := strings.Replace("/public/report/Verifikasi_"+t.Format("02_Jan_2006 15_04_05")+"_"+nama+" "+kategori+".xlsx", " ", "_", -1)
+		err = f.SaveAs("." + url)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		c.JSON(200, gin.H{
+			"data": "report has been created",
+			"url":  url,
+		})
+		return
+	}
+}

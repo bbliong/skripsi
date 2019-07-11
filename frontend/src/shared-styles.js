@@ -20,7 +20,12 @@ $_documentContainer.innerHTML = `<dom-module id="shared-styles">
         color: #757575;
         border-radius: 5px;
         background-color: #fff;
-        box-shadow: 2px 6px 15px 0 rgba(69,65,78,.1);
+        padding: 20px 40px;
+        display: block;
+        /* border: 1px solid green; */
+        box-shadow: 0 0 1px rgba(0,0,0,.15);
+    }
+      
       }
 
       .circle {

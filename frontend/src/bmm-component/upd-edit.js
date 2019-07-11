@@ -187,10 +187,13 @@ class UpdEdit extends PolymerElement {
       </iron-ajax>
 
       <iron-ajax 
-          auto
           id="printData"
           headers='{"Access-Control-Allow-Origin": "*" }'
           method="GET"
+          handle-as="json"
+          method="GET"
+          on-response="_handleUPD"
+          on-error="_handleUPDError"
           Content-Type="application/json"
           debounce-duration="300">
       </iron-ajax>
@@ -267,7 +270,7 @@ class UpdEdit extends PolymerElement {
   }
 
   _removeField(obj){
-    var  id = obj.target.getAttribute("data-id");cetak_upd
+    var  id = obj.target.getAttribute("data-id");
     var count = this.Upd[id].length
     if(count > 1){
       this.Upd[id].splice(count - 1,1);
@@ -281,6 +284,7 @@ class UpdEdit extends PolymerElement {
       this.regObj = e.detail.response.Data
       //Handle card pihak dverifikasi
       if(typeof this.regObj.upd !== "undefined"){
+        console.log("ada upd")
           this.Upd = this.regObj.upd
           if(typeof this.Upd.url  == "undefined"){
             this.shadowRoot.querySelector('#cetak_upd').style.display ="none"
@@ -288,16 +292,17 @@ class UpdEdit extends PolymerElement {
             this.shadowRoot.querySelector('#cetak_upd').style.display ="inline-block"
           }
       }else{
-          this.regObj.upd =   {
-            "tujuan" :  [],
-            "latar_belakang" :  [],
-            "analisis_kelayakan" :  [],
+        this.shadowRoot.querySelector('#cetak_upd').style.display ="none"
+          this.Upd =   {
+            "tujuan" :  [""],
+            "latar_belakang" :  [""],
+            "analisis_kelayakan" :  [""],
             "program_penyaluran" :  {
               "pelaksana_teknis"  : "",
               "alur_biaya"  : "",
               "penanggung_jawab"  : "",
             },
-            "rekomendasi" :[],
+            "rekomendasi" :[""],
             "url" : "",
           }
       }
@@ -319,7 +324,7 @@ class UpdEdit extends PolymerElement {
 
     _handleProposalPost(e){
       console.log(e.detail.response)
-      //this.set('route.path', '/panel/proposal');
+      this.printData()
     }
 
     _handleProposalPostError(e){
@@ -328,7 +333,6 @@ class UpdEdit extends PolymerElement {
 
 
     sendData(){
-      console.log(this.Upd)
       this.regObj.upd = this.Upd    
       this.$.postData.url= MyAppGlobals.apiPath + "/api/upd/" + this.routeData.id
       this.$.postData.headers['authorization'] = this.storedUser.access_token;
@@ -336,8 +340,21 @@ class UpdEdit extends PolymerElement {
       this.$.postData.generateRequest();
     }
 
+    /* Handle cetak */
+
+    _handleUPD(e){
+       if(typeof e.detail.response.url !== "undefined" ){
+          document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
+           this.set('route.path', '/panel/proposal');
+       }
+       
+    }
+
     printData(){
-      document.location.href =  MyAppGlobals.apiPath  +this.regObj.upd.url
+      console.log("check")
+      this.$.printData.url= MyAppGlobals.apiPath + "/api/report/upd/"+ this.routeData.kat  + "/" + this.routeData.id
+      this.$.printData.headers['authorization'] = this.storedUser.access_token;
+      this.$.printData.generateRequest();
     }
 
 }

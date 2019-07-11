@@ -235,14 +235,15 @@ type PendaftaranASM struct {
 }
 
 type Verifikasi struct {
-	Tanggal_verifikasi time.Time    `json:"tanggal_verifikasi,omitempty" bson:"tanggal_verifikasi,omitempty"`
-	Judul_proposal     string       `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
-	Nama_pelaksana     string       `json:"nama_pelaksana,omitempty" bson:"nama_pelaksana,omitempty"`
-	Jabatan_pelaksana  string       `json:"jabatan_pelaksana,omitempty" bson:"jabatan_pelaksana,omitempty"`
-	Bentuk_bantuan     string       `json:"bentuk_bantuan,omitempty" bson:"bentuk_bantuan,omitempty"`
-	Cara_verifikasi    []string     `json:"cara_verifikasi,omitempty" bson:"cara_verifikasi,omitempty"`
-	Pihak_konfirmasi   []Konfirmasi `json:"pihak_konfirmasi,omitempty" bson:"pihak_konfirmasi,omitempty"`
-	Hasil_verifikasi   Hasil_verif  `json:"hasil_verifikasi,omitempty" bson:"hasil_verifikasi,omitempty"`
+	Tanggal_verifikasi time.Time          `json:"tanggal_verifikasi,omitempty" bson:"tanggal_verifikasi,omitempty"`
+	Judul_proposal     string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Nama_pelaksana     string             `json:"nama_pelaksana,omitempty" bson:"nama_pelaksana,omitempty"`
+	Jabatan_pelaksana  string             `json:"jabatan_pelaksana,omitempty" bson:"jabatan_pelaksana,omitempty"`
+	Bentuk_bantuan     string             `json:"bentuk_bantuan,omitempty" bson:"bentuk_bantuan,omitempty"`
+	Cara_verifikasi    []string           `json:"cara_verifikasi,omitempty" bson:"cara_verifikasi,omitempty"`
+	Penerima_manfaat   []Penerima_manfaat `json:"penerima_manfaat,omitempty" bson:"penerima_manfaat,omitempty"`
+	Pihak_konfirmasi   []Konfirmasi       `json:"pihak_konfirmasi,omitempty" bson:"pihak_konfirmasi,omitempty"`
+	Hasil_verifikasi   Hasil_verif        `json:"hasil_verifikasi,omitempty" bson:"hasil_verifikasi,omitempty"`
 }
 
 type Konfirmasi struct {
@@ -257,6 +258,14 @@ type Hasil_verif struct {
 	Kelengkapan_adm  string `json:"kelengkapan_adm,omitempty" bson:"kelengkapan_adm,omitempty"`
 	Direkomendasikan string `json:"direkomendasikan,omitempty" bson:"direkomendasikan,omitempty"`
 	Dokumentasi      string `json:"dokumentasi,omitempty" bson:"dokumentasi,omitempty"`
+}
+
+type Penerima_manfaat struct {
+	Nama       string `json:"nama,omitempty" bson:"nama,omitempty"`
+	Usia       string `json:"usia,omitempty" bson:"usia,omitempty"`
+	Tanggungan string `json:"tanggungan,omitempty" bson:"tanggungan,omitempty"`
+	Alamat     string `json:"alamat,omitempty" bson:"alamat,omitempty"`
+	Telepon    string `json:"telepon,omitempty" bson:"telepon,omitempty"`
 }
 
 type Upd struct {

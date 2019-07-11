@@ -42,7 +42,8 @@ setRootPath(MyAppGlobals.rootPath);
 class Panel extends PolymerElement {
   static get template() {
     return html`
-      <style include="custom-css"></style>
+      <style include="custom-css">
+      </style>
 
       <app-location route="{{route}}" >
       </app-location>
@@ -64,7 +65,7 @@ class Panel extends PolymerElement {
                   </div>
 
                   <div class="info">
-                     <h4 class=" name">{{storedUser.name}}</h4>
+                     <p class=" name">{{storedUser.name}}</p>
                      <h5 class=" email">{{roleName}}</h5>
                   </div>
 
@@ -99,6 +100,7 @@ class Panel extends PolymerElement {
             <bmm-user-add name="add-user"></bmm-user-add>
             <bmm-user-edit name="edit-user"></bmm-user-edit>
             <bmm-upd-edit name="edit-upd"></bmm-upd-edit>
+            <bmm-loader name="loader"></bmm-loader>
             <my-view404 name="view404"></my-view404>
           </iron-pages>
         </app-header-layout>
@@ -225,7 +227,7 @@ class Panel extends PolymerElement {
      // Show 'view1' in that case. And if the page doesn't exist, show 'view404'.
     if (!page) {
       this.page = 'beranda';
-    } else if (['beranda', 'muztahik', 'laporan', 'proposal', 'user'].indexOf(page) !== -1) {
+    } else if (['beranda', 'muztahik', 'laporan', 'proposal', 'user',  'loader'].indexOf(page) !== -1) {
       var url = this.subroute.path.split("/")[1]
       if(this.subroute.path){
         if(['add-muztahik', 'edit-muztahik','profile-muztahik', 'edit-proposal', 'add-proposal', 'edit-verifikator', 'add-user', 'edit-user','edit-upd'].lastIndexOf(url) !== -1){
@@ -292,6 +294,9 @@ class Panel extends PolymerElement {
           break;
       case 'edit-upd':
           import('./bmm-component/upd-edit.js');
+          break;
+      case 'loader':
+          import('./config/loader.js');
           break;
       case 'view404':
         import('./my-view404.js');

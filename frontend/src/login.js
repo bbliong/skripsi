@@ -22,6 +22,8 @@ import '@vaadin/vaadin-text-field/vaadin-password-field.js';
 
 //paper component
 import '@polymer/paper-toast/paper-toast.js';
+import('./config/loader.js');
+
 
 
 
@@ -91,8 +93,12 @@ class Login extends PolymerElement {
                 .header  {
                     text-align: center;
                 }
+                #main  {
+                    display : none;
+                }
             </style>
-            <div class="full-width">
+               <bmm-loader></bmm-loader>
+            <div class="full-width" id="main">
                 <div class="img-bg">
                     <div class="card">
                         <div class="header">
@@ -152,16 +158,18 @@ class Login extends PolymerElement {
                 }
             })
         }
+        this._loading(1)
     }
 
     _loginAccess(){
-        console.log("halo")
+        this._loading(1)
         this.$.LoginPost.url= MyAppGlobals.apiPath + "/api/signin"
         this.$.LoginPost.body  = this.userInput
         this.$.LoginPost.generateRequest();
     }
 
     _loginResponse(event){
+       
         var response = event.detail.response;
         
         if(response.token) {
@@ -172,6 +180,7 @@ class Login extends PolymerElement {
                 role : response.role,
                 loggedin :true
             }
+            this._loading(0)
             localStorage.setItem('login-bmm', JSON.stringify(this.storedUser))
             this.set('route.path', '/panel');
         }
@@ -179,9 +188,32 @@ class Login extends PolymerElement {
     }
 
     _loginError(event){
-        console.log(event)
-        this.$.toast.open();
+         this._loading(0)
+         var that = this
+        setTimeout(function () {
+            that.$.toast.open();
+          }, 2000);
+        
     }
+
+    _loading(show){
+        if(show ==0 ){
+         var that = this
+         setTimeout(function () {
+           that.shadowRoot.querySelector("bmm-loader").style.display = "none"
+           that.shadowRoot.querySelector("#main").style.display = "block"
+         }, 2000);
+        } else { 
+           this.shadowRoot.querySelector("#main").style.display = "none"
+           this.shadowRoot.querySelector("bmm-loader").style.display = "block"
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this._loading(0)
+      }
+    
 }
 
     

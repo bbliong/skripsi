@@ -66,14 +66,19 @@ $_documentContainer.innerHTML = /*css*/ `<dom-module id="custom-css">
     }
 
     .drawer-list a.iron-selected {
-      color: var(--app-content);
+      color: white;
       font-weight: bold;
+      background: #5C55BF;
+      box-shadow: 4px 4px 10px 0 rgba(0,0,0,.1),4px 4px 15px -5px rgba(72,171,247,.4)!important;
+      border-radius: 5px;
+      width: 80%;
     }
 
     .tool-bar-menu .user-view {
       position: relative;
       padding: 20px 20px;
       width: 100%;
+      padding-bottom : 5px;
     }
 
     .tool-bar-menu {
@@ -88,9 +93,12 @@ $_documentContainer.innerHTML = /*css*/ `<dom-module id="custom-css">
         display : inline-block;
     }
     .tool-bar-menu .user-view  > .info  {
-      margin-bottom: -10px;
+      position: absolute;
+    top: 25px;
+    margin-left: 15px;
     }
     .tool-bar-menu .user-view  > .info  > * {
+      font-size: 14px;
       margin  : 0;
     }
     
@@ -108,7 +116,7 @@ $_documentContainer.innerHTML = /*css*/ `<dom-module id="custom-css">
     }
 
     app-header-layout{
-        background : #fff;
+      background : #F3F6F9;
     }
 
     .tool-bar {
@@ -117,7 +125,10 @@ $_documentContainer.innerHTML = /*css*/ `<dom-module id="custom-css">
     .tool-bar > div {
       color :white;
     }
-  
+    
+    bmm-menu {
+      margin-top: -30px;
+    }
 
     </style>
   </template>

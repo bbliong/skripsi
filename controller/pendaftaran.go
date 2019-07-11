@@ -239,7 +239,6 @@ func GetAllPendaftaran(c *gin.Context) {
 
 	// Set Projection
 	filterProjection := FilterProjection(claims.Role)
-	fmt.Println(filter)
 	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(filterProjection))
 
 	//get data taro di cursor
@@ -564,7 +563,7 @@ func UpdatePendaftaranView(c *gin.Context) {
 
 	claims := c.MustGet("decoded").(*models.Claims)
 
-	if claims.IsKadiv() || claims.IsMGR() || claims.IsPIC() || claims.IsAdmin() || claims.IsVerifikator() {
+	if claims.IsKadiv() || claims.IsMGR() || claims.IsPIC() || claims.IsAdmin() || claims.IsVerifikator() || claims.IsAdmP() {
 		fmt.Println("You have permission for this access")
 	} else {
 		c.JSON(500, gin.H{
@@ -874,7 +873,7 @@ func FilterProjection(role int32) bson.D {
 	var projection bson.D
 	switch role {
 	// Admin
-	case 1:
+	case 1, 5:
 		projection = bson.D{
 			// {"persetujuan.level_persetujuan", 1},
 			// {"persetujuan.kategori_program", 1},
@@ -959,8 +958,6 @@ func FilterProjection(role int32) bson.D {
 		}
 	// Kadiv
 	case 4:
-	// Administrator
-	case 5:
 	// Keuangan
 	case 6:
 	// Verfikator
@@ -1136,6 +1133,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 
 			} else {
@@ -1191,6 +1189,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1246,6 +1245,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 
 			} else {
@@ -1267,6 +1267,29 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 			Pendaftaran := models.PendaftaranKAFALA{}
 			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
 			if role == 2 {
+				if url == "pendaftaran" {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+					break
+				} else if url == "upd" {
+					updateFilter = bson.D{
+						{"persetujuan.verifikator_tanggal", time.Now()},
+						{"persetujuan.verifikator_nama", claims.Name},
+						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+					}
+					break
+				}
+
 				updateFilter = bson.D{
 					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
 					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
@@ -1279,6 +1302,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1341,6 +1365,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1398,6 +1423,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1455,6 +1481,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1514,6 +1541,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1571,6 +1599,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1632,6 +1661,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1694,6 +1724,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1757,6 +1788,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
 					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
 					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 				}
 			} else {
 				updateFilter = bson.D{
@@ -1785,7 +1817,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		updateFilter = bson.D{
 			{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 			{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-			{"persetujuan.manager_nama", persetujuan.Manager_nama},
+			{"persetujuan.manager_nama", claims.Name},
 			{"persetujuan.manager_tanggal", persetujuan.Manager_tanggal},
 			{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
 			{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
