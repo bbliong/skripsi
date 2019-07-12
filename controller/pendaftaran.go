@@ -1813,7 +1813,6 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 
 	//Manager
 	case 3:
-		fmt.Println(persetujuan)
 		updateFilter = bson.D{
 			{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 			{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},

@@ -70,6 +70,16 @@ class UpdEdit extends PolymerElement {
           margin : 2px 4px;
         }
 
+        @media all and (max-width: 700px){
+          .card {
+            display :table;
+          }
+
+          .card > table {
+            display :table-row;
+          }
+        }
+
         
       </style>
          <!-- app-location binds to the app's URL -->
@@ -171,8 +181,14 @@ class UpdEdit extends PolymerElement {
                 </tr>
             </tbody>
         </table>
+        <div class="tombol">
         <paper-button  raised class="indigo" on-click="printData" id="cetak_upd">Cetak UPD</paper-button>
+
         <paper-button  raised class="indigo" on-click="sendData" id="simpan_dan_cetak_upd">Simpan dan Cetak UPD</paper-button>
+
+         <paper-button  raised class="indigo" on-click="periksaUPD" id="approve">Periksa UPD</paper-button>
+
+        </div>
       </div>
       <iron-ajax 
           auto
@@ -357,6 +373,27 @@ class UpdEdit extends PolymerElement {
       this.$.printData.generateRequest();
     }
 
+    /***************  Handle Periksa UPD  **************/
+
+    _handleProposalPost(e){
+      console.log(e.detail.response)
+      
+    }
+
+    _handleProposalPostError(e){
+      this.set('route.path', '/panel/proposal');
+    }
+
+
+    periksaUPD(){
+      this.regObj.upd = this.Upd    
+      this.$.postData.url= MyAppGlobals.apiPath + "/api/upd/" + this.routeData.id
+      this.$.postData.headers['authorization'] = this.storedUser.access_token;
+      this.$.postData.body  = this.regObj
+      this.$.postData.generateRequest();
+    }
+
+    /***************  Handle Periksa UPD  **************/
 }
 
 window.customElements.define('bmm-upd-edit', UpdEdit);

@@ -75,7 +75,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       
       if(window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ){
         MyAppGlobals.apiPath = "http://localhost:3000";
-      }else{MyAppGlobals.apiPath = "http://api.bbliong.me";}
+      }else{
+        if (location.protocol === 'https:') {
+          MyAppGlobals.apiPath = "https://api.bbliong.me";
+        }else{
+          MyAppGlobals.apiPath = "http://api.bbliong.me";
+        }
+      }
 
       // Load and register pre-caching Service Worker
       if ('serviceWorker' in navigator) {

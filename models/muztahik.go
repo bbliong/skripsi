@@ -44,6 +44,7 @@ type Persetujuan struct {
 	Disposisi_pic     string             `json:"disposisi_pic,omitempty" bson:"disposisi_pic,omitempty"`
 	Disposisi_pic_id  primitive.ObjectID `json:"disposisi_pic_id,omitempty" bson:"disposisi_pic_id,omitempty"`
 	Manager           primitive.ObjectID `json:"manager_id,omitempty" bson:"manager_id,omitempty"`
+	
 	Perihal           string             `json:"perihal,omitempty" bson:"perihal,omitempty"`
 	Tanggal_disposisi *time.Time         `json:"tanggal_disposisi,omitempty" bson:"tanggal_disposisi ,omitempty"`
 

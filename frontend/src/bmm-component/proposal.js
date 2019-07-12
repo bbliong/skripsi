@@ -402,9 +402,9 @@ connectedCallback() {
         case  3 : 
           var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
           var innerHtml = '<paper-icon-button icon ="settings" class="green" style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green">PIC</paper-icon-button>';
-          action.width = "100px"
+          action.width = "130px"
           break;
-          case  5 : 
+        case  5 : 
           var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
           var urlDelete = MyAppGlobals.apiPath + "/api/pendaftaran/"+ rowData.item._id;
           var innerHtml = '<paper-icon-button icon ="settings" class="green">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green" style="display:none">PIC</paper-icon-button>';
@@ -447,7 +447,7 @@ connectedCallback() {
         dialog.opened  =true      
       })
 
-      if (rowData.item.persetujuan.level_persetujuan >= 2 && that.storedUser.role == 2){
+      if (that.storedUser.role <= 4 && that.storedUser.role >= 2  && rowData.item.persetujuan.level_persetujuan >= 2){
         let el = document.createElement("paper-button")
         el.innerHTML = "UPD"
         el.classList.add("green")

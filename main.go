@@ -10,6 +10,10 @@ import (
 	// "github.com/itsjamie/gin-cors"
 
 	cors "github.com/rs/cors/wrapper/gin"
+	//ssl
+	// "github.com/gin-gonic/autotls"
+	// "github.com/gin-gonic/gin"
+	// "golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
@@ -76,20 +80,15 @@ func main() {
 	router.Use(static.Serve("/", static.LocalFile("./frontend/build/es6-bundled", true)))
 
 	// Masalah 404
-	// router.NoRoute(func(c *gin.Context) {
-	// 	dir, file := path.Split(c.Request.RequestURI)
-	// 	ext := filepath.Ext(file)
-
-	// 	if file == "" || ext == "" {
-	// 		c.File("./frontend/build/es6-bundled/index.html")
-	// 	} else {
-	// 		split := strings.Split(file, "?")
-	// 		fmt.Println(split)
-	// 		fmt.Println(file)
-	// 		fmt.Println(ext)
-	// 		fmt.Println(path.Join(dir, split[0]))
-	// 		c.File("./frontend/build/es6-bundled" + path.Join(dir, file))
-	// 	}
-	// })
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./frontend/build/es6-bundled/index.html")
+	})
 	router.Run(":3000")
+	// m := autocert.Manager{
+	// 	Prompt:     autocert.AcceptTOS,
+	// 	HostPolicy: autocert.HostWhitelist("api.bbliong.me"),
+	// 	Cache:      autocert.DirCache("/var/www/.cache"),
+	// }
+
+	// log.Fatal(autotls.RunWithManager(router, &m))
 }
