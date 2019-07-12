@@ -100,7 +100,7 @@ class Proposal extends PolymerElement {
 
         .status-verifikasi {
           color: white;
-          width: 150px;
+          width: 220px;
           display: inline;
           border: 1px solid white;
           border-r: ;
@@ -250,9 +250,9 @@ class Proposal extends PolymerElement {
           <!-- Table  -->
           <vaadin-grid theme="column-borders" column-reordering-allowed multi-sort id="grid" page-size="10" height-by-rows aria-label="Selection using Active Item Example" >
             <vaadin-grid-sort-column path="muztahiks.nama" id="nama" header="nama" width="200px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column id="tanggal" header="tanggal" width="100px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column id="tanggal" header="tanggal" width="200px"></vaadin-grid-sort-column >
               <vaadin-grid-sort-column path="persetujuan.kategori_program" id="kategori" header="kategori" width="220px"></vaadin-grid-sort-column >
-              <vaadin-grid-sort-column id="status" header="status" width="160px"></vaadin-grid-sort-column >
+              <vaadin-grid-sort-column id="status" header="status" width="220px"></vaadin-grid-sort-column >
               <vaadin-grid-column header="Action" id="action" width="150px"></vaadin-grid-column>
           </vaadin-grid>
           <div id="pages"></div>
@@ -397,11 +397,16 @@ connectedCallback() {
         case  2 : 
           var urlEdit = '/panel/proposal/edit-verifikator/'+ rowData.item.kategori + "/" + rowData.item._id ;
           var innerHtml = '<paper-button class="green">Verif</paper-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
-          action.width = "150px"
+          action.width = "180px"
         break;
         case  3 : 
           var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
           var innerHtml = '<paper-icon-button icon ="settings" class="green" style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green">PIC</paper-icon-button>';
+          action.width = "130px"
+          break;
+        case  4 : 
+          var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
+          var innerHtml = '<paper-icon-button icon ="settings" class="green" style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
           action.width = "130px"
           break;
         case  5 : 
@@ -560,14 +565,14 @@ connectedCallback() {
     // };
     this.$.tanggal.renderer = (root, grid, rowData) => {
     var  date = new Date(`${rowData.item.tanggalProposal}`);
-    root.textContent = date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate();
+    root.textContent = this.formatDate(date)
     };
     // this.$.kategori.renderer = (root, grid, rowData) => {
     //   root.textContent = `${rowData.item.persetujuan.kategori_program}`;
     // };
     this.$.status.renderer = (root, grid, rowData) => {
       var status = ""
-      var colors = ["#74b9ff", "#d63031",  "#00b894", "#FF7F50"];
+      var colors = ["#74b9ff", "#d63031",  "#00b894", "#FF7F50", "#6861CE", "#8BC34A", "#F44336"];
       switch(rowData.item.persetujuan.level_persetujuan){
         case  0 :
           status = "Belum ada PIC"
@@ -589,6 +594,21 @@ connectedCallback() {
           root.classList.add("status-verifikasi")
           root.style.backgroundColor = colors[3] 
           break;
+        case  4 :
+          status = "Sudah diperiksa Manager"
+          root.classList.add("status-verifikasi")
+          root.style.backgroundColor = colors[4] 
+          break;
+        case  5 :
+            status = "Disetujui Kadiv"
+            root.classList.add("status-verifikasi")
+            root.style.backgroundColor = colors[5] 
+            break;
+        case  6 :
+            status = "Tidak disetujui Kadiv"
+            root.classList.add("status-verifikasi")
+            root.style.backgroundColor = colors[6] 
+            break;
       }
       root.textContent = status;
     };
@@ -712,6 +732,20 @@ connectedCallback() {
     console.log(e)
   }
 
+
+  formatDate(date){
+
+    var hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu']
+    var bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+    var day = date.getDay();
+    var dd = date.getDate();
+    var mm = date.getMonth()+1; 
+    var yyyy = date.getFullYear();
+
+    var  hari = hari[day]
+    var bulan = bulan[mm]
+    return hari + ", " + dd  + " " + bulan + " " + yyyy
+    }
 } 
 
 window.customElements.define('bmm-proposal', Proposal);

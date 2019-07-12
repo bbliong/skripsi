@@ -95,13 +95,13 @@ func UploadImage(c *gin.Context) {
 	var _id primitive.ObjectID
 	var errID error
 	search := c.Request.URL.Query()
-	
+
 	for key, val := range search {
 		if key == "muztahik_id" {
-			path = "img/" + val[0] + "_" + file.Filename
+			path = "public/img/" + val[0] + "_" + file.Filename
 			_id, errID = primitive.ObjectIDFromHex(val[0])
 		} else {
-			path = "img/" + file.Filename
+			path = "public/img/" + file.Filename
 		}
 	}
 

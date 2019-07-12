@@ -211,18 +211,6 @@ func GetAllPendaftaran(c *gin.Context) {
 	search := c.Request.URL.Query()
 	filter := bson.M{}
 
-	if len(filterRole) != 0 {
-		filter["persetujuan.level_persetujuan"] = filterRole
-	}
-
-	if claims.Role == 3 {
-		filter["persetujuan.manager_id"] = claims.ID
-	}
-
-	if claims.Role == 2 {
-		filter["persetujuan.disposisi_pic_id"] = claims.ID
-	}
-
 	if len(search) > 0 {
 		for key, val := range search {
 			if key == "muztahik_id" {
@@ -236,6 +224,21 @@ func GetAllPendaftaran(c *gin.Context) {
 			}
 		}
 	}
+	_, exist := filter["muztahik_id"]
+
+	if !exist {
+		if len(filterRole) != 0 {
+			filter["persetujuan.level_persetujuan"] = filterRole
+		}
+
+		if claims.Role == 3 {
+			filter["persetujuan.manager_id"] = claims.ID
+		}
+
+		if claims.Role == 2 {
+			filter["persetujuan.disposisi_pic_id"] = claims.ID
+		}
+	}
 
 	// Set Projection
 	filterProjection := FilterProjection(claims.Role)
@@ -245,6 +248,7 @@ func GetAllPendaftaran(c *gin.Context) {
 	//cursor, err := collection.Find(ctx, filter)
 
 	if err != nil {
+		fmt.Println(err)
 		result := gin.H{
 			"Status": err,
 		}
@@ -343,6 +347,7 @@ func GetAllPendaftaran(c *gin.Context) {
 				Pendaftarans = append(Pendaftarans, Pendaftaran)
 			default:
 				{
+					fmt.Println(err)
 					result := gin.H{
 						"Status": err,
 					}
@@ -504,7 +509,7 @@ func UpdatePendaftaran(c *gin.Context) {
 	claims := c.MustGet("decoded").(*models.Claims)
 
 	updateFilters, err, insertFilter := UpdateFilter(claims, P.Persetujuan, c, url[2])
-
+	// panic(claims)
 	switch claims.Role {
 	case 1:
 	case 2:
@@ -517,6 +522,17 @@ func UpdatePendaftaran(c *gin.Context) {
 	case 3:
 		if P.Persetujuan.Level_persetujuan < 1 {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 1})
+		} else if P.Persetujuan.Level_persetujuan == 3 {
+			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 4})
+		}
+	case 4:
+		if P.Persetujuan.Level_persetujuan > 4 {
+			if P.Persetujuan.Status_persetujuan_kadiv == 1 {
+				updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 5})
+			} else {
+				updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 6})
+			}
+
 		}
 	}
 
@@ -524,20 +540,29 @@ func UpdatePendaftaran(c *gin.Context) {
 		result, errs = collection.UpdateOne(ctx, filter, bson.D{
 			{"$set", insertFilter},
 		})
+
+		if errs != nil {
+			fmt.Print(errs)
+			c.JSON(500, gin.H{
+				"Message": "Error while updating",
+			})
+			return
+		}
 	} else {
 		fmt.Printf("%+v", updateFilters)
 		result, errs = collection.UpdateOne(ctx, filter, bson.D{
 			{"$set", updateFilters},
 		})
+
+		if errs != nil {
+			fmt.Print(errs)
+			c.JSON(500, gin.H{
+				"Message": "Error while updating",
+			})
+			return
+		}
 	}
 
-	if errs != nil {
-		fmt.Print(errs)
-		c.JSON(500, gin.H{
-			"Message": "Error while updating",
-		})
-		return
-	}
 	if result.MatchedCount < 1 {
 		c.JSON(200, gin.H{
 			"Message": "Id Not Found",
@@ -931,12 +956,12 @@ func FilterProjection(role int32) bson.D {
 			{"persetujuan.disposisi_pic", 0},
 			{"persetujuan.perihal", 0},
 			{"persetujuan.tanggal_disposisi", 0},
-			{"persetujuan.verifikator_nama", 0},
-			{"persetujuan.manager_nama", 0},
-			{"persetujuan.pic_nama", 0},
-			{"persetujuan.kadiv_nama", 0},
-			{"persetujuan.verifikator_tanggal", 0},
-			{"persetujuan.manager_tanggal", 0},
+			// {"persetujuan.verifikator_nama", 0},
+			// {"persetujuan.manager_nama", 0},
+			// {"persetujuan.pic_nama", 0},
+			// {"persetujuan.kadiv_nama", 0},
+			// {"persetujuan.verifikator_tanggal", 0},
+			// {"persetujuan.manager_tanggal", 0},
 			{"persetujuan.kadiv_tanggal", 0},
 			{"persetujuan.pic_tanggal", 0},
 			{"persetujuan.keterangan_pic", 0},
@@ -958,6 +983,38 @@ func FilterProjection(role int32) bson.D {
 		}
 	// Kadiv
 	case 4:
+		projection = bson.D{
+			// {"persetujuan.level_persetujuan", 1},
+			// {"persetujuan.kategori_program", 1},
+			{"persetujuan.proposal", 0},
+			{"persetujuan.disposisi_pic", 0},
+			{"persetujuan.perihal", 0},
+			{"persetujuan.tanggal_disposisi", 0},
+			// {"persetujuan.verifikator_nama", 0},
+			// {"persetujuan.manager_nama", 0},
+			// {"persetujuan.pic_nama", 0},
+			// {"persetujuan.kadiv_nama", 0},
+			// {"persetujuan.verifikator_tanggal", 0},
+			// {"persetujuan.manager_tanggal", 0},
+			// {"persetujuan.kadiv_tanggal", 0},
+			{"persetujuan.pic_tanggal", 0},
+			{"persetujuan.keterangan_pic", 0},
+			{"persetujuan.keterangan_manager", 0},
+			// {"persetujuan.keterangan_kadiv", 0},
+			{"persetujuan.status_persetujuan_pic", 0},
+			{"persetujuan.status_persetujuan_manager", 0},
+			{"persetujuan.status_persetujuan_kadiv", 0},
+			// {"persetujuan.status_persetujuan", 0},
+			// {"persetujuan.tanggal_persetujuan", 0},
+			{"persetujuan.sumber_dana", 0},
+			{"persetujuan.ppd_pic", 0},
+			{"persetujuan.ppd_manager", 0},
+			{"persetujuan.ppd_kadiv", 0},
+			{"persetujuan.ppd_keuangan", 0},
+			{"persetujuan.jumlah_pencairan", 0},
+			{"persetujuan.tanggal_pencairan", 0},
+			{"persetujuan.keterangan", 0},
+		}
 	// Keuangan
 	case 6:
 	// Verfikator
@@ -1022,7 +1079,7 @@ func FilterRole(role int32) bson.M {
 	// Kadiv
 	case 4:
 		filter = bson.M{
-			"$gt": 3,
+			"$gte": 2,
 		}
 	case 6:
 		filter = bson.M{
@@ -1056,789 +1113,1005 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 
 	var role = claims.Role
 
-	switch role {
-	case 1, 5, 2:
-		err = c.ShouldBindBodyWith(&Kat, binding.JSON)
-		if err != nil {
-			// If the structure of the body is wrong, return an HTTP error
-			c.JSON(500, gin.H{
-				"Message": "Error while parsing ",
-			})
-			return bson.D{}, err, nil
-		}
+	// switch role {
+	// case 1, 5, 2, 3:
+	err = c.ShouldBindBodyWith(&Kat, binding.JSON)
+	if err != nil {
+		// If the structure of the body is wrong, return an HTTP error
+		c.JSON(500, gin.H{
+			"Message": "Error while parsing ",
+		})
+		return bson.D{}, err, nil
+	}
 
-		// Melihat apakah ada perubahan pada kategori yang dituju, jika ada maka seluruh persetujuan akan dihapus dan diulang kembali
+	// Melihat apakah ada perubahan pada kategori yang dituju, jika ada maka seluruh persetujuan akan dihapus dan diulang kembali
 
-		// Memilih Tabel
-		collection := db.Collection("pendaftaran")
-		// Menentukan waktu koneksi query
-		ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	// Memilih Tabel
+	collection := db.Collection("pendaftaran")
+	// Menentukan waktu koneksi query
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-		// ambil dari parameter lalu diubah jadi object id
-		Kat.Id, _ = primitive.ObjectIDFromHex(c.Param("id"))
+	// ambil dari parameter lalu diubah jadi object id
+	Kat.Id, _ = primitive.ObjectIDFromHex(c.Param("id"))
 
-		filter := bson.D{{"_id", Kat.Id}}
-		errSQL := collection.FindOne(ctx, filter).Decode(&KatBaru)
-		if errSQL != nil {
-			// If the structure of the body is wrong, return an HTTP error
-			c.JSON(500, gin.H{
-				"Message": errSQL,
-			})
-			return bson.D{}, errSQL, nil
-		}
-		if Kat != KatBaru {
-			insert, err := switchKategoriPendaftaran(Kat.Kategori, c)
-			return bson.D{}, err, insert
-		}
+	filter := bson.D{{"_id", Kat.Id}}
 
-		switch Kat.Kategori {
-		// Kategori KSM
-		case 1:
-			Pendaftaran := models.PendaftaranKSM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
+	errSQL := collection.FindOne(ctx, filter).Decode(&KatBaru)
 
-				if url == "pendaftaran" {
+	if errSQL != nil {
+		// If the structure of the body is wrong, return an HTTP error
+		c.JSON(500, gin.H{
+			"Message": errSQL,
+		})
+		return bson.D{}, errSQL, nil
+	}
+
+	// fmt.Println(Kat != KatBaru)
+	// panic("as")
+
+	// if Kat != KatBaru {
+	// 	insert, err := switchKategoriPendaftaran(Kat.Kategori, c)
+	// 	return bson.D{}, err, insert
+	// }
+
+	switch KatBaru.Kategori {
+	// Kategori KSM
+	case 1:
+		Pendaftaran := models.PendaftaranKSM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 || role == 4 {
+			if url == "pendaftaran" {
+				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-					break
-				} else if url == "upd" {
+				} else if role == 3 {
 					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
 					}
-					break
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
 
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else if role == 3 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
-
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				}
+				break
 			}
-		//Kategori RRBM
-		case 2:
-			Pendaftaran := models.PendaftaranRBM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
 
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
-				}
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
 			}
-		// Kategori PAUD
-		case 3:
-			Pendaftaran := models.PendaftaranPAUD{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
 
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.cabang", Pendaftaran.Kategoris.Cabang},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				}
-			}
-		// Kategori KAFALA
-		case 4:
-			Pendaftaran := models.PendaftaranKAFALA{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.ui_id", Pendaftaran.Kategoris.Ui_id},
-					{"kategoris.pengasuh", Pendaftaran.Kategoris.Pengasuh},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-					{"kategoris.ytm", Pendaftaran.Kategoris.Ytm},
-					{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				}
-			}
-		// Kategori JSM
-		case 5:
-			Pendaftaran := models.PendaftaranJSM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.afiliasi", Pendaftaran.Kategoris.Afiliasi},
-					{"kategoris.non_afiliasi", Pendaftaran.Kategoris.Non_afiliasi},
-					{"kategoris.bidang", Pendaftaran.Kategoris.Bidang},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				}
-			}
-		// Kategori DZM
-		case 6:
-			Pendaftaran := models.PendaftaranDZM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.jenis_infrastruktur", Pendaftaran.Kategoris.Jenis_infrastruktur},
-					{"kategoris.volume", Pendaftaran.Kategoris.Volume},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.jumlah_penduduk_desa", Pendaftaran.Kategoris.Jumlah_penduduk_desa},
-				}
-			}
-		// Kategori BSU
-		case 7:
-			Pendaftaran := models.PendaftaranBSU{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
-					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-					{"kategoris.pendapatan_perhari", Pendaftaran.Kategoris.Pendapatan_perhari},
-					{"kategoris.jenis_produk", Pendaftaran.Kategoris.Jenis_produk},
-					{"kategoris.aset", Pendaftaran.Kategoris.Aset},
-				}
-			}
-		// Kategori Rescue
-		case 8:
-			Pendaftaran := models.PendaftaranRescue{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.skala_bencana", Pendaftaran.Kategoris.Skala_bencana},
-					{"kategoris.tanggal_respon_bencana", Pendaftaran.Kategoris.Tanggal_respon_bencana},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.tahapan_bencana", Pendaftaran.Kategoris.Tahapan_bencana},
-				}
-			}
-		// Kategori BTM
-		case 9:
-			Pendaftaran := models.PendaftaranBTM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-					{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-					{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-				}
-			}
-		// Kategori BSM
-		case 10:
-			Pendaftaran := models.PendaftaranBSM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-					{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-					{"kategoris.semester", Pendaftaran.Kategoris.Semester},
-					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-					{"kategoris.karya", Pendaftaran.Kategoris.Karya},
-				}
-			}
-		// Kategori BCM
-		case 11:
-			Pendaftaran := models.PendaftaranBCM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
-					{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
-					{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
-					{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
-					{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
-					{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
-					{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
-					{"kategoris.karya", Pendaftaran.Kategoris.Karya},
-				}
-			}
-		// Kategori ASM
-		case 12:
-			Pendaftaran := models.PendaftaranASM{}
-			err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-			if role == 2 {
-				if url == "pendaftaran" {
-					updateFilter = bson.D{
-						{"persetujuan.pic_nama", persetujuan.Pic_nama},
-						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
-					}
-					break
-				} else if url == "upd" {
-					updateFilter = bson.D{
-						{"persetujuan.verifikator_tanggal", time.Now()},
-						{"persetujuan.verifikator_nama", claims.Name},
-						{"upd.tujuan", Pendaftaran.Upd.Tujuan},
-						{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
-						{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
-						{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
-						{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
-						{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
-						{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
-					}
-					break
-				}
-
-				updateFilter = bson.D{
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-				}
-			} else {
-				updateFilter = bson.D{
-					{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
-					{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
-					{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
-					{"judul_proposal", Pendaftaran.Judul_proposal},
-					{"kategori", Pendaftaran.Kategori_program},
-					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-					{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
-					{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
-					{"kategoris.komunitas", Pendaftaran.Kategoris.Komunitas},
-					{"kategoris.kegiatan", Pendaftaran.Kategoris.Kegiatan},
-					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				}
-			}
-		default:
-			{
-				updateFilter = bson.D{}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 			}
 		}
+	//Kategori RRBM
+	case 2:
+		Pendaftaran := models.PendaftaranRBM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
 
-	//Manager
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+			}
+		}
+	// Kategori PAUD
 	case 3:
-		updateFilter = bson.D{
-			{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
-			{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-			{"persetujuan.manager_nama", claims.Name},
-			{"persetujuan.manager_tanggal", persetujuan.Manager_tanggal},
-			{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-			{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+		Pendaftaran := models.PendaftaranPAUD{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.cabang", Pendaftaran.Kategoris.Cabang},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			}
 		}
-	// Kadiv
+	// Kategori KAFALA
 	case 4:
-		updateFilter = bson.D{
-			{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
-			{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
-			{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
-			{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
+		Pendaftaran := models.PendaftaranKAFALA{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.ui_id", Pendaftaran.Kategoris.Ui_id},
+				{"kategoris.pengasuh", Pendaftaran.Kategoris.Pengasuh},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.ytm", Pendaftaran.Kategoris.Ytm},
+				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			}
 		}
+	// Kategori JSM
+	case 5:
+		Pendaftaran := models.PendaftaranJSM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.afiliasi", Pendaftaran.Kategoris.Afiliasi},
+				{"kategoris.non_afiliasi", Pendaftaran.Kategoris.Non_afiliasi},
+				{"kategoris.bidang", Pendaftaran.Kategoris.Bidang},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			}
+		}
+	// Kategori DZM
 	case 6:
-		updateFilter = bson.D{
-			{"persetujuan.jumlah_pencairan", persetujuan.Jumlah_pencairan},
-			{"persetujuan.tanggal_pencairan", persetujuan.Tanggal_pencairan},
-			{"persetujuan.keterangan", persetujuan.Keterangan},
+		Pendaftaran := models.PendaftaranDZM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.jenis_infrastruktur", Pendaftaran.Kategoris.Jenis_infrastruktur},
+				{"kategoris.volume", Pendaftaran.Kategoris.Volume},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jumlah_penduduk_desa", Pendaftaran.Kategoris.Jumlah_penduduk_desa},
+			}
+		}
+	// Kategori BSU
+	case 7:
+		Pendaftaran := models.PendaftaranBSU{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"kategoris.pendapatan_perhari", Pendaftaran.Kategoris.Pendapatan_perhari},
+				{"kategoris.jenis_produk", Pendaftaran.Kategoris.Jenis_produk},
+				{"kategoris.aset", Pendaftaran.Kategoris.Aset},
+			}
+		}
+	// Kategori Rescue
+	case 8:
+		Pendaftaran := models.PendaftaranRescue{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.skala_bencana", Pendaftaran.Kategoris.Skala_bencana},
+				{"kategoris.tanggal_respon_bencana", Pendaftaran.Kategoris.Tanggal_respon_bencana},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.tahapan_bencana", Pendaftaran.Kategoris.Tahapan_bencana},
+			}
+		}
+	// Kategori BTM
+	case 9:
+		Pendaftaran := models.PendaftaranBTM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+			}
+		}
+	// Kategori BSM
+	case 10:
+		Pendaftaran := models.PendaftaranBSM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.semester", Pendaftaran.Kategoris.Semester},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"kategoris.karya", Pendaftaran.Kategoris.Karya},
+			}
+		}
+	// Kategori BCM
+	case 11:
+		Pendaftaran := models.PendaftaranBCM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"persetujuan.verifikator_tanggal", time.Now()},
+					{"persetujuan.verifikator_nama", claims.Name},
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.tempat", Pendaftaran.Kategoris.Tempat},
+				{"kategoris.tanggal_lahir", Pendaftaran.Kategoris.Tanggal_lahir},
+				{"kategoris.alamat", Pendaftaran.Kategoris.Alamat},
+				{"kategoris.mitra", Pendaftaran.Kategoris.Mitra},
+				{"kategoris.kelas", Pendaftaran.Kategoris.Kelas},
+				{"kategoris.jumlah_hafalan", Pendaftaran.Kategoris.Jumlah_hafalan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"kategoris.jenis_dana", Pendaftaran.Kategoris.Jenis_dana},
+				{"kategoris.jumlah_muztahik", Pendaftaran.Kategoris.Jumlah_muztahik},
+				{"kategoris.karya", Pendaftaran.Kategoris.Karya},
+			}
+		}
+	// Kategori ASM
+	case 12:
+		Pendaftaran := models.PendaftaranASM{}
+		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
+		if role == 2 || role == 3 {
+			if url == "pendaftaran" {
+				if role == 2 {
+					updateFilter = bson.D{
+						{"persetujuan.pic_nama", persetujuan.Pic_nama},
+						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
+						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+					}
+				} else {
+					updateFilter = bson.D{
+						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						{"persetujuan.manager_nama", claims.Name},
+						{"persetujuan.manager_tanggal", time.Now()},
+						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				}
+				break
+			} else if url == "upd" {
+				updateFilter = bson.D{
+					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
+					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
+					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
+					{"upd.rekomendasi", Pendaftaran.Upd.Rekomendasi},
+					{"upd.program_penyaluran.pelaksana_teknis", Pendaftaran.Upd.Program_penyaluran.Pelaksana_teknis},
+					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
+					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
+				}
+				if role == 2 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				}
+				break
+			}
+
+			updateFilter = bson.D{
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			}
+		} else {
+			updateFilter = bson.D{
+				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
+				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
+				{"judul_proposal", Pendaftaran.Judul_proposal},
+				{"kategori", Pendaftaran.Kategori_program},
+				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+				{"kategoris.kategori", Pendaftaran.Kategoris.Kategori},
+				{"kategoris.sub_program", Pendaftaran.Kategoris.Sub_program},
+				{"kategoris.komunitas", Pendaftaran.Kategoris.Komunitas},
+				{"kategoris.kegiatan", Pendaftaran.Kategoris.Kegiatan},
+				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+			}
 		}
 	default:
 		{
 			updateFilter = bson.D{}
 		}
 	}
+
+	//Manager
+	// case 3:
+	// 	updateFilter = bson.D{
+	// 		{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
+	// 		{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+	// 		{"persetujuan.manager_nama", claims.Name},
+	// 		{"persetujuan.manager_tanggal", persetujuan.Manager_tanggal},
+	// 		{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+	// 		{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+	// 	}
+	// // Kadiv
+	// case 4:
+	// updateFilter = bson.D{
+	// 	{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+	// 	{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+	// 	{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+	// 	{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
+	// }
+	// case 6:
+	// 	updateFilter = bson.D{
+	// 		{"persetujuan.jumlah_pencairan", persetujuan.Jumlah_pencairan},
+	// 		{"persetujuan.tanggal_pencairan", persetujuan.Tanggal_pencairan},
+	// 		{"persetujuan.keterangan", persetujuan.Keterangan},
+	// 	}
+	// default:
+	// 	{
+	// 		updateFilter = bson.D{}
+	// 	}
+	// }
 	return updateFilter, nil, nil
 }

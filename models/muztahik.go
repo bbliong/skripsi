@@ -40,25 +40,27 @@ func (m Muztahik) IsEmpty() bool {
 }
 
 type Persetujuan struct {
-	Proposal          int32              `json:"Proposal,omitempty" bson:"proposal,omitempty"`
-	Disposisi_pic     string             `json:"disposisi_pic,omitempty" bson:"disposisi_pic,omitempty"`
-	Disposisi_pic_id  primitive.ObjectID `json:"disposisi_pic_id,omitempty" bson:"disposisi_pic_id,omitempty"`
-	Manager           primitive.ObjectID `json:"manager_id,omitempty" bson:"manager_id,omitempty"`
-	
-	Perihal           string             `json:"perihal,omitempty" bson:"perihal,omitempty"`
-	Tanggal_disposisi *time.Time         `json:"tanggal_disposisi,omitempty" bson:"tanggal_disposisi ,omitempty"`
+	Proposal         int32              `json:"Proposal,omitempty" bson:"proposal,omitempty"`
+	Disposisi_pic    string             `json:"disposisi_pic,omitempty" bson:"disposisi_pic,omitempty"`
+	Disposisi_pic_id primitive.ObjectID `json:"disposisi_pic_id,omitempty" bson:"disposisi_pic_id,omitempty"`
+	Manager          primitive.ObjectID `json:"manager_id,omitempty" bson:"manager_id,omitempty"`
+
+	Perihal           string     `json:"perihal,omitempty" bson:"perihal,omitempty"`
+	Tanggal_disposisi *time.Time `json:"tanggal_disposisi,omitempty" bson:"tanggal_disposisi ,omitempty"`
 
 	//Field akan di update setiap simpan UPD
 	Verifikator_nama    string     `json:"verifikator_nama,omitempty" bson:"verifikator_nama,omitempty"`
 	Verifikator_tanggal *time.Time `json:"verifikator_tanggal,omitempty" bson:"verifikator_tanggal,omitempty"`
 
-	Manager_nama string `json:"manager_nama,omitempty" bson:"manager_nama,omitempty"`
-	Pic_nama     string `json:"pic_nama,omitempty" bson:"pic_nama,omitempty"`
-	Kadiv_nama   string `json:"kadiv_nama,omitempty" bson:"kadiv_nama,omitempty"`
+	Manager_nama    string     `json:"manager_nama,omitempty" bson:"manager_nama,omitempty"`
+	Manager_tanggal *time.Time `json:"manager_tanggal,omitempty" bson:"manager_tanggal,omitempty"`
 
-	Manager_tanggal            *time.Time `json:"manager_tanggal,omitempty" bson:"manager_tanggal,omitempty"`
+	Kadiv_nama                 string     `json:"kadiv_nama,omitempty" bson:"kadiv_nama,omitempty"`
 	Kadiv_tanggal              *time.Time `json:"kadiv_tanggal,omitempty" bson:"kadiv_tanggal,omitempty"`
+
+	Pic_nama                   string     `json:"pic_nama,omitempty" bson:"pic_nama,omitempty"`
 	Pic_tanggal                *time.Time `json:"pic_tanggal,omitempty" bson:"pic_tanggal,omitempty"`
+	
 	Keterangan_pic             string     `json:"keterangan_pic,omitempty" bson:"keterangan_pic,omitempty"`
 	Keterangan_manager         string     `json:"keterangan_manager,omitempty" bson:"keterangan_manager,omitempty"`
 	Keterangan_kadiv           string     `json:"keterangan_kadiv,omitempty" bson:"keterangan_kadiv,omitempty"`

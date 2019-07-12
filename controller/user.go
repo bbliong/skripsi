@@ -75,10 +75,8 @@ func GetAllUser(c *gin.Context) {
 			}
 		}
 	}
-	fmt.Println(filter)
 	//get data taro di cursor
 	cursor, err := collection.Find(ctx, filter)
-	fmt.Println(cursor.Next(ctx))
 	if err != nil {
 		result := gin.H{
 			"Status": "Internal Server Error",
@@ -211,7 +209,6 @@ func CreateUser(c *gin.Context) {
 // CreateUser fungsi untuk membuat data User
 func UpdateUser(c *gin.Context) {
 
-	fmt.Println("halo")
 	var (
 		User models.Users
 	)

@@ -19,10 +19,12 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/app-route/app-route.js';
 import '@polymer/app-route/app-location.js';
 
+
 //vaadin
 import '@vaadin/vaadin-text-field/vaadin-text-area.js';
 import '@vaadin/vaadin-text-field/vaadin-text-field.js';
-
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/vaadin-button/vaadin-button.js';
 
 
 //Other
@@ -97,6 +99,25 @@ class UpdEdit extends PolymerElement {
         <global-data id="globalData"></global-data>
         
       <div class="card">
+      <vaadin-dialog aria-label="polymer templates" id="dialog_manager">
+          <template>
+          <h4>Ingin mencetak UPD?</h4>
+            <vaadin-button on-click="cetak"> Cetak</vaadin-button>
+            <vaadin-button on-click="cancel"  theme="error primary"> Cancel</vaadin-button>
+          </template>
+        </vaadin-dialog>
+        
+        <vaadin-dialog aria-label="polymer templates" id="dialog_kadiv" >
+          <template>
+            <div style="text-align:center">
+            <h3>Apakah bapak/ibu menyetujui UPD ini ?</h3>
+            <vaadin-text-area placeholder="Keterangan" value="{{regObj.persetujuan.keterangan_kadiv}}" ></vaadin-text-area>
+            <vaadin-button on-click="setuju"  theme="success primary"> Setuju</vaadin-button>
+            <vaadin-button on-click="tidakSetuju"  theme="error primary"> Tidak Setuju</vaadin-button>
+           </div>
+          </template>
+        </vaadin-dialog>
+
         <div class="circle">3</div>
         <h1>UPD Edit</h1>
         <table border="2" id="main-table">
@@ -179,6 +200,17 @@ class UpdEdit extends PolymerElement {
                       </dom-repeat>
                   </td>
                 </tr>
+                <tr>
+                    <th>Status Verifikasi</th> 
+                    <td>
+                        <p> Verifikator : {{ tanggalPenting.verifikasi }} oleh <b>{{ regObj.verifikasi.nama_pelaksana }}</b>  </p>
+                        <p> Pembuatan UPD : {{ tanggalPenting.verifikator }}  oleh <b>{{regObj.persetujuan.verifikator_nama }}</b> </p>
+                        <p> Manager : {{ tanggalPenting.manager }}   oleh <b>{{ regObj.persetujuan.manager_nama }}  </b></p>
+                        <p> Kadiv : {{ tanggalPenting.kadiv }} oleh <b>{{ regObj.persetujuan.kadiv_nama }} </b> </p>
+
+                    </td> 
+
+                </tr>
             </tbody>
         </table>
         <div class="tombol">
@@ -187,6 +219,8 @@ class UpdEdit extends PolymerElement {
         <paper-button  raised class="indigo" on-click="sendData" id="simpan_dan_cetak_upd">Simpan dan Cetak UPD</paper-button>
 
          <paper-button  raised class="indigo" on-click="periksaUPD" id="approve">Periksa UPD</paper-button>
+
+         <paper-button  raised class="indigo" on-click="setujuiUPD" id="approveKadiv">Setujui UPD</paper-button>
 
         </div>
       </div>
@@ -264,6 +298,14 @@ class UpdEdit extends PolymerElement {
             }
           }
         },
+        tanggalPenting : {
+            type : Object,
+            notify :  true,
+            value : function(){
+              return {
+              }
+            }
+        }
       }
     }
   }
@@ -294,13 +336,42 @@ class UpdEdit extends PolymerElement {
     }
   }
 
-    // FUngsi untuk handle post data proposal
+    // FUngsi untuk handle get data proposal
 
     _handleProposal(e){
       this.regObj = e.detail.response.Data
+      
+      var verifikator = "Belum buat UPD"
+      var  manager= "Belum diperiksa Manager"
+      var kadiv = "Belum disetujui Kadiv"
+      var verifikasi = "Belum diverifikasi"
+
+      
+      if(typeof this.regObj.verifikasi.tanggal_verifikasi != "undefined"){
+        verifikasi  = this.formatDate(new Date(  this.regObj.verifikasi.tanggal_verifikasi))
+      } 
+
+      if(typeof this.regObj.persetujuan.verifikator_tanggal != "undefined"){
+        verifikator  = this.formatDate(new Date(  this.regObj.persetujuan.verifikator_tanggal))
+      } 
+
+      if(typeof this.regObj.persetujuan.manager_tanggal != "undefined"){
+        manager  = this.formatDate(new Date(  this.regObj.persetujuan.manager_tanggal))
+      }
+
+      if(typeof this.regObj.persetujuan.kadiv_tanggal != "undefined"){
+        kadiv  = this.formatDate(new Date(  this.regObj.persetujuan.kadiv_tanggal))
+      }
+      
+      this.tanggalPenting = {
+        "verifikasi" : verifikasi,
+        "verifikator" : verifikator,
+        "manager" : manager,
+        "kadiv" : kadiv
+      }
+      
       //Handle card pihak dverifikasi
       if(typeof this.regObj.upd !== "undefined"){
-        console.log("ada upd")
           this.Upd = this.regObj.upd
           if(typeof this.Upd.url  == "undefined"){
             this.shadowRoot.querySelector('#cetak_upd').style.display ="none"
@@ -322,6 +393,16 @@ class UpdEdit extends PolymerElement {
             "url" : "",
           }
       }
+
+      console.log(this.regObj)
+      
+      // Handle cek apakah kadiv
+      if(this.storedUser.role == 4){
+        if(typeof this.regObj.persetujuan.keterangan_kadiv == "undefined"){
+            this.regObj.persetujuan.keterangan_kadiv =""
+        }
+      }
+    
   
     }
   
@@ -332,6 +413,22 @@ class UpdEdit extends PolymerElement {
       // Define ketika polymer pertama kali di load 
   
     _routePageChanged(page) {
+      console.log(this.storedUser.role)
+      switch (this.storedUser.role){
+        case 1 :
+        case 2 :
+          this.shadowRoot.querySelector("#approve").style.display = "none" 
+          this.shadowRoot.querySelector("#approveKadiv").style.display = "none" 
+          break;
+        case 3 :
+          this.shadowRoot.querySelector("#simpan_dan_cetak_upd").style.display = "none" 
+          this.shadowRoot.querySelector("#approveKadiv").style.display = "none" 
+          break;
+        case 4 :
+             this.shadowRoot.querySelector("#approve").style.display = "none" 
+            this.shadowRoot.querySelector("#simpan_dan_cetak_upd").style.display = "none" 
+          break;
+      }
       this.$.getData.url= MyAppGlobals.apiPath + "/api/pendaftaran/"+ this.routeData.kat  + "/" + this.routeData.id
       this.$.getData.headers['authorization'] = this.storedUser.access_token;
     }
@@ -339,8 +436,7 @@ class UpdEdit extends PolymerElement {
      // Fungsi untuk handle post proposal update
 
     _handleProposalPost(e){
-      console.log(e.detail.response)
-      this.printData()
+      this.shadowRoot.querySelector('#dialog_manager').opened =  true
     }
 
     _handleProposalPostError(e){
@@ -367,7 +463,6 @@ class UpdEdit extends PolymerElement {
     }
 
     printData(){
-      console.log("check")
       this.$.printData.url= MyAppGlobals.apiPath + "/api/report/upd/"+ this.routeData.kat  + "/" + this.routeData.id
       this.$.printData.headers['authorization'] = this.storedUser.access_token;
       this.$.printData.generateRequest();
@@ -375,14 +470,6 @@ class UpdEdit extends PolymerElement {
 
     /***************  Handle Periksa UPD  **************/
 
-    _handleProposalPost(e){
-      console.log(e.detail.response)
-      
-    }
-
-    _handleProposalPostError(e){
-      this.set('route.path', '/panel/proposal');
-    }
 
 
     periksaUPD(){
@@ -393,7 +480,55 @@ class UpdEdit extends PolymerElement {
       this.$.postData.generateRequest();
     }
 
-    /***************  Handle Periksa UPD  **************/
+     /***************  Handle Setujui UPD  **************/
+
+    setujuiUPD(){
+      this.shadowRoot.querySelector('#dialog_kadiv').opened =  true
+    }
+
+
+
+
+    /*********  Custom tanggal ********/
+    formatDate(date){
+
+      var hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu']
+      var bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+      var day = date.getDay();
+      var dd = date.getDate();
+      var mm = date.getMonth()+1; 
+      var yyyy = date.getFullYear();
+
+      var  hari = hari[day]
+      var bulan = bulan[mm]
+      return hari + "," + dd  + " " + bulan + " " + yyyy
+      }
+
+    /*********  Handle dialog UPD Manager ********/
+
+    cetak(){
+      this.shadowRoot.querySelector('#dialog_manager').opened =  false
+      this.printData();
+    }
+
+    cancel(){
+      this.shadowRoot.querySelector('#dialog_manager').opened =  false
+      this.set('route.path', '/panel/proposal');
+    }
+    
+    /*********  Handle dialog UPD Kadiv ********/
+
+    setuju(){
+      this.regObj.persetujuan.status_persetujuan_kadiv = 1
+      this.periksaUPD()
+      this.shadowRoot.querySelector('#dialog_kadiv').opened =  false
+    }
+
+    tidakSetuju(){
+      this.regObj.persetujuan.status_persetujuan_kadiv = 0
+      this.periksaUPD()
+      this.shadowRoot.querySelector('#dialog_kadiv').opened =  false
+    }
 }
 
 window.customElements.define('bmm-upd-edit', UpdEdit);
