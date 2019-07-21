@@ -316,6 +316,7 @@ class ProposalAdd extends PolymerElement {
     this.$.postData.body  = {
       muztahik_id : this.regObj.muztahik._id, 
       judul_proposal : this.regObj.judul_proposal,
+      tujuan_proposal : this.regObj.tujuan_proposal,
       tanggalProposal : this.regObj.tanggalProposal,
       kategori : this.selectedKategori.KodeP,
       kategoris : this.regObj.kategoris,

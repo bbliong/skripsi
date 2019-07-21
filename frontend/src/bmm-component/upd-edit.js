@@ -103,7 +103,7 @@ class UpdEdit extends PolymerElement {
           <template>
           <h4>Ingin mencetak UPD?</h4>
             <vaadin-button on-click="cetak"> Cetak</vaadin-button>
-            <vaadin-button on-click="cancel"  theme="error primary"> Cancel</vaadin-button>
+            <vaadin-button on-click="cancel"  theme="error primary"> Tidak</vaadin-button>
           </template>
         </vaadin-dialog>
         
@@ -117,8 +117,6 @@ class UpdEdit extends PolymerElement {
            </div>
           </template>
         </vaadin-dialog>
-
-        <div class="circle">3</div>
         <h1>UPD Edit</h1>
         <table border="2" id="main-table">
             <tbody>
@@ -340,7 +338,7 @@ class UpdEdit extends PolymerElement {
 
     _handleProposal(e){
       this.regObj = e.detail.response.Data
-      
+      console.log(e.detail.response.Data)
       var verifikator = "Belum buat UPD"
       var  manager= "Belum diperiksa Manager"
       var kadiv = "Belum disetujui Kadiv"
@@ -360,7 +358,12 @@ class UpdEdit extends PolymerElement {
       }
 
       if(typeof this.regObj.persetujuan.kadiv_tanggal != "undefined"){
-        kadiv  = this.formatDate(new Date(  this.regObj.persetujuan.kadiv_tanggal))
+        if(this.regObj.persetujuan.status_persetujuan_kadiv == 0){
+          kadiv = "Tidak disetujui pada tanggal "
+        }else{
+          kadiv = "Disetujui pada hari "
+        }
+        kadiv  += this.formatDate(new Date(  this.regObj.persetujuan.kadiv_tanggal))
       }
       
       this.tanggalPenting = {
@@ -394,9 +397,7 @@ class UpdEdit extends PolymerElement {
           }
       }
 
-      console.log(this.regObj)
-      
-      // Handle cek apakah kadiv
+      // Handle cek apakah kadiv sudah menentukan stuju atau tidak
       if(this.storedUser.role == 4){
         if(typeof this.regObj.persetujuan.keterangan_kadiv == "undefined"){
             this.regObj.persetujuan.keterangan_kadiv =""
@@ -485,8 +486,6 @@ class UpdEdit extends PolymerElement {
     setujuiUPD(){
       this.shadowRoot.querySelector('#dialog_kadiv').opened =  true
     }
-
-
 
 
     /*********  Custom tanggal ********/

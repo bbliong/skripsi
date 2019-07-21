@@ -55,36 +55,46 @@ type Persetujuan struct {
 	Manager_nama    string     `json:"manager_nama,omitempty" bson:"manager_nama,omitempty"`
 	Manager_tanggal *time.Time `json:"manager_tanggal,omitempty" bson:"manager_tanggal,omitempty"`
 
-	Kadiv_nama                 string     `json:"kadiv_nama,omitempty" bson:"kadiv_nama,omitempty"`
-	Kadiv_tanggal              *time.Time `json:"kadiv_tanggal,omitempty" bson:"kadiv_tanggal,omitempty"`
+	Kadiv_nama    string     `json:"kadiv_nama,omitempty" bson:"kadiv_nama,omitempty"`
+	Kadiv_tanggal *time.Time `json:"kadiv_tanggal,omitempty" bson:"kadiv_tanggal,omitempty"`
 
-	Pic_nama                   string     `json:"pic_nama,omitempty" bson:"pic_nama,omitempty"`
-	Pic_tanggal                *time.Time `json:"pic_tanggal,omitempty" bson:"pic_tanggal,omitempty"`
-	
+	Pic_nama    string     `json:"pic_nama,omitempty" bson:"pic_nama,omitempty"`
+	Pic_tanggal *time.Time `json:"pic_tanggal,omitempty" bson:"pic_tanggal,omitempty"`
+
+	// Persetujuan tambahan
+	Sifat_santunan          string     `json:"sifat_santunan,omitempty" bson:"sifat_santunan,omitempty"`
+	Jumlah_penerima_manfaat string     `json:"jumlah_penerima_manfaat,omitempty" bson:"jumlah_penerima_manfaat,omitempty"`
+	Mitra_pelaksana         string     `json:"mitra_pelaksana,omitempty" bson:"mitra_pelaksana,omitempty"`
+	Tanggal_komite          *time.Time `json:"tanggal_komite,omitempty" bson:"tanggal_komite,omitempty"`
+	Tanggal_pelaksanaan     *time.Time `json:"tanggal_pelaksanaan,omitempty" bson:"tanggal_pelaksanaan,omitempty"`
+	Sumber_dana             string     `json:"sumber_dana,omitempty" bson:"sumber_dana,omitempty"`
+	Nomor_permohonan        string     `json:"nomor_permohonan,omitempty" bson:"nomor_permohonan,omitempty"`
+
 	Keterangan_pic             string     `json:"keterangan_pic,omitempty" bson:"keterangan_pic,omitempty"`
 	Keterangan_manager         string     `json:"keterangan_manager,omitempty" bson:"keterangan_manager,omitempty"`
 	Keterangan_kadiv           string     `json:"keterangan_kadiv,omitempty" bson:"keterangan_kadiv,omitempty"`
 	Status_persetujuan_pic     int32      `json:"status_persetujuan_pic,omitempty" bson:"status_persetujuan_pic,omitempty"`
 	Status_persetujuan_manager int32      `json:"status_persetujuan_manager,omitempty" bson:"status_persetujuan_manager,omitempty"`
-	Status_persetujuan_kadiv   int32      `json:"status_persetujuan_kadiv,omitempty" bson:"status_persetujuan_kadiv,omitempty"`
+	Status_persetujuan_kadiv   int32      `json:"status_persetujuan_kadiv" bson:"status_persetujuan_kadiv"`
 	Level_persetujuan          int32      `json:"level_persetujuan" bson:"level_persetujuan"`
 	Status_persetujuan         int32      `json:"status_persetujuan,omitempty" bson:"status_persetujuan,omitempty"`
 	Tanggal_persetujuan        *time.Time `json:"tanggal_persetujuan,omitempty" bson:"tanggal_persetujuan,omitempty"`
 	Kategori_program           string     `json:"kategori_program,omitempty" bson:"kategori_program,omitempty"`
-	Sumber_dana                string     `json:"sumber_dana,omitempty" bson:"sumber_dana,omitempty"`
-	Ppd_pic                    *time.Time `json:"ppd_pic,omitempty" bson:"ppd_pic,omitempty"`
-	Ppd_manager                *time.Time `json:"ppd_manager,omitempty" bson:"ppd_manager,omitempty"`
-	Ppd_kadiv                  *time.Time `json:"ppd_kadiv,omitempty" bson:"ppd_kadiv,omitempty"`
-	Ppd_keuangan               *time.Time `json:"ppd_keuangan,omitempty" bson:"ppd_keuangan,omitempty"`
-	Jumlah_pencairan           int32      `json:"jumlah_pencairan,omitempty" bson:"jumlah_pencairan,omitempty"`
-	Tanggal_pencairan          *time.Time `json:"tanggal_pencairan,omitempty" bson:"tanggal_pencairan,omitempty"`
-	Keterangan                 string     `json:"keterangan,omitempty" bson:"keterangan,omitempty"`
+
+	Ppd_pic           *time.Time `json:"ppd_pic,omitempty" bson:"ppd_pic,omitempty"`
+	Ppd_manager       *time.Time `json:"ppd_manager,omitempty" bson:"ppd_manager,omitempty"`
+	Ppd_kadiv         *time.Time `json:"ppd_kadiv,omitempty" bson:"ppd_kadiv,omitempty"`
+	Ppd_keuangan      *time.Time `json:"ppd_keuangan,omitempty" bson:"ppd_keuangan,omitempty"`
+	Jumlah_pencairan  int32      `json:"jumlah_pencairan,omitempty" bson:"jumlah_pencairan,omitempty"`
+	Tanggal_pencairan *time.Time `json:"tanggal_pencairan,omitempty" bson:"tanggal_pencairan,omitempty"`
+	Keterangan        string     `json:"keterangan,omitempty" bson:"keterangan,omitempty"`
 }
 
 type PendaftaranKSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -92,12 +102,14 @@ type PendaftaranKSM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranRBM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -105,12 +117,14 @@ type PendaftaranRBM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranPAUD struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -118,12 +132,14 @@ type PendaftaranPAUD struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranKAFALA struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -131,12 +147,14 @@ type PendaftaranKAFALA struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranJSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -144,12 +162,14 @@ type PendaftaranJSM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranDZM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -157,12 +177,14 @@ type PendaftaranDZM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranBSU struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -170,12 +192,14 @@ type PendaftaranBSU struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranRescue struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -183,12 +207,14 @@ type PendaftaranRescue struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranBTM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -196,12 +222,14 @@ type PendaftaranBTM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranBSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -209,12 +237,14 @@ type PendaftaranBSM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranBCM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -222,12 +252,14 @@ type PendaftaranBCM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type PendaftaranASM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
+	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
 	Muztahik         primitive.ObjectID `json:"muztahik_id,omitempty" bson:"muztahik_id,omitempty"`
 	Persetujuan      Persetujuan        `json:"persetujuan,omitempty" bson:"persetujuan,omitempty"`
@@ -235,11 +267,11 @@ type PendaftaranASM struct {
 	Muztahiks        Muztahik           `json:"muztahiks,omitempty" bson:"muztahiks,omitempty"`
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
+	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
 }
 
 type Verifikasi struct {
 	Tanggal_verifikasi time.Time          `json:"tanggal_verifikasi,omitempty" bson:"tanggal_verifikasi,omitempty"`
-	Judul_proposal     string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Nama_pelaksana     string             `json:"nama_pelaksana,omitempty" bson:"nama_pelaksana,omitempty"`
 	Jabatan_pelaksana  string             `json:"jabatan_pelaksana,omitempty" bson:"jabatan_pelaksana,omitempty"`
 	Bentuk_bantuan     string             `json:"bentuk_bantuan,omitempty" bson:"bentuk_bantuan,omitempty"`
@@ -284,4 +316,10 @@ type Program_p struct {
 	Pelaksana_teknis string `json:"pelaksana_teknis,omitempty" bson:"pelaksana_teknis,omitempty"`
 	Alur_biaya       string `json:"alur_biaya,omitempty" bson:"alur_biaya,omitempty"`
 	Penanggung_jawab string `json:"penanggung_jawab,omitempty" bson:"penanggung_jawab,omitempty"`
+}
+
+type Komite struct {
+	User    Users  `json:"user,omitempty" bson:"user,omitempty"`
+	Status  int32  `json:"status" bson:"status,omitempty"`
+	Catatan string `json:"catatan" bson:"catatan,omitempty"`
 }

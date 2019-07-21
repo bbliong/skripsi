@@ -87,6 +87,8 @@ class UserAdd extends PolymerElement {
                     <vaadin-item value="4">Kadiv</vaadin-item>
                     <vaadin-item value="5">Administrasi</vaadin-item>
                     <vaadin-item value="6">Keuangan</vaadin-item>
+                    <vaadin-item value="7">Pengurus</vaadin-item>
+                    <vaadin-item value="8">Pengawas</vaadin-item>
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
@@ -141,7 +143,6 @@ class UserAdd extends PolymerElement {
   static get observers() {
     return [
       '_kategoriSelected(selectedKategori)',
-      '_changeStoI(regObj.*)',
     ];
   }
 
@@ -160,17 +161,11 @@ class UserAdd extends PolymerElement {
   }
 
 
-  // Fungsi convert ke int 
-  _changeStoI(f){
-    var array = f.path.split(".");
-    if (array[1] == "role"){
-      f.base[array[1]] = parseInt(f.value)
-    }
-  }
 
   /*********** Start post data pendaftaran user  **********/
   sendData(){
     var jabatan = ""
+    this.regObj.role = parseInt(this.regObj.role)
     switch(this.regObj.role){
       case 1 : 
         jabatan = "Admin"
@@ -182,13 +177,16 @@ class UserAdd extends PolymerElement {
         jabatan = "Manager"
       break;
       case 4 : 
-        jabatan = "Kafiv"
+        jabatan = "Kadiv"
       break;
       case 5 : 
         jabatan = "Administrasi"
       break;
       case 6 : 
         jabatan = "Keuangan"
+      break;
+      case 7 : 
+        jabatan = "Pengawas"
       break;
       default : {
         jabatan = ""

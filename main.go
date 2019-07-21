@@ -58,6 +58,7 @@ func main() {
 			api.PUT("/pendaftaran/:id", controller.UpdatePendaftaran)
 			api.PUT("/verifikator/:id", controller.UpdatePendaftaran)
 			api.PUT("/upd/:id", controller.UpdatePendaftaran)
+			api.PUT("/komite/:id", controller.UpdatePendaftaran)
 			api.DELETE("/pendaftaran/:id", controller.DeletePendaftaran)
 
 			// User
@@ -73,6 +74,7 @@ func main() {
 			api.GET("/report/proposal", controller.ManageProposal)
 			api.GET("/report/upd/:kat/:id", controller.UpdProposal)
 			api.GET("/report/verifikasi/:kat/:id", controller.VerifikasiProposal)
+			api.GET("/report/komite/:kat/:id", controller.KomiteProposal)
 		}
 
 	}

@@ -23,10 +23,10 @@ type Claims struct {
 type Users struct {
 	ID           primitive.ObjectID `json:"Id,omitempty" bson:"_id,omitempty"`
 	Name         string             `json:"nama" bson:"nama,omitempty"`
-	Details_role string             `json:"details_role" bson:"details_role,omitempty"`
-	Username     string             `json:"username" binding:"required" bson:"username,omitempty"`
-	Password     string             `json:"password" binding:"required" bson:"password,omitempty"`
-	Email        string             `json:"email" binding:"required" bson:"email,omitempty"`
+	Details_role string             `json:"details_role, omitmpty" bson:"details_role,omitempty"`
+	Username     string             `json:"username, omitmpty" binding:"required" bson:"username,omitempty"`
+	Password     string             `json:"password, omitmpty" binding:"required" bson:"password,omitempty"`
+	Email        string             `json:"email, omitmpty" binding:"required" bson:"email,omitempty"`
 	Role         int32              `json:"role,omitempty" binding:"required"  bson:"role,omitempty"` //Admin : 1 , STAFF : 2, MGR : 3, KADIV  :4, Admin Register : 5, Keuangan : 6
 }
 

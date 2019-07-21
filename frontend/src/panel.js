@@ -100,6 +100,7 @@ class Panel extends PolymerElement {
             <bmm-user-add name="add-user"></bmm-user-add>
             <bmm-user-edit name="edit-user"></bmm-user-edit>
             <bmm-upd-edit name="edit-upd"></bmm-upd-edit>
+            <bmm-komite-manager name="komite-manager"></bmm-komite-manager>
             <bmm-loader name="loader"></bmm-loader>
             <my-view404 name="view404"></my-view404>
           </iron-pages>
@@ -230,7 +231,7 @@ class Panel extends PolymerElement {
     } else if (['beranda', 'muztahik', 'laporan', 'proposal', 'user',  'loader'].indexOf(page) !== -1) {
       var url = this.subroute.path.split("/")[1]
       if(this.subroute.path){
-        if(['add-muztahik', 'edit-muztahik','profile-muztahik', 'edit-proposal', 'add-proposal', 'edit-verifikator', 'add-user', 'edit-user','edit-upd'].lastIndexOf(url) !== -1){
+        if(['add-muztahik', 'edit-muztahik','profile-muztahik', 'edit-proposal', 'add-proposal', 'edit-verifikator', 'add-user', 'edit-user','edit-upd', 'komite-manager'].lastIndexOf(url) !== -1){
           this.page = url
         }else{
           this.page = 'view404';
@@ -297,6 +298,9 @@ class Panel extends PolymerElement {
           break;
       case 'loader':
           import('./config/loader.js');
+          break;
+      case 'komite-manager':
+          import('./bmm-component/komite-manager.js');
           break;
       case 'view404':
         import('./my-view404.js');

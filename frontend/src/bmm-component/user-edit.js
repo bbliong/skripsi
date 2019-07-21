@@ -86,6 +86,8 @@ class UserEdit extends PolymerElement {
                     <vaadin-item value="4">Kadiv</vaadin-item>
                     <vaadin-item value="5">Administrasi</vaadin-item>
                     <vaadin-item value="6">Keuangan</vaadin-item>
+                    <vaadin-item value="7">Pengurus</vaadin-item>
+                    <vaadin-item value="8">Pengawas</vaadin-item>
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
@@ -151,17 +153,9 @@ class UserEdit extends PolymerElement {
   static get observers() {
     return [
       '_routePageChanged(routeData.id)',
-      '_changeStoI(regObj.*)',
     ];
   }
 
-  // Fungsi convert ke int 
-  _changeStoI(f){
-    var array = f.path.split(".");
-    if (array[1] == "role"){
-      f.base[array[1]] = parseInt(f.value)
-    }
-  }
 
   // Define ketika polymer pertama kali di load 
   
@@ -198,9 +192,39 @@ class UserEdit extends PolymerElement {
   }
 
   sendData(){
+    var jabatan = ""
+    this.regObj.role = parseInt(this.regObj.role)
+    switch(this.regObj.role){
+      case 1 : 
+        jabatan = "Admin"
+      break;
+      case 2: 
+        jabatan = "Staff"
+      break;
+      case 3 : 
+        jabatan = "Manager"
+      break;
+      case 4 : 
+        jabatan = "Kadiv"
+      break;
+      case 5 : 
+        jabatan = "Administrasi"
+      break;
+      case 6 : 
+        jabatan = "Keuangan"
+      break;
+      case 7 : 
+        jabatan = "Pengawas"
+      break;
+      default : {
+        jabatan = ""
+      }
+    }
+    this.regObj.details_role = jabatan
     this.$.postData.url= MyAppGlobals.apiPath + "/api/user/"  + this.regObj.Id
     this.$.postData.headers['authorization'] = this.storedUser.access_token;
     this.$.postData.body  = this.regObj
+    console.log(this.regObj)
     this.$.postData.generateRequest();
   }
 

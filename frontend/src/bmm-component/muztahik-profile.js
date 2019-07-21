@@ -195,8 +195,8 @@ class MuztahikProfile extends PolymerElement {
               </table>
             </section>
         </div>
-        <iron-pages selected="{{muzId}}" attr-for-selected="muz-id" selected-attribute="activated"></iron-pages>
-           <bmm-proposal muz-id="{{muzId}}"></bmm-proposal>
+        <iron-pages selected="{{muzId}}" attr-for-selected="muz-id" selected-attribute="activated" id="pages">
+           <bmm-proposal muz-id="{{muzId}}" id="proposal"></bmm-proposal>
         </iron-pages>
 
       </div>
@@ -271,7 +271,7 @@ class MuztahikProfile extends PolymerElement {
       }
     });
 
-    /*  Upload Vaading */
+   /*  Upload Vaading */
   }
 
   _handleMuztahik(e){

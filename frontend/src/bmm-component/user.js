@@ -165,7 +165,6 @@ class User extends PolymerElement {
 
           <!-- Table  -->
           <vaadin-grid theme="column-borders" column-reordering-allowed multi-sort id="grid" page-size="10" height-by-rows aria-label="Selection using Active Item Example" >
-            <vaadin-grid-sort-column path="username" header="Username"  id="username" width="200px"></vaadin-grid-sort-column >
               <vaadin-grid-sort-column header="Nama"  path="nama" width="300px"></vaadin-grid-sort-column >
               <vaadin-grid-sort-column header="Jabatan" id="jabatan" width="150px"></vaadin-grid-sort-column >
               <vaadin-grid-column header="Action" id="action"></vaadin-grid-column>
@@ -294,6 +293,12 @@ class User extends PolymerElement {
         break;
         case "6" : 
           jabatan = "Keuangan"
+        break;
+        case "7" : 
+        jabatan = "Pengurus"
+        break;
+        case "8" : 
+        jabatan = "Pengawas"
         break;
         default : {
           jabatan = ""

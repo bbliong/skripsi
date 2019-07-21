@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/bbliong/sim-bmm/config"
 	"github.com/bbliong/sim-bmm/helper"
@@ -50,22 +51,19 @@ func GetAllUser(c *gin.Context) {
 	// Fungi jika terdapat filter yang dikirim kan lewat parameter
 	search := c.Request.URL.Query()
 	filter := bson.M{}
-
 	if len(search) > 0 {
 		for key, val := range search {
-			if key == "role" {
+			if key == "role" || key == "role2" {
 				i, err := strconv.Atoi(val[0])
 				if err != nil {
 					i = 0
 				}
+				fmt.Println(i)
 				if _, exist := filter["$or"]; !exist {
 					filter["$or"] = []bson.M{}
 				}
 				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{
-					"role": bson.M{
-						"$gte": i,
-						"$lte": i + 1,
-					},
+					"role": i,
 				})
 			} else {
 				if _, exist := filter["$or"]; !exist {
@@ -76,7 +74,13 @@ func GetAllUser(c *gin.Context) {
 		}
 	}
 	//get data taro di cursor
-	cursor, err := collection.Find(ctx, filter)
+	// cursor, err := collection.Find(ctx, filter)
+	filterProjection := bson.D{
+		{"password", 0},
+		{"username", 0},
+	}
+
+	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(filterProjection))
 	if err != nil {
 		result := gin.H{
 			"Status": "Internal Server Error",
@@ -251,6 +255,8 @@ func UpdateUser(c *gin.Context) {
 			{"email", User.Email},
 			{"role", User.Role},
 		}
+
+		fmt.Println(updateFilter)
 		result, errs = collection.UpdateOne(ctx, filter, bson.D{{"$set", updateFilter}})
 	} else {
 		User.Password, err = helper.HashPassword(User.Password)

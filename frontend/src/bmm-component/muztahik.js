@@ -249,7 +249,8 @@ class Muzatahik extends PolymerElement {
           type : Number,
           notify : true,
           value : 0
-        }
+        },
+        
         
       }
   }

@@ -210,20 +210,55 @@ func GetAllPendaftaran(c *gin.Context) {
 	// Fungi jika terdapat filter yang dikirim kan lewat parameter
 	search := c.Request.URL.Query()
 	filter := bson.M{}
-
+	var startDate time.Time
 	if len(search) > 0 {
 		for key, val := range search {
 			if key == "muztahik_id" {
 				_id, _ := primitive.ObjectIDFromHex(val[0])
 				filter[key] = _id
+			} else if key == "tanggal_mulai" {
+				date, err := time.Parse("2006-01-02T15:04:05Z", val[0])
+				if err != nil {
+					panic(err)
+				}
+				filter["tanggal_proposal"] = bson.M{
+					"$gte": date,
+				}
+				startDate = date
+			} else if key == "tanggal_akhir" {
+				date, err := time.Parse("2006-01-02T15:04:05Z", val[0])
+				if err != nil {
+					panic(err)
+				}
+				filter["tanggal_proposal"] = bson.M{
+					"$gte": startDate,
+					"$lte": date,
+				}
 			} else {
 				if _, exist := filter["$or"]; !exist {
 					filter["$or"] = []bson.M{}
 				}
+				if key == "kategori" {
+					val, _ := strconv.Atoi(val[0])
+					if val != 0 {
+						filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: val})
+					}
+				}
 				filter["$or"] = append(filter["$or"].([]bson.M), bson.M{key: primitive.Regex{Pattern: val[0], Options: "i"}})
+
 			}
 		}
+	} else {
+		y, m, _ := time.Now().Date()
+		firstDay := time.Date(y, m, 1, 0, 0, 0, 0, time.UTC)
+		lastDay := time.Date(y, m+1, 1, 0, 0, 0, -1, time.UTC)
+
+		filter["tanggal_proposal"] = bson.M{
+			"$gte": firstDay,
+			"$lte": lastDay,
+		}
 	}
+	fmt.Printf("%+v", filter)
 	_, exist := filter["muztahik_id"]
 
 	if !exist {
@@ -519,14 +554,18 @@ func UpdatePendaftaran(c *gin.Context) {
 		} else if P.Persetujuan.Level_persetujuan == 2 {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 3})
 		}
+		break
 	case 3:
 		if P.Persetujuan.Level_persetujuan < 1 {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 1})
 		} else if P.Persetujuan.Level_persetujuan == 3 {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 4})
-		}
+		} else if P.Persetujuan.Level_persetujuan == 5 {
+			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 7})
+		} 
+		break
 	case 4:
-		if P.Persetujuan.Level_persetujuan > 4 {
+		if P.Persetujuan.Level_persetujuan >= 4 {
 			if P.Persetujuan.Status_persetujuan_kadiv == 1 {
 				updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 5})
 			} else {
@@ -534,6 +573,7 @@ func UpdatePendaftaran(c *gin.Context) {
 			}
 
 		}
+		break
 	}
 
 	if insertFilter != nil {
@@ -690,7 +730,6 @@ func UpdatePendaftaranView(c *gin.Context) {
 		// Set Projection
 		filterProjection := FilterProjection(claims.Role)
 		errSQL := collection.FindOne(ctx, filter, options.FindOne().SetProjection(filterProjection)).Decode(&Pendaftaran)
-
 		if errSQL != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			fmt.Println(errSQL)
@@ -935,17 +974,17 @@ func FilterProjection(role int32) bson.D {
 	// PIC
 	case 2:
 		projection = bson.D{
-			// {"pic_tanggal", 1},
-			// {"pic_nama", 1},
-			// {"keterangan_pic", 1},
-			{"persetujuan.manager_tanggal", 0},
-			{"persetujuan.manager_nama", 0},
-			{"persetujuan.keterangan_manager", 0},
-			{"persetujuan.status_persetujuan_manager", 0},
-			{"persetujuan.kadiv_tanggal", 0},
-			{"persetujuan.kadiv_nama", 0},
-			{"persetujuan.keterangan_kadiv", 0},
-			{"persetujuan.status_persetujuan_kadiv", 0},
+		// {"pic_tanggal", 1},
+		// {"pic_nama", 1},
+		// {"keterangan_pic", 1},
+		// {"persetujuan.manager_tanggal", 0},
+		// {"persetujuan.manager_nama", 0},
+		// {"persetujuan.keterangan_manager", 0},
+		// {"persetujuan.status_persetujuan_manager", 0},
+		// {"persetujuan.kadiv_tanggal", 0},
+		// {"persetujuan.kadiv_nama", 0},
+		// {"persetujuan.keterangan_kadiv", 0},
+		// {"persetujuan.status_persetujuan_kadiv", 0},
 		}
 	// Manager
 	case 3:
@@ -962,17 +1001,17 @@ func FilterProjection(role int32) bson.D {
 			// {"persetujuan.kadiv_nama", 0},
 			// {"persetujuan.verifikator_tanggal", 0},
 			// {"persetujuan.manager_tanggal", 0},
-			{"persetujuan.kadiv_tanggal", 0},
-			{"persetujuan.pic_tanggal", 0},
+			// {"persetujuan.kadiv_tanggal", 0},
+			// {"persetujuan.pic_tanggal", 0},
 			{"persetujuan.keterangan_pic", 0},
 			{"persetujuan.keterangan_manager", 0},
 			{"persetujuan.keterangan_kadiv", 0},
 			{"persetujuan.status_persetujuan_pic", 0},
 			{"persetujuan.status_persetujuan_manager", 0},
-			{"persetujuan.status_persetujuan_kadiv", 0},
-			{"persetujuan.status_persetujuan", 0},
-			{"persetujuan.tanggal_persetujuan", 0},
-			{"persetujuan.sumber_dana", 0},
+			// {"persetujuan.status_persetujuan_kadiv", 0},
+			// {"persetujuan.status_persetujuan", 0},
+			// {"persetujuan.tanggal_persetujuan", 0},
+			// {"persetujuan.sumber_dana", 0},
 			{"persetujuan.ppd_pic", 0},
 			{"persetujuan.ppd_manager", 0},
 			{"persetujuan.ppd_kadiv", 0},
@@ -1200,6 +1239,8 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
@@ -1212,23 +1253,37 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
-
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
-
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1246,23 +1301,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 2:
 		Pendaftaran := models.PendaftaranRBM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1280,27 +1342,51 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1319,23 +1405,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 3:
 		Pendaftaran := models.PendaftaranPAUD{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1349,31 +1442,54 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
 					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
+
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
-
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
-
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1392,23 +1508,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 4:
 		Pendaftaran := models.PendaftaranKAFALA{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1426,27 +1549,51 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1472,19 +1619,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 5:
 		Pendaftaran := models.PendaftaranJSM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1498,30 +1656,55 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
 					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
+
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1542,23 +1725,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 6:
 		Pendaftaran := models.PendaftaranDZM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1576,27 +1766,49 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
-
 				break
-			}
-
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
 		} else {
 			updateFilter = bson.D{
@@ -1618,23 +1830,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 7:
 		Pendaftaran := models.PendaftaranBSU{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1652,28 +1871,51 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
-
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1696,23 +1938,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 8:
 		Pendaftaran := models.PendaftaranRescue{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1726,30 +1975,55 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
 					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
+
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1770,23 +2044,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 9:
 		Pendaftaran := models.PendaftaranBTM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1800,30 +2081,55 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
 					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
+
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else {
+				updateFilter = bson.D{}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1848,23 +2154,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 10:
 		Pendaftaran := models.PendaftaranBSM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -1878,30 +2191,56 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
 					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
+
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else{
+				updateFilter = bson.D{
+				}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -1927,30 +2266,35 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 11:
 		Pendaftaran := models.PendaftaranBCM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
 			} else if url == "upd" {
 				updateFilter = bson.D{
-					{"persetujuan.verifikator_tanggal", time.Now()},
-					{"persetujuan.verifikator_nama", claims.Name},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -1959,30 +2303,56 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
 					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
+
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else{
+				updateFilter = bson.D{
+				}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
@@ -2009,23 +2379,30 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 	case 12:
 		Pendaftaran := models.PendaftaranASM{}
 		err = c.ShouldBindBodyWith(&Pendaftaran, binding.JSON)
-		if role == 2 || role == 3 {
+		if role == 2 || role == 3 || role == 4 {
 			if url == "pendaftaran" {
 				if role == 2 {
 					updateFilter = bson.D{
 						{"persetujuan.pic_nama", persetujuan.Pic_nama},
 						{"persetujuan.pic_tanggal", persetujuan.Pic_tanggal},
-						{"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
-						{"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
+						// {"persetujuan.status_persetujuan_pic", persetujuan.Status_persetujuan_pic},
+						// {"persetujuan.keterangan_pic", persetujuan.Keterangan_pic},
 					}
-				} else {
+				} else if role == 3 {
 					updateFilter = bson.D{
 						{"persetujuan.disposisi_pic", persetujuan.Disposisi_pic},
 						{"persetujuan.disposisi_pic_id", persetujuan.Disposisi_pic_id},
-						{"persetujuan.manager_nama", claims.Name},
-						{"persetujuan.manager_tanggal", time.Now()},
-						{"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
-						{"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+						// {"persetujuan.manager_nama", claims.Name},
+						// {"persetujuan.manager_tanggal", time.Now()},
+						// {"persetujuan.status_persetujuan_manager", persetujuan.Status_persetujuan_manager},
+						// {"persetujuan.keterangan_manager", persetujuan.Keterangan_manager},
+					}
+				} else if role == 4 {
+					updateFilter = bson.D{
+						{"persetujuan.kadiv_nama", persetujuan.Kadiv_nama},
+						{"persetujuan.kadiv_tanggal", persetujuan.Kadiv_tanggal},
+						{"persetujuan.status_persetujuan_kadiv", persetujuan.Status_persetujuan_kadiv},
+						{"persetujuan.keterangan_kadiv", persetujuan.Keterangan_kadiv},
 					}
 				}
 				break
@@ -2039,30 +2416,56 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					{"upd.program_penyaluran.alur_biaya", Pendaftaran.Upd.Program_penyaluran.Alur_biaya},
 					{"upd.program_penyaluran.penanggung_jawab", Pendaftaran.Upd.Program_penyaluran.Penanggung_jawab},
 				}
+
 				if role == 2 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.verifikator_nama", claims.Name})
-				} else {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.pic_nama", claims.Name})
+				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
+				} else if role == 4 {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_nama", claims.Name})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
+					updateFilter = append(updateFilter, bson.E{"persetujuan.tanggal_persetujuan", time.Now()})
 				}
 				break
+			} else if url == "verifikator" {
+				updateFilter = bson.D{
+					{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
+					{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
+					{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
+					{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
+					{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
+					{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
+					{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
+					{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
+					{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
+					{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
+				}
+			} else if url == "komite" {
+				updateFilter = bson.D{
+					{"persetujuan.tanggal_komite", Pendaftaran.Persetujuan.Tanggal_komite},
+					{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
+					{"tujuan_proposal", Pendaftaran.Tujuan_proposal},
+					{"persetujuan.sifat_santunan", Pendaftaran.Persetujuan.Sifat_santunan},
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
+					{"persetujuan.sumber_dana", Pendaftaran.Persetujuan.Sumber_dana},
+					{"persetujuan.jumlah_penerima_manfaat", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat},
+					{"persetujuan.mitra_pelaksana", Pendaftaran.Persetujuan.Mitra_pelaksana},
+					{"persetujuan.nomor_permohonan", Pendaftaran.Persetujuan.Nomor_permohonan},
+					{"komite", Pendaftaran.Komite},
+				}
+			} else{
+				updateFilter = bson.D{
+				}
 			}
 
-			updateFilter = bson.D{
-				{"kategoris.asnaf", Pendaftaran.Kategoris.Asnaf},
-				{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
-				{"verifikasi.tanggal_verifikasi", Pendaftaran.Verifikasi.Tanggal_verifikasi},
-				{"verifikasi.nama_pelaksana", Pendaftaran.Verifikasi.Nama_pelaksana},
-				{"verifikasi.jabatan_pelaksana", Pendaftaran.Verifikasi.Jabatan_pelaksana},
-				{"verifikasi.bentuk_bantuan", Pendaftaran.Verifikasi.Bentuk_bantuan},
-				{"verifikasi.hasil_verifikasi.kelengkapan_adm", Pendaftaran.Verifikasi.Hasil_verifikasi.Kelengkapan_adm},
-				{"verifikasi.hasil_verifikasi.direkomendasikan", Pendaftaran.Verifikasi.Hasil_verifikasi.Direkomendasikan},
-				{"verifikasi.hasil_verifikasi.dokumentasi", Pendaftaran.Verifikasi.Hasil_verifikasi.Dokumentasi},
-				{"verifikasi.cara_verifikasi", Pendaftaran.Verifikasi.Cara_verifikasi},
-				{"verifikasi.pihak_konfirmasi", Pendaftaran.Verifikasi.Pihak_konfirmasi},
-				{"verifikasi.penerima_manfaat", Pendaftaran.Verifikasi.Penerima_manfaat},
-			}
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},

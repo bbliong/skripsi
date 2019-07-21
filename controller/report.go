@@ -3098,3 +3098,2259 @@ func VerifikasiProposal(c *gin.Context) {
 		return
 	}
 }
+
+func KomiteProposal(c *gin.Context) {
+
+	/* ---------------------------- Start of GET Data ---------------------------*/
+	var (
+		Sheet          string
+		nama, kategori string
+	)
+
+	PihakIndex, PenerimaIndex, HasilIndex := 19, 0, 0
+	Penerima := func() int {
+		return PihakIndex + 2 + PenerimaIndex
+	}
+
+	Hasil := func() int {
+		return Penerima() + 2 + HasilIndex
+	}
+
+	_ = Penerima() + Hasil()
+
+	t := time.Now()
+
+	collection := db.Collection("pendaftaran")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	//claims := c.MustGet("decoded").(*models.Claims)
+	_id, _ := primitive.ObjectIDFromHex(c.Param("id"))
+	Kat, _ := strconv.Atoi(c.Param("kat"))
+	filter := bson.D{{"_id", _id}, {"kategori", Kat}}
+
+	//get data taro di cursor
+	result := collection.FindOne(ctx, filter)
+	// if err != nil {
+	// 	c.JSON(500, gin.H{
+	// 		"data": "Id tidak ditemukan",
+	// 	})
+	// 	return
+	// }
+
+	/* ---------------------------- End of GET Data ---------------------------*/
+
+	/* ---------------------------- Start of Setup Excel ---------------------------*/
+
+	f, err := excelize.OpenFile("./public/report/KOMITE.xlsx")
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "Data dasar tidak ditemukan",
+		})
+		return
+	}
+
+	if Kat == 0 {
+		// If the structure of the body is wrong, return an HTTP error
+		// fmt.Println(err)
+	} else {
+		switch Kat {
+		// Kategori KSM
+		case 1:
+			Pendaftaran := &models.PendaftaranKSM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+
+		case 2:
+			Pendaftaran := &models.PendaftaranRBM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		// Kategori PAUD
+		case 3:
+			Pendaftaran := &models.PendaftaranPAUD{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		// Kategori KAFALA
+		case 4:
+			
+			Pendaftaran := &models.PendaftaranKAFALA{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori JSM
+		case 5:
+			
+			Pendaftaran := &models.PendaftaranJSM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori DZM
+		case 6:
+			
+			Pendaftaran := &models.PendaftaranDZM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori BSU
+		case 7:
+			
+			Pendaftaran := &models.PendaftaranBSU{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori Rescue
+		case 8:
+			
+			Pendaftaran := &models.PendaftaranRescue{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori BTM
+		case 9:
+			
+			Pendaftaran := &models.PendaftaranBTM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori BSM
+		case 10:
+			
+			Pendaftaran := &models.PendaftaranBSM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori BCM
+		case 11:
+			
+			Pendaftaran := &models.PendaftaranBCM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		// Kategori ASM
+		case 12:
+			
+			Pendaftaran := &models.PendaftaranASM{}
+			result.Decode(Pendaftaran)
+			level := CekBantuan(Pendaftaran.Kategoris.Jumlah_bantuan)
+			Sheet = "KOMITE ORIGINAL level " + level
+			nama = Pendaftaran.Muztahiks.Nama
+			kategori = Pendaftaran.Persetujuan.Kategori_program
+			f.SetCellValue(Sheet, "D7", Pendaftaran.Persetujuan.Tanggal_komite.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "I7", Pendaftaran.Persetujuan.Nomor_permohonan)
+			f.SetCellValue(Sheet, "D8", Pendaftaran.Kategoris.Sub_program)
+			f.SetCellValue(Sheet, "D9", Pendaftaran.Persetujuan.Kategori_program)
+			f.SetCellValue(Sheet, "D10", Pendaftaran.Tujuan_proposal)
+			f.SetCellValue(Sheet, "E11", Pendaftaran.Muztahiks.Kabupaten)
+			f.SetCellValue(Sheet, "I11", Pendaftaran.Muztahiks.Provinsi)
+			f.SetCellValue(Sheet, "F14", Pendaftaran.Kategoris.Jumlah_bantuan)
+			f.SetCellValue(Sheet, "I14", Pendaftaran.Persetujuan.Sumber_dana)
+			f.SetCellValue(Sheet, "G17", Terbilang(int64(Pendaftaran.Kategoris.Jumlah_bantuan)) + " Rupiah ")
+			f.SetCellValue(Sheet, "E18", Pendaftaran.Persetujuan.Jumlah_penerima_manfaat)
+			f.SetCellValue(Sheet, "D21", Pendaftaran.Kategoris.Asnaf)
+			f.SetCellValue(Sheet, "G21", CekAsnaf(Pendaftaran.Kategoris.Asnaf))
+			f.SetCellValue(Sheet, "D22", Pendaftaran.Persetujuan.Mitra_pelaksana)
+			f.SetCellValue(Sheet, "D23", Pendaftaran.Persetujuan.Tanggal_pelaksanaan.Format("02-Jan-2006"))
+			f.SetCellValue(Sheet, "D24", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellValue(Sheet, "E25", Pendaftaran.Persetujuan.Pic_nama)
+			f.SetCellFormula(Sheet, "F17", "=F14")
+			var numKadiv,numPengurus, numPengawas  [][]string
+			switch val, _ := strconv.Atoi(level); val {
+			case 1:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				kadiv :=  0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}
+				}
+			case 2:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+				}
+				
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						fmt.Println( numKadiv[kadiv][0])
+						fmt.Println( numKadiv[kadiv][2])
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 3:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+
+				kadiv, pengurus :=  0, 0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}
+				}
+			case 4:
+				numKadiv = [][]string{
+					[]string{
+						"B28",
+						"E29",
+						"G29",
+					},
+					[]string {
+						"B31",
+						"E32",
+						"G32",
+					},
+				}
+				numPengurus = [][]string{
+					[]string{
+						"B35",
+						"E36",
+						"G36",
+					},
+					[]string{
+						"B38",
+						"E39",
+						"G39",
+					},
+				}
+				numPengawas = [][]string{
+					[]string{
+						"B48",
+						"E49",
+						"G49",
+					},
+				}
+				kadiv, pengurus, pengawas :=  0, 0,0
+				for _, val :=  range Pendaftaran.Komite {
+					if val.User.Role == 4 {
+						fmt.Println(val)
+						f.SetCellValue(Sheet, numKadiv[kadiv][0], val.User.Name)
+						f.SetCellValue(Sheet, numKadiv[kadiv][2], val.Catatan)
+						kadiv++
+					}else if val.User.Role == 7 {
+						f.SetCellValue(Sheet, numPengurus[pengurus][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengurus[pengurus][2], val.Catatan)
+						pengurus++
+					}else if val.User.Role == 8 {
+						f.SetCellValue(Sheet, numPengawas[pengawas][0], val.User.Name)
+						f.SetCellValue(Sheet, numPengawas[pengawas][2], val.Catatan)
+						pengurus++
+					}
+					
+				}
+			}
+		
+		default:
+			{
+				c.JSON(500, gin.H{
+					"data": "Kategori tidak ditemukan",
+				})
+			}
+		}
+
+		url := strings.Replace("/public/report/Komite"+t.Format("02_Jan_2006 15_04_05")+"_"+nama+" "+kategori+".xlsx", " ", "_", -1)
+		err = f.SaveAs("." + url)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		c.JSON(200, gin.H{
+			"data": "report has been created",
+			"url":  url,
+		})
+		return
+	}
+}
+
+func CekBantuan(jumlah int32) string {
+	Sheet := ""
+	if jumlah <= 10000000 {
+		Sheet = "1"
+	} else if jumlah <= 50000000 {
+		Sheet = "2"
+	} else if jumlah <= 100000000 {
+		Sheet = "3"
+	} else {
+		Sheet = "4"
+	}
+
+	return Sheet
+}
+
+func CekAsnaf(asnaf string) string {
+	var returnAsnaf string
+	switch asnaf {
+	case "Fakir":
+		returnAsnaf = "Mereka yang hampir tidak memiliki apa-apa sehingga tidak mampu memenuhi kebutuhan pokok hidup."
+	case "Miskin":
+		returnAsnaf = "Mereka yang memiliki harta namun tidak cukup untuk memenuhi kebutuhan dasar untuk hidup."
+	case "Amil":
+		returnAsnaf = "Mereka yang mengumpulkan dan mendistribusikan zakat."
+	case "Mu'allaf":
+		returnAsnaf = "Mereka yang baru masuk Islam dan membutuhkan bantuan untuk menguatkan dalam tauhid dan syariah."
+	case "Hamba sahaya":
+		returnAsnaf = "Budak yang ingin memerdekakan dirinya."
+	case "Gharimin":
+		returnAsnaf = "Mereka yang berhutang untuk kebutuhan hidup dalam mempertahankan jiwa dan izzahnya."
+	case "Fisabilillah":
+		returnAsnaf = " Mereka yang berjuang di jalan Allah dalam bentuk kegiatan dakwah, jihad dan sebagainya."
+	case "Ibnus Sabil":
+		returnAsnaf = "Mereka yang kehabisan biaya di perjalanan dalam ketaatan kepada Allah."
+	}
+
+	return returnAsnaf
+}
+
+func Terbilang(nilai int64) string {
+	huruf := []string{
+		"", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas",
+	}
+	var stringNilai string
+
+	if nilai == 0 {
+		// stringNilai = "Kosong"
+	} else if nilai < 12 && nilai != 0 {
+		stringNilai = "" + huruf[nilai]
+	} else if nilai < 20 {
+		stringNilai = Terbilang(nilai-10) + " Belas "
+	} else if nilai < 100 {
+		stringNilai = Terbilang(nilai/10) + " Puluh " + Terbilang(nilai%10)
+	} else if nilai < 200 {
+		stringNilai = " Seratus " + Terbilang(nilai-100)
+	} else if nilai < 1000 {
+		stringNilai = Terbilang(nilai/100) + " Ratus " + Terbilang(nilai%100)
+	} else if nilai < 2000 {
+		stringNilai = " Seribu " + Terbilang(nilai-1000)
+	} else if nilai < 1000000 {
+		stringNilai = Terbilang(nilai/1000) + " Ribu " + Terbilang(nilai%1000)
+	} else if nilai < 1000000000 {
+		stringNilai = Terbilang(nilai/1000000) + " Juta " + Terbilang(nilai%1000000)
+	} else if nilai < 1000000000000 {
+		stringNilai = Terbilang(nilai/1000000000) + " Milyar " + Terbilang(nilai%1000000000)
+	} else if nilai < 100000000000000 {
+		stringNilai = Terbilang(nilai/1000000000000) + " Trilyun " + Terbilang(nilai%1000000000000)
+	} else if nilai <= 100000000000000 {
+		stringNilai = "Maaf Tidak Dapat di Prose Karena Jumlah nilai Terlalu Besar "
+	}
+	return stringNilai
+}
+

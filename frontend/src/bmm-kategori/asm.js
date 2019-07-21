@@ -22,7 +22,6 @@ import '@vaadin/vaadin-list-box/vaadin-list-box.js';
 import '@vaadin/vaadin-text-field/vaadin-text-field.js';
 import '@vaadin/vaadin-date-picker/vaadin-date-picker.js';
 import '@vaadin/vaadin-form-layout/vaadin-form-layout.js';
-import '@vaadin/vaadin-date-picker/vaadin-date-picker.js';
 import '@vaadin/vaadin-text-field/vaadin-number-field.js';
 
 
@@ -58,6 +57,7 @@ class Asm extends PolymerElement {
                     <vaadin-item value="Miskin">Miskin</vaadin-item>
                     <vaadin-item value="Amil">Amil</vaadin-item>
                     <vaadin-item value="Mu'allaf">Mu'allaf</vaadin-item>
+                    <vaadin-item value="Hamba Sahaya">Hamba Sahaya</vaadin-item>
                     <vaadin-item value="Gharimin">Gharimin</vaadin-item>
                     <vaadin-item value="Fisabilillah">Fisabilillah</vaadin-item>
                     <vaadin-item value="Ibnus Sabil">Ibnus Sabil</vaadin-item>
