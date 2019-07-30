@@ -126,7 +126,7 @@ class MuztahikProfile extends PolymerElement {
       </style>
         <!-- app-location binds to the app's URL -->
         <app-location route="{{route}}"></app-location>
-
+        
         <!-- this app-route manages the top-level routes -->
         <app-route
             route="{{route}}"
@@ -145,7 +145,7 @@ class MuztahikProfile extends PolymerElement {
           Content-Type="application/json"
           debounce-duration="300">
           <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
-
+          <global-variable key="error" value="{{ error }}"></global-variable>
       </iron-ajax>
       <div class="card">
         <div class="container">
@@ -284,6 +284,7 @@ class MuztahikProfile extends PolymerElement {
   }
 
   _handleMuztahikError(e){
+     this.error = e.detail.request.xhr.status
     this.set('route.path', '/panel/muztahik');
   }
 

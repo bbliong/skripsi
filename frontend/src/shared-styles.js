@@ -50,6 +50,27 @@ $_documentContainer.innerHTML = `<dom-module id="shared-styles">
         .card {
           margin : 20px px;
         }
+        paper-button {
+          width :100%; !important
+        }
+      }
+
+      paper-button.green {
+        background-color: var(--paper-green-500);
+        color: white;
+      }
+      
+      paper-button.green[active] {
+        background-color: var(--paper-red-500);
+      }
+
+      paper-button.blue {
+        background-color: var(--paper-blue-500);
+        color: white;
+      }
+      
+      paper-button.blue[active] {
+        background-color: var(--paper-blue-500);
       }
 
     </style>

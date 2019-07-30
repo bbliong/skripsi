@@ -129,7 +129,6 @@ class Paud extends PolymerElement {
     // Fungsi convert ke int 
     _changeStoI(f){
       var array = f.path.split(".");
-      console.log(array)
       if (array[2] == "jumlah_bantuan" ){
         f.base[array[2]] = parseInt(f.value)
       }
@@ -141,6 +140,11 @@ class Paud extends PolymerElement {
       var date = this.$.tanggal_proposal
       var that =this
       date.value = this.formatDate(new Date(f))
+      
+      if(date.value !== ""){
+        that.regObj.tanggalProposal = new Date(date.value).toISOString()
+    }
+    
       date.addEventListener("change", function(){
         if(date.value !== ""){
           that.regObj.tanggalProposal = new Date(date.value).toISOString()

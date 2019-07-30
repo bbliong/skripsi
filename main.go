@@ -52,6 +52,7 @@ func main() {
 
 			// Pendaftaran
 			api.GET("/pendaftaran", controller.GetAllPendaftaran)
+			api.GET("/ppd", controller.GetAllPendaftaran)
 			api.GET("/pendaftarancount", controller.GetAllPendaftaranCount)
 			api.GET("/pendaftaran/:kat/:id", controller.UpdatePendaftaranView)
 			api.POST("/pendaftaran", controller.CreatePendaftaran)
@@ -59,6 +60,8 @@ func main() {
 			api.PUT("/verifikator/:id", controller.UpdatePendaftaran)
 			api.PUT("/upd/:id", controller.UpdatePendaftaran)
 			api.PUT("/komite/:id", controller.UpdatePendaftaran)
+			api.PUT("/ppd/:id", controller.UpdatePendaftaran)
+			api.PUT("/pencairan/:id", controller.UpdatePendaftaran)
 			api.DELETE("/pendaftaran/:id", controller.DeletePendaftaran)
 
 			// User
@@ -75,6 +78,7 @@ func main() {
 			api.GET("/report/upd/:kat/:id", controller.UpdProposal)
 			api.GET("/report/verifikasi/:kat/:id", controller.VerifikasiProposal)
 			api.GET("/report/komite/:kat/:id", controller.KomiteProposal)
+			api.GET("/report/ppd/:kat/:id", controller.PpdProposal)
 		}
 
 	}

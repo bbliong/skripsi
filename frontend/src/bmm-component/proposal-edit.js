@@ -220,7 +220,7 @@ class ProposalEdit extends PolymerElement {
   _routePageChanged(page) {
     this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
     this.$.datass.headers['authorization'] = this.storedUser.access_token;
-    this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2"  
+    this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=3"  
     this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
     this.$.datass.generateRequest();
     // this.$.getData.generateRequest();
@@ -235,6 +235,7 @@ class ProposalEdit extends PolymerElement {
   }
 
   _errorManager(e){
+    this.error = e.detail.request.xhr.status
     console.log(e)
   }
   // end user manager
@@ -258,6 +259,7 @@ class ProposalEdit extends PolymerElement {
   }
 
   _handleProposalPostError(e){
+    this.error = e.detail.request.xhr.status
     this.set('route.path', '/panel/proposal');
   }
 

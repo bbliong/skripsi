@@ -53,7 +53,7 @@ func GetAllUser(c *gin.Context) {
 	filter := bson.M{}
 	if len(search) > 0 {
 		for key, val := range search {
-			if key == "role" || key == "role2" {
+			if key == "role" || key == "role2" || key == "role3" || key == "role4" {
 				i, err := strconv.Atoi(val[0])
 				if err != nil {
 					i = 0
@@ -230,7 +230,6 @@ func UpdateUser(c *gin.Context) {
 	_id, _ := primitive.ObjectIDFromHex(c.Param("id"))
 
 	err := json.NewDecoder(c.Request.Body).Decode(&User)
-
 	if err != nil {
 		fmt.Println(err)
 		// If the structure of the body is wrong, return an HTTP error
@@ -250,10 +249,12 @@ func UpdateUser(c *gin.Context) {
 
 	if User.Password == "" {
 		updateFilter := bson.D{
-			{"usernamea", User.Username},
+			{"username", User.Username},
 			{"nama", User.Name},
 			{"email", User.Email},
 			{"role", User.Role},
+			{"department", User.Department},
+			{"details_role", User.Details_role},
 		}
 
 		fmt.Println(updateFilter)

@@ -69,9 +69,11 @@ func SignIn(c *gin.Context) {
 	expirationTime := time.Now().Add(1 * time.Hour)
 	// menambhakan username dan claims
 	claims := &models.Claims{
-		ID:   account.ID,
-		Name: account.Name,
-		Role: account.Role,
+		ID:           account.ID,
+		Name:         account.Name,
+		Role:         account.Role,
+		Department:   account.Department,
+		Details_role: account.Details_role,
 		StandardClaims: jwt.StandardClaims{
 			// In JWT, the expiry time is expressed as unix milliseconds
 			ExpiresAt: expirationTime.Unix(),
@@ -89,10 +91,12 @@ func SignIn(c *gin.Context) {
 	}
 
 	result = gin.H{
-		"token": tokenString,
-		"id":    claims.ID,
-		"nama":  claims.Name,
-		"role":  claims.Role,
+		"token":      tokenString,
+		"id":         claims.ID,
+		"nama":       claims.Name,
+		"role":       claims.Role,
+		"department": claims.Department,
+		"details_role": claims.Details_role,
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -147,10 +151,12 @@ func Refresh(c *gin.Context) {
 	}
 
 	result = gin.H{
-		"token": tknStr,
-		"id":    claims.ID,
-		"nama":  claims.Name,
-		"role":  claims.Role,
+		"token":        tknStr,
+		"id":           claims.ID,
+		"nama":         claims.Name,
+		"role":         claims.Role,
+		"department":   claims.Department,
+		"details_role": claims.Details_role,
 	}
 
 	c.JSON(http.StatusOK, result)

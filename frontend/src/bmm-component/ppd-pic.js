@@ -38,7 +38,7 @@ import 'global-variable-migration/global-data.js';
 import 'global-variable-migration/global-variable.js';
 
 
-class KomiteManager extends PolymerElement {
+class PpdPic extends PolymerElement {
   static get template() {
     return html`
       <style include="shared-styles">
@@ -74,12 +74,12 @@ class KomiteManager extends PolymerElement {
           margin : 1px 20px
         }
 
-        vaadin-text-field, vaadin-number-field ,  vaadin-select,  vaadin-date-picker{
+        vaadin-text-field, vaadin-number-field ,  vaadin-select,  vaadin-date-picker, p, paper-button {
           width : 90%;
           margin : 2px 20px;
         }
 
-        @media all and (max-width: 700px){
+        @media all and (max-width: 900px){
           .card {
             display :table;
           }
@@ -94,6 +94,7 @@ class KomiteManager extends PolymerElement {
           .aside {
             flex-grow: 1;
             flex-basis: 0;
+            width : 50%;
           }
         }
 
@@ -132,6 +133,16 @@ class KomiteManager extends PolymerElement {
 
         tr:nth-child(even) {background-color: #f2f2f2;}
 
+        paper-button.blue, paper-button.green {
+            width : 46%;
+        }
+
+
+        @media all and (max-width: 600px) {
+          paper-button, paper-button.blue, paper-button.green {
+            width : 90%;
+          }
+        }
 
       </style>
        <!-- app-location binds to the app's URL -->
@@ -140,7 +151,7 @@ class KomiteManager extends PolymerElement {
       <!-- this app-route manages the top-level routes -->
       <app-route
           route="{{route}}"
-          pattern="/panel/proposal/komite-manager/:kat/:id"
+          pattern="/panel/proposal/ppd-pic/:kat/:id"
           data="{{routeData}}"
           tail="{{subroute}}"></app-route>
 
@@ -207,239 +218,195 @@ class KomiteManager extends PolymerElement {
                   </tr>
               </table>
             </section>
-            <paper-icon-button  on-click="cancel"  icon = "clear" style="top: -20px;right: 10px;position: absolute;">Delete</paper-icon-button>
+            <paper-icon-button  on-click="cancel_upd"  icon = "clear" style="top: -20px;right: 10px;position: absolute;">Delete</paper-icon-button>
           </div>
         </template>
       </vaadin-dialog>
         
       <vaadin-dialog aria-label="polymer templates" id="dialog_manager">
         <template>
-        <h4>Ingin mencetak Form Komite?</h4>
+        <h4>Ingin mencetak Form Ppd?</h4>
           <vaadin-button on-click="cetak"> Cetak</vaadin-button>
           <vaadin-button on-click="cancel"  theme="error primary"> Tidak</vaadin-button>
         </template>
       </vaadin-dialog>
 
-      <paper-button  raised class="indigo" on-click="cekUPD" >Lihat UPD</paper-button> 
+      <paper-button  raised class="indigo" on-click="cekUPD" style="wdith:100%" >Lihat UPD</paper-button> 
       <div class="card">
       <table border="2" id="main-table">
             <tbody>
                 <tr>
                   <th> Tanggal</th>
                   <td>
-                  <vaadin-date-picker placeholder="Pilih tanggal" id="tanggal_komite" value="[[regObj.persetujuan.tanggal_komite]]"  colspan="2"></vaadin-date-picker>
+                  <vaadin-date-picker placeholder="Pilih tanggal" id="tanggal_ppd" value="[[regObj.persetujuan.tanggal_ppd]]"  colspan="2"></vaadin-date-picker>
                   </td>
                   <th>Nomor</th>
                   <td>
-                      <vaadin-text-field label="" value="{{regObj.persetujuan.nomor_permohonan}}" style="width:75%"></vaadin-text-field>
+                      <vaadin-text-field label="" value="{{regObj.persetujuan.nomor_ppd}}" style="width:75%"></vaadin-text-field>
                   </td>
                 </tr>
+
                 <tr>
-                  <th> Bidang</th>
+                  <th> Jenis Pengeluaran</th>
                   <td colspan="3">
-                    <vaadin-select value="{{ regObj.kategoris.sub_program }}" label="sub-kategori" disabled>
+                    <vaadin-select  value="{{regObj.persetujuan.jenis_pengeluaran}}">
                       <template>
                         <vaadin-list-box>
-                        <dom-repeat items="{{subkategori}}">
-                          <template>
-                            <vaadin-item label="{{item.nama}}" value="{{item.kode}}">{{item.nama}}</vaadin-item>
-                          </template>
-                        </dom-repeat>
-                        </vaadin-list-box>
-                      </template>
-                    </vaadin-select>
-                  </td>
-                </tr>
-                <tr>
-                  <th> Nama Program</th>
-                  <td colspan="3">
-                      <vaadin-text-field label="" value="{{ regObj.persetujuan.kategori_program }}" disabled></vaadin-text-field>
-                  </td>
-                </tr>
-                <tr>
-                  <th> Tujuan Program</th>
-                  <td colspan="3">
-                      <vaadin-text-area label="" value="{{regObj.tujuan_proposal}}"></vaadin-text-area>
-                  </td>
-                </tr>
-                <tr>
-                  <th> Wilayah Penyaluran</th>
-                  <td >
-                      <vaadin-text-area label="" value="{{regObj.muztahiks.kabkot}}"></vaadin-text-area>
-                  </td>
-                  <th > Propinsi</th>
-                  <td >
-                      <vaadin-text-area label="" value="{{regObj.muztahiks.provinsi}}"></vaadin-text-area>
-                  </td>
-                </tr>
-                <tr>
-                  <th> Sifat Santunan</th>
-                  <td colspan="3">
-                    <vaadin-select  value="{{regObj.persetujuan.sifat_santunan}}">
-                      <template>
-                        <vaadin-list-box>
-                          <vaadin-item value="Santunan">Santunan</vaadin-item>
-                          <vaadin-item value="Pemberdayaann">Pemberdayaann</vaadin-item>
+                          <vaadin-item value="Realisasi Biaya">Realisasi Biaya</vaadin-item>
+                          <vaadin-item value="Uang Muka">Uang Muka</vaadin-item>
                           <vaadin-item value="Lainnya">Lainnya</vaadin-item>
                         </vaadin-list-box>
                       </template>
                     </vaadin-select>
                   </td>
                 </tr>
+
                 <tr>
-                  <th> Biaya Kegiatan</th>
-                  <td>
-                      <vaadin-number-field label="" value="{{ regObj.kategoris.jumlah_bantuan }}" style="width:50%;"></vaadin-number-field>
-                      <vaadin-button on-click="_checkKomiteTerpilih">Cek</vaadin-button>
-                  </td>
-                  <th>Sumber Dana</th>
-                  <td>
-                      <vaadin-text-field label="" value="{{ regObj.persetujuan.sumber_dana }}" style="width:75%"></vaadin-text-field>
-                  </td>
-                </tr>
-                <tr>
-                  <th> Jumlah Penerima Manfaat</th>
+                  <th> Anggaran Biaya</th>
                   <td colspan="3">
-                      <vaadin-text-field label="" value="{{regObj.persetujuan.jumlah_penerima_manfaat}}"></vaadin-text-field>
+                    <vaadin-select  value="{{regObj.persetujuan.anggaran_biaya}}">
+                      <template>
+                        <vaadin-list-box>
+                          <vaadin-item value="Dianggarkan">Dianggarkan</vaadin-item>
+                          <vaadin-item value="Tidak Dianggarkan">Tidak Dianggarkan</vaadin-item>
+                        </vaadin-list-box>
+                      </template>
+                    </vaadin-select>
                   </td>
                 </tr>
                 <tr>
-                  <th> Asnaf (Penerima Manfaat) </th>
-                  <td colspan="1">
-                      <vaadin-text-field label="" value="{{ regObj.kategoris.asnaf }}" disabled></vaadin-text-field>
-                  </td>
-                  <td colspan="2">
-                      <vaadin-text-area label="" value="{{ asnafDetail( regObj.kategoris.asnaf) }}" disabled></vaadin-text-area>
-                  </td>
-                </tr>
-                <tr>
-                  <th> Mitra Pelaksana</th>
+                  <th> Referensi</th>
                   <td colspan="3">
-                      <vaadin-text-field label=""value="{{ regObj.persetujuan.mitra_pelaksana }}"></vaadin-text-field>
+                      <vaadin-text-field label="" value="{{regObj.persetujuan.referensi}}"></vaadin-text-field>
                   </td>
                 </tr>
+                
                 <tr>
-                  <th> Jadwal Pelaksanaan</th>
+                  <th> Tanggal Kebutuhan</th>
                   <td >
                     <vaadin-date-picker placeholder="Pilih tanggal" id="tanggal_pelaksanaan" value="[[regObj.persetujuan.tanggal_pelaksanaan]]" ></vaadin-date-picker>
                   </td>
-                  <th> Diajukan Oleh</th>
+                  <th> Sumber Dana</th>
                   <td >
-                      <vaadin-text-field label="" value="{{ regObj.persetujuan.pic_nama }}" disabled></vaadin-text-field>
+                      <vaadin-text-field label="" value="{{ regObj.persetujuan.sumber_dana }}" disabled ></vaadin-text-field>
                   </td>
                 </tr>
+
+                <tr>
+                  <th> Bank Tertuju / No rekening</th>
+                  <td  colspan="3">
+                      <vaadin-text-area label="" value="{{ regObj.persetujuan.bank_tertuju }}" ></vaadin-text-area>
+                  </td>
+                </tr>
+
+                <tr>
+                  <th> Keterangan</th>
+                  <td colspan="3">
+                  <p>{{regObj.judul_proposal}} </p>
+                  </td>
+                </tr>
+
+                <tr>
+                <tr>
+                  <th> Taksiran Jumlah Biaya</th>
+                  <td colspan="3">
+                  <p>{{_rupiah(regObj.kategoris.jumlah_bantuan)}} </p>
+                  <p>{{_terbilang(regObj.kategoris.jumlah_bantuan)}} Rupiah</p>
+                  </td>
+                </tr>
+                <tr>
+                  <th> Bidang</th>
+                  <td colspan="3">
+                  <p>{{regObj.persetujuan.kategori_program}} - {{_cekSub(regObj.kategoris.sub_program)}} </p>
+                  </td>
+                </tr>
+                  <th> Asnaf (Penerima Manfaat) </th>
+                  <td colspan="3">
+                      <p>{{ regObj.kategoris.asnaf }}</p>
+                        <p>{{ asnafDetail( regObj.kategoris.asnaf) }}</p>
+                  </td>
+                </tr>
+
             </tbody>
         </table>
       </div>
 
-      <!-- Kepala divisi -->
-      <dom-repeat items="{{Kadiv}}" id="Kadiv">
-          <template>
+       <!-- Kepala divisi -->
           <div class="card">
-              <h3> Kepala Divisi {{displayIndex(index)}}</h3>
+              <h3> Keuangan {{displayIndex(index)}}</h3>
                 <table border="2" id="main-table">
                     <tbody>
                         <tr>
                           <th> 
-                          <p style="margin-left : 20px;">Status  :  {{displayStatus(item.status)}}</p>
-                          <vaadin-select value="{{ item.user }}" label="Kepala Divisi">
-                              <template>
-                                <vaadin-list-box>
-                                <dom-repeat items="{{ cekUser(User, 4)}}">
-                                  <template>
-                                    <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
-                                  </template>
-                                </dom-repeat>
-                                </vaadin-list-box>
-                              </template>
+                            <p>Staff Keuangan</p> 
+                            <vaadin-select value="{{ StaffKeu.user }}">
+                                <template>
+                                  <vaadin-list-box>
+                                  <dom-repeat items="{{ cekUser(User, 2, 2)}}">
+                                    <template>
+                                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                    </template>
+                                  </dom-repeat>
+                                  </vaadin-list-box>
+                                </template>
                             </vaadin-select>
-                            <br>
-                            
+                            <p> Tanggal TTD : {{StaffKeu.tanggal}} </p>
                           </th>
-                          <td>
-                          <p style="margin-left : 20px;">Catatan</p>
-                              <vaadin-text-area  value="{{item.catatan}}" disabled></vaadin-text-area>
-                          </td>
+                          <th> 
+                            <p>Manager Keuangan</p> 
+                            <vaadin-select value="{{ ManagerKeu.user }}">
+                                <template>
+                                  <vaadin-list-box>
+                                  <dom-repeat items="{{ cekUser(User, 3, 2)}}">
+                                    <template>
+                                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                    </template>
+                                  </dom-repeat>
+                                  </vaadin-list-box>
+                                </template>
+                            </vaadin-select>
+                            <p> Tanggal TTD : {{ManagerKeu.tanggal}} </p>
+                          </th>
                         </tr>
-                      </tbody>
-                </table>
-              </div>
-          </template>
-      </dom-repeat>
-        
-      <!-- Pengawas -->
-      <dom-repeat items="{{Pengurus}}" id="Pengurus">
-          <template>
-          <div class="card">
-              <h3> Pengurus {{displayIndex(index)}}</h3>
-                <table border="2" id="main-table">
-                    <tbody>
                         <tr>
                           <th> 
-                          <p style="margin-left : 20px;">Status  :  Belum dilihat</p>
-                          <vaadin-select value="{{ item.user}}" label="Kepala Divisi">
-                              <template>
-                                <vaadin-list-box>
-                                <dom-repeat items="{{cekUser(User, 7)}}">
-                                  <template>
-                                    <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
-                                  </template>
-                                </dom-repeat>
-                                </vaadin-list-box>
-                              </template>
+                            <p>Kadiv Keuangan</p> 
+                            <vaadin-select value="{{ KadivKeu.user }}">
+                                <template>
+                                  <vaadin-list-box>
+                                  <dom-repeat items="{{ cekUser(User, 4, 2)}}">
+                                    <template>
+                                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                    </template>
+                                  </dom-repeat>
+                                  </vaadin-list-box>
+                                </template>
                             </vaadin-select>
-                            <br>
-                            
+                            <p> Tanggal TTD : {{KadivKeu.tanggal}} </p>
                           </th>
-                          <td>
-                          <p style="margin-left : 20px;">Catatan</p>
-                              <vaadin-text-area  value="{{item.catatan}}" disabled></vaadin-text-area>
-                          </td>
-                        </tr>
-                      </tbody>
-                </table>
-              </div>
-          </template>
-      </dom-repeat>
-
-       <!-- Pengurus -->
-       <dom-repeat items="{{Pengawas}}" id="Pengawas">
-          <template>
-          <div class="card">
-              <h3> Pengawas {{displayIndex(index)}}</h3>
-                <table border="2" id="main-table">
-                    <tbody>
-                        <tr>
                           <th> 
-                          <p style="margin-left : 20px;">Status  :  Belum dilihat</p>
-                          <vaadin-select value="{{ item.user }}" label="Kepala Divisi">
-                              <template>
-                                <vaadin-list-box>
-                                <dom-repeat items="{{cekUser(User, 8)}}">
-                                  <template>
-                                    <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
-                                  </template>
-                                </dom-repeat>
-                                </vaadin-list-box>
-                              </template>
+                            <p>Direktur Eksekutif</p> 
+                            <vaadin-select value="{{ DirekturEksekutif.user }}">
+                                <template>
+                                  <vaadin-list-box>
+                                  <dom-repeat items="{{ cekUser(User, 9)}}">
+                                    <template>
+                                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                    </template>
+                                  </dom-repeat>
+                                  </vaadin-list-box>
+                                </template>
                             </vaadin-select>
-                            <br>
-                            
+                            <p> Tanggal TTD : {{DirekturEksekutif.tanggal}} </p>
                           </th>
-                          <td>
-                          <p style="margin-left : 20px;">Catatan</p>
-                              <vaadin-text-area  value="{{item.catatan}}" disabled></vaadin-text-area>
-                          </td>
                         </tr>
                       </tbody>
                 </table>
-              </div>
-          </template>
-      </dom-repeat>
+          </div>
 
-      <paper-button  raised class="indigo" on-click="printData" id="cetak_upd">Cetak Form Komite</paper-button>
+      <paper-button  raised class="green" on-click="printData" id="cetak_upd" >Cetak Form Ppd</paper-button>
 
-      <paper-button  raised class="indigo" on-click="sendData" id="simpan_dan_cetak_upd">Simpan Form Komite </paper-button>
+      <paper-button  raised class="blue" on-click="sendData" id="simpan_dan_cetak_upd">Simpan Form Ppd </paper-button>
 
       <iron-ajax 
           auto
@@ -481,8 +448,8 @@ class KomiteManager extends PolymerElement {
           headers='{"Access-Control-Allow-Origin": "*" }'
           handle-as="json"
           method="PUT"
-          on-response="_handleKomitePost"
-            on-error="_handleKomitePostError"
+          on-response="_handlePpdPost"
+            on-error="_handlePpdPostError"
           Content-Type="application/json"
           debounce-duration="300">
       </iron-ajax>
@@ -493,8 +460,8 @@ class KomiteManager extends PolymerElement {
           method="GET"
           handle-as="json"
           method="GET"
-          on-response="_handleKomitePrint"
-          on-error="_handleKomitePrintError"
+          on-response="_handlePpdPrint"
+          on-error="_handlePpdPrintError"
           Content-Type="application/json"
           debounce-duration="300">
       </iron-ajax>
@@ -512,8 +479,6 @@ class KomiteManager extends PolymerElement {
             ]
           }
         },
-        tempPengawas : String,
-        tempPengurus : String,
         Upd : {
         type : Object,
         notify :  true,
@@ -533,37 +498,50 @@ class KomiteManager extends PolymerElement {
           value : function(){
             return {
                 "persetujuan" : {
-                  "tanggal_komite" : this.formatDate(new Date()),
+                  "tanggal_ppd" : this.formatDate(new Date()),
                   "tanggal_pelaksanaan" : this.formatDate(new Date()),
                 }
             }
           }
         },
-        Kadiv : {
-          type : Array,
+        StaffKeu : {
+          type : Object,
           notify : true,
           value : function(){
-            return [
-
-            ]
+            return  {
+                  "user" : "",
+                  "tanggal" : "",
+                }
           }
         },
-        Pengawas : {
-          type : Array,
+        ManagerKeu : {
+          type : Object,
           notify : true,
           value : function(){
-            return [
-
-            ]
+            return  {
+                  "user" : "",
+                  "tanggal" : "",
+                }
           }
         },
-        Pengurus : {
-          type : Array,
+        KadivKeu : {
+          type : Object,
           notify : true,
           value : function(){
-            return [
-
-            ]
+            return  {
+                  "user" : "",
+                  "tanggal" : "",
+                }
+          }
+        },
+        DirekturEksekutif : {
+          type : Object,
+          notify : true,
+          value : function(){
+            return  {
+                  "user" : "",
+                  "tanggal" : "",
+                }
           }
         },
         User : {
@@ -575,15 +553,43 @@ class KomiteManager extends PolymerElement {
             ]
           }
         },
+        activated: {
+          type: Boolean,
+          value:false,
+          observer: '_activatedChanged'
+        },
     }
   }
+
+  _activatedChanged(newValue, oldValue){
+    if(newValue) {
+        // Define data dasar
+        this.StaffKeu = {
+          "user" : "",
+          "tanggal" : "",
+        }
+        this.ManagerKeu = {
+          "user" : "",
+          "tanggal" : "",
+        }
+        this.KadivKeu = {
+          "user" : "",
+          "tanggal" : "",
+        }
+        this.DirekturEksekutif = {
+          "user" : "",
+          "tanggal" : "",
+        }
+    }
+  }
+
 
     static get observers() {
       return [
         '_routePageChanged(routeData.*)',
-        //'_checkKomiteTerpilih(regObj.kategoris.jumlah_bantuan)',
+        //'_checkPpdTerpilih(regObj.kategoris.jumlah_bantuan)',
         '_changeDatePelaksanaan(regObj.persetujuan.tanggal_pelaksanaan)',
-        '_changeDateKomite(regObj.persetujuan.tanggal_komite)',
+        '_changeDatePpd(regObj.persetujuan.tanggal_ppd)',
         //'_changeStoI(regObj.kategoris.*)',
       ];
     } 
@@ -592,169 +598,72 @@ class KomiteManager extends PolymerElement {
       this.$.dialog_upd.opened = true
     }
 
-    // Fungsi untuk loop jumlah dari komite 
-    _changeKomite(val){
-     if(typeof val != "undefined"){
-          if(val <= 10000000){
-            this.Kadiv = [
-              {
-                "user" : "",
-                "status" : 0,
-                "catatan" : "",
-                
-              },
-              {
-                "user" : "",
-                "status" : 0,
-                "catatan" : "",
-                
-              }
-            ]
-            this.Pengurus = []
-            this.Pengawas = []
-        }else  if(val <= 50000000){
-          this.Kadiv = [
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            },
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            }
-          ]
-          this.Pengurus = [
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            }
-          ]
-          this.Pengawas = []
-        }else   if(val <= 100000000){
-          this.Kadiv = [
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            },
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            }
-          ]
-          this.Pengurus = [
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            },
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            }
-          ]
-          this.Pengawas = [ ]
-        }else {
-          this.Kadiv = [
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            },
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            }
-          ]
-          this.Pengurus = [
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            },
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              
-            }
-          ]
-          this.Pengawas = [
-            {
-              "user" : "",
-              "status" : 0,
-              "catatan" : "",
-              "role" : 8
-            }
-          ]
-        }
+    _checkPpdTerpilih(){
+     
+      if ( typeof this.regObj.ppd !== "undefined" ){
+          if(this.regObj.ppd.length > 0){
 
-        this.shadowRoot.querySelector("#Kadiv").render()
-        this.shadowRoot.querySelector("#Pengurus").render()
-        this.shadowRoot.querySelector("#Pengawas").render()
-     }
-    }
-
-    _checkKomiteTerpilih(){
-      this._changeKomite(this.regObj.kategoris.jumlah_bantuan)
-      if ( typeof this.regObj.komite !== "undefined" ){
-          if(this.regObj.komite.length > 0){
-            
-            
-            // Filter kadiv yang nilainya 4 dan di balikan berupa nilai object ke kadiv
-            var cloneKadiv = this.Kadiv.slice(0);
-            var kadivData =this.regObj.komite.filter(x => x.user.role == 4)
-            for (var i = 0; i < kadivData.length ; i++){
-              cloneKadiv[i] = {
-                  "user" : kadivData[i].user.Id,
-                  "catatan" :  kadivData[i].catatan,
-                  "status" :   kadivData[i].status,
+              // Convert data Staff
+              var staffData =this.regObj.ppd.filter(x => x.user.role == 2)
+             
+              if(staffData.length > 0){
+                var tanggal =""
+               
+                if(this.formatDate(new Date(staffData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(staffData[0].tanggal)) !== "1-1-1" ){
+                  tanggal = this.formatDate(new Date(staffData[0].tanggal))
                 }
-            }
-            this.Kadiv = cloneKadiv
 
-            // Filter pengurus yang nilainya 4 dan di balikan berupa nilai object ke pengurus
-            var clonePengurus = this.Pengurus.slice(0);
-           
-            var pengurusData =this.regObj.komite.filter(x => x.user.role == 7)
-            for (var i = 0; i < pengurusData.length ; i++){
-              clonePengurus[i] = {
-                  "user" : pengurusData[i].user.Id,
-                  "catatan" :  pengurusData[i].catatan,
-                  "status" :   pengurusData[i].status,
+                this.StaffKeu = {
+                  "user" : staffData[0].user.Id,
+                  "tanggal" : tanggal
                 }
               }
-            }
-            this.Pengurus = clonePengurus
-            console.log(   this.Pengurus)
-              // Filter pengurus yang nilainya 4 dan di balikan berupa nilai object ke pengurus
-              var clonePengawas = this.Pengawas.slice(0);
-              var pengawasData =this.regObj.komite.filter(x => x.user.role == 8)
-              for (var i = 0; i < pengawasData.length ; i++){
-                clonePengawas[i] = {
-                    "user" : pengawasData[i].user.Id,
-                    "catatan" :  pengawasData[i].catatan,
-                    "status" :   pengawasData[i].status,
+
+              // Convert data manager
+              var managerData =this.regObj.ppd.filter(x => x.user.role == 3)
+             
+              if(managerData.length > 0){
+                var tanggal =""
+                if(this.formatDate(new Date(managerData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(managerData[0].tanggal)) !== "1-1-1" ){
+                  tanggal = this.formatDate(new Date(managerData[0].tanggal))
+                }
+
+                this.ManagerKeu = {
+                  "user" : managerData[0].user.Id,
+                  "tanggal" : tanggal
+                }
+              }
+
+                // Convert data kadiv
+                var kadivData =this.regObj.ppd.filter(x => x.user.role == 4)
+             
+                if(kadivData.length > 0){
+                  var tanggal =""
+                  if(this.formatDate(new Date(kadivData[0].tanggal)) !== "2001-1-1"  && this.formatDate(new Date(kadivData[0].tanggal)) !== "1-1-1"){
+                    tanggal = this.formatDate(new Date(kadivData[0].tanggal))
                   }
-              }
+  
+                  this.KadivKeu = {
+                    "user" : kadivData[0].user.Id,
+                    "tanggal" : tanggal
+                  }
+                }
+
+                  // Convert data Direktur
+                var DirekturData =this.regObj.ppd.filter(x => x.user.role == 9)
               
-              this.Pengawas = clonePengawas
+                if(DirekturData.length > 0){
+                  var tanggal =""
+                  if(this.formatDate(new Date(DirekturData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(DirekturData[0].tanggal)) !== "1-1-1" ){
+                    tanggal = this.formatDate(new Date(DirekturData[0].tanggal))
+                  }
+
+                  this.DirekturEksekutif = {
+                    "user" : DirekturData[0].user.Id,
+                    "tanggal" : tanggal
+                  }
+                }
+          }
       }  
   }
 
@@ -789,10 +698,14 @@ class KomiteManager extends PolymerElement {
 
     _handleProposal(e){
       this.regObj = e.detail.response.Data
-      this._checkKomiteTerpilih()
+      if(this.regObj.persetujuan.disposisi_pic_id !== this.storedUser.id){
+        this.set('route.path', '/panel/proposal');
+      }
+      this._checkPpdTerpilih()
     }
     
     _handleProposalError(e){
+      this.error = e.detail.request.xhr.status
       this.set('route.path', '/panel/proposal');
     }
 
@@ -802,7 +715,7 @@ class KomiteManager extends PolymerElement {
       this.$.datass.url= ""
       this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
       this.$.datass.headers['authorization'] = this.storedUser.access_token;
-      this.$.kadiv.url= MyAppGlobals.apiPath + "/api/users?role=4&role2=7"  
+      this.$.kadiv.url= MyAppGlobals.apiPath + "/api/users?role=2&role2=3&role3=4&role4=9"  
       this.$.kadiv.headers['authorization'] = this.storedUser.access_token;
     }
 
@@ -818,8 +731,7 @@ class KomiteManager extends PolymerElement {
 
     }
 
-    // Fungsi handle manager
-      // Handle Data user
+    // Fungsi handle kadiv
     _handleKadiv(e){
       var response = e.detail.response;
       this.User = response.data
@@ -831,7 +743,7 @@ class KomiteManager extends PolymerElement {
 
     /***** Cancel dialog ******/
   
-    cancel(){
+    cancel_upd(){
       this.shadowRoot.querySelector('#dialog_upd').opened =  false
     }
 
@@ -841,12 +753,13 @@ class KomiteManager extends PolymerElement {
       this.set('route.path', '/panel/proposal');
     }
 
-    /*****  Handle komite posts*******/
-    _handleKomitePost(e){
+    /*****  Handle ppd posts*******/
+    _handlePpdPost(e){
       this.shadowRoot.querySelector('#dialog_manager').opened =  true
     }
 
-    _handleKomitePostError(e){
+    _handlePpdPostError(e){
+      this.error = e.detail.request.xhr.status
       this.set('route.path', '/panel/proposal');
     }
 
@@ -866,14 +779,14 @@ class KomiteManager extends PolymerElement {
       }
     }
 
-    _changeDateKomite(f){
+    _changeDatePpd(f){
       if (f !== "" && typeof f !== "undefined" ){
-        var date = this.$.tanggal_komite
+        var date = this.$.tanggal_ppd
         var that =this
         date.value = this.formatDate(new Date(f))
         date.addEventListener("change", function(){
           if(date.value !== ""){
-            that.regObj.persetujuan.tanggal_komite = new Date(date.value).toISOString()
+            that.regObj.persetujuan.tanggal_ppd = new Date(date.value).toISOString()
           }
         })
       }
@@ -887,55 +800,44 @@ class KomiteManager extends PolymerElement {
     }
 
     sendData(){
-      this.Kadiv = this.convertData(this.Kadiv)
-      this.Pengawas = this.convertData(this.Pengawas)
-      this.Pengurus = this.convertData(this.Pengurus)
-    
-     this.regObj.komite = [...this.Kadiv, ...this.Pengawas , ...this.Pengurus]
-      console.log(this.regObj)
+     
+      this.StaffKeu = this.convertData(this.StaffKeu)
+      this.ManagerKeu = this.convertData(this.ManagerKeu)
+      this.KadivKeu = this.convertData(this.KadivKeu)
+      this.DirekturEksekutif = this.convertData(this.DirekturEksekutif)
+      this.regObj.ppd = [this.StaffKeu, this.ManagerKeu, this.KadivKeu, this.DirekturEksekutif]
       this.regObj.kategoris.jumlah_bantuan = parseInt(  this.regObj.kategoris.jumlah_bantuan)
-      this.$.postData.url= MyAppGlobals.apiPath + "/api/komite/" + this.routeData.id
+      this.$.postData.url= MyAppGlobals.apiPath + "/api/ppd/" + this.routeData.id
       this.$.postData.headers['authorization'] = this.storedUser.access_token;
       this.$.postData.body  = this.regObj
       this.$.postData.generateRequest();
     }
 
     convertData(data){
-
-      var that = this 
-      var i;
-      for (i = data.length - 1; i >= 0; i -= 1) {
-        var temp =  that.User.filter(u =>  u.Id == data[i].user)
-        if (temp.length !== 0){
-            data[i].user = temp[0]
-        }else {
-          data.splice(i, 1);
-        }    
-      }
+        data.user =  this.User.filter(u =>  u.Id == data.user)[0]
+        if(data.tanggal !== "" && data.tanggal !== "undefined") {
+          data.tanggal = new Date(data.tanggal).toISOString()
+        }else{
+          delete data.tanggal
+        }
       return data
     }
 
-    displayStatus(data){
-      switch(data) {
-         case 0 :
-           return "Belum dilihat"
-          case 1 : 
-           return "Disetujui"
-          case 2 :
-            return "Tidak disetujui"
-          default :
-            return "Belum dilihat"
-      }
-    }
+  
 
-    cekUser(user, role){
-      return this.User.filter(u => u.role == role)
+    cekUser(user, role, department = 0){
+      return user.filter(function(e){
+        if (department !== 0){
+          return e.role == role  && e.department == department
+        }
+        return  e.role == role
+      })
     }    
 
 
     /****** Fungsi untuk print  ******/
     printData(){
-      this.$.printData.url= MyAppGlobals.apiPath + "/api/report/komite/"+ this.routeData.kat  + "/" + this.routeData.id
+      this.$.printData.url= MyAppGlobals.apiPath + "/api/report/ppd/"+ this.routeData.kat  + "/" + this.routeData.id
       this.$.printData.headers['authorization'] = this.storedUser.access_token;
       this.$.printData.generateRequest();
     }
@@ -946,19 +848,70 @@ class KomiteManager extends PolymerElement {
     }
 
     
-    _handleKomitePrint(e){
+    _handlePpdPrint(e){
       if(typeof e.detail.response.url !== "undefined" ){
          document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
           this.set('route.path', '/panel/proposal');
       }
    }
 
-   _handleKomitePrintError(e){
+   _handlePpdPrintError(e){
+    this.error = e.detail.request.xhr.status
       console.log(e)
    }
     /****** Fungsi untuk print  ******/
 
+  _cekSub(e){
+    if(typeof this.subkategori !== "undefined"){
+       return   this.subkategori.filter(x => x.kode == e)[0].nama
+    }
+  }
+
+  _rupiah(nilai){
+    if(typeof nilai == "undefined"){
+      nilai = 0
+    }
+      var	reverse = nilai.toString().split('').reverse().join('');
+      var ribuan 	= reverse.match(/\d{1,3}/g);
+      ribuan	= ribuan.join('.').split('').reverse().join('')
+      return "Rp." + ribuan
+  }
+
+  _terbilang(nilai){
+    var huruf = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"]
+    var stringNilai 
+    
+    if(typeof nilai == "undefined"){ 
+        nilai = 0
+    }
+    if (nilai== 0 ) {
+      stringNilai = ""
+    } else if( nilai < 12 && nilai != 0 ){
+      stringNilai = "" + huruf[nilai]
+    } else if (nilai < 20 ){
+      stringNilai = this._terbilang(nilai-10) + " Belas "
+    } else if (nilai < 100 ){
+      stringNilai = this._terbilang(nilai/10) + " Puluh " + this._terbilang(nilai%10)
+    } else if (nilai < 200) {
+      stringNilai = " Seratus " + this._terbilang(nilai-100)
+    } else if( nilai < 1000 ){
+      stringNilai = this._terbilang(nilai/100) + " Ratus " + this._terbilang(nilai%100)
+    } else if( nilai < 2000) {
+      stringNilai = " Seribu " + this._terbilang(nilai-1000)
+    } else if (nilai < 1000000 ){
+      stringNilai = this._terbilang(nilai/1000) + " Ribu " + this._terbilang(nilai%1000)
+    } else if (nilai < 1000000000) {
+      stringNilai = this._terbilang(nilai/1000000) + " Juta " + this._terbilang(nilai%1000000)
+    } else if (nilai < 1000000000000 ){
+      stringNilai = this._terbilang(nilai/1000000000) + " Milyar " + this._terbilang(nilai%1000000000)
+    } else if (nilai < 100000000000000) {
+      stringNilai = this._terbilang(nilai/1000000000000) + " Trilyun " + this._terbilang(nilai%1000000000000)
+    } else if( nilai <= 100000000000000) {
+      stringNilai = "Maaf Tidak Dapat di Prose Karena Jumlah nilai Terlalu Besar "
+    }
+    return stringNilai
+  }
 }
 
 
-window.customElements.define('bmm-komite-manager', KomiteManager);
+window.customElements.define('bmm-ppd-pic', PpdPic);

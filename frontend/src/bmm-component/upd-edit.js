@@ -398,7 +398,7 @@ class UpdEdit extends PolymerElement {
       }
 
       // Handle cek apakah kadiv sudah menentukan stuju atau tidak
-      if(this.storedUser.role == 4){
+      if(this.storedUser.role == 9){
         if(typeof this.regObj.persetujuan.keterangan_kadiv == "undefined"){
             this.regObj.persetujuan.keterangan_kadiv =""
         }
@@ -408,6 +408,7 @@ class UpdEdit extends PolymerElement {
     }
   
     _handleProposalError(e){
+      this.error = e.detail.request.xhr.status
       this.set('route.path', '/panel/proposal');
     }
 
@@ -441,6 +442,7 @@ class UpdEdit extends PolymerElement {
     }
 
     _handleProposalPostError(e){
+      this.error = e.detail.request.xhr.status
       this.set('route.path', '/panel/proposal');
     }
 
@@ -478,6 +480,7 @@ class UpdEdit extends PolymerElement {
       this.$.postData.url= MyAppGlobals.apiPath + "/api/upd/" + this.routeData.id
       this.$.postData.headers['authorization'] = this.storedUser.access_token;
       this.$.postData.body  = this.regObj
+      console.log(this.regObj)
       this.$.postData.generateRequest();
     }
 

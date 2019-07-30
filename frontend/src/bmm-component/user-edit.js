@@ -88,6 +88,16 @@ class UserEdit extends PolymerElement {
                     <vaadin-item value="6">Keuangan</vaadin-item>
                     <vaadin-item value="7">Pengurus</vaadin-item>
                     <vaadin-item value="8">Pengawas</vaadin-item>
+                    <vaadin-item value="9">Direktur Eksekutif</vaadin-item>
+                  </vaadin-list-box>
+                </template>
+              </vaadin-select>
+              <vaadin-select label="Department" value="{{regObj.department}}">
+                <template>
+                  <vaadin-list-box>
+                    <vaadin-item value="">Tidak ada</vaadin-item>
+                    <vaadin-item value="1">Penyaluran</vaadin-item>
+                    <vaadin-item value="2">Keuangan</vaadin-item>
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
@@ -169,14 +179,20 @@ class UserEdit extends PolymerElement {
 
   _handleUser(e){
     var temp = e.detail.response.data
-    if(typeof this.regObj.role != "undefined"){
+    console.log(temp)
+    if(typeof temp.role != "undefined" ){
       temp.role = temp.role.toString();
       temp.password = ""
     }
+    if(typeof temp.department != "undefined" ){
+      temp.department = temp.department.toString();
+    }
+    
     this.regObj = temp
   }
 
   _handleUserError(e){
+    this.error = e.detail.request.xhr.status
     this.set('route.path', '/panel/user');
   }
 
@@ -187,13 +203,15 @@ class UserEdit extends PolymerElement {
   }
 
   _handleUserPostError(e){
-    console.log(e)
+    this.error = e.detail.request.xhr.status
     this.set('route.path', '/panel/user');
   }
 
   sendData(){
     var jabatan = ""
     this.regObj.role = parseInt(this.regObj.role)
+    this.regObj.department = parseInt(this.regObj.department)
+
     switch(this.regObj.role){
       case 1 : 
         jabatan = "Admin"
@@ -214,17 +232,33 @@ class UserEdit extends PolymerElement {
         jabatan = "Keuangan"
       break;
       case 7 : 
-        jabatan = "Pengawas"
+      jabatan = "Pengurus"
+      break;
+    case 8 : 
+      jabatan = "Pengawas"
+      break;
+      case 9 : 
+      jabatan = "Direktur Eksekutif"
       break;
       default : {
         jabatan = ""
+      }
+    }
+
+    switch(this.regObj.department){
+      case 1 : 
+        jabatan += " DPP"
+      case 2 : 
+        jabatan += " Keu"
+      break;
+      default : {
+
       }
     }
     this.regObj.details_role = jabatan
     this.$.postData.url= MyAppGlobals.apiPath + "/api/user/"  + this.regObj.Id
     this.$.postData.headers['authorization'] = this.storedUser.access_token;
     this.$.postData.body  = this.regObj
-    console.log(this.regObj)
     this.$.postData.generateRequest();
   }
 

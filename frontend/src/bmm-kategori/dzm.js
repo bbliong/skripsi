@@ -142,6 +142,11 @@ class Dzm extends PolymerElement {
         var date = this.$.tanggal_proposal
         var that =this
         date.value = this.formatDate(new Date(f))
+        
+        if(date.value !== ""){
+          that.regObj.tanggalProposal = new Date(date.value).toISOString()
+        }
+        
         date.addEventListener("change", function(){
           if(date.value !== ""){
 

@@ -44,6 +44,7 @@ type Persetujuan struct {
 	Disposisi_pic    string             `json:"disposisi_pic,omitempty" bson:"disposisi_pic,omitempty"`
 	Disposisi_pic_id primitive.ObjectID `json:"disposisi_pic_id,omitempty" bson:"disposisi_pic_id,omitempty"`
 	Manager          primitive.ObjectID `json:"manager_id,omitempty" bson:"manager_id,omitempty"`
+	Kadiv            primitive.ObjectID `json:"kadiv_id,omitempty" bson:"kadiv_id,omitempty"`
 
 	Perihal           string     `json:"perihal,omitempty" bson:"perihal,omitempty"`
 	Tanggal_disposisi *time.Time `json:"tanggal_disposisi,omitempty" bson:"tanggal_disposisi ,omitempty"`
@@ -81,13 +82,22 @@ type Persetujuan struct {
 	Tanggal_persetujuan        *time.Time `json:"tanggal_persetujuan,omitempty" bson:"tanggal_persetujuan,omitempty"`
 	Kategori_program           string     `json:"kategori_program,omitempty" bson:"kategori_program,omitempty"`
 
-	Ppd_pic           *time.Time `json:"ppd_pic,omitempty" bson:"ppd_pic,omitempty"`
-	Ppd_manager       *time.Time `json:"ppd_manager,omitempty" bson:"ppd_manager,omitempty"`
-	Ppd_kadiv         *time.Time `json:"ppd_kadiv,omitempty" bson:"ppd_kadiv,omitempty"`
-	Ppd_keuangan      *time.Time `json:"ppd_keuangan,omitempty" bson:"ppd_keuangan,omitempty"`
+	Ppd_pic      *time.Time `json:"ppd_pic,omitempty" bson:"ppd_pic,omitempty"`
+	Ppd_manager  *time.Time `json:"ppd_manager,omitempty" bson:"ppd_manager,omitempty"`
+	Ppd_kadiv    *time.Time `json:"ppd_kadiv,omitempty" bson:"ppd_kadiv,omitempty"`
+	Ppd_keuangan *time.Time `json:"ppd_keuangan,omitempty" bson:"ppd_keuangan,omitempty"`
+
 	Jumlah_pencairan  int32      `json:"jumlah_pencairan,omitempty" bson:"jumlah_pencairan,omitempty"`
 	Tanggal_pencairan *time.Time `json:"tanggal_pencairan,omitempty" bson:"tanggal_pencairan,omitempty"`
 	Keterangan        string     `json:"keterangan,omitempty" bson:"keterangan,omitempty"`
+
+	// Tambahan PPD
+	Jenis_pengeluaran string     `json:"jenis_pengeluaran,omitempty" bson:"jenis_pengeluaran,omitempty"`
+	Anggaran_biaya    string     `json:"anggaran_biaya,omitempty" bson:"anggaran_biaya,omitempty"`
+	Referensi         string     `json:"referensi,omitempty" bson:"referensi,omitempty"`
+	Tanggal_ppd       *time.Time `json:"tanggal_ppd,omitempty" bson:"tanggal_ppd,omitempty"`
+	Bank_tertuju      string     `json:"bank_tertuju,omitempty" bson:"bank_tertuju,omitempty"`
+	Nomor_ppd         string     `json:"nomor_ppd,omitempty" bson:"nomor_ppd,omitempty"`
 }
 
 type PendaftaranKSM struct {
@@ -103,6 +113,7 @@ type PendaftaranKSM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranRBM struct {
@@ -118,6 +129,7 @@ type PendaftaranRBM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranPAUD struct {
@@ -133,6 +145,7 @@ type PendaftaranPAUD struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranKAFALA struct {
@@ -148,6 +161,7 @@ type PendaftaranKAFALA struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranJSM struct {
@@ -163,6 +177,7 @@ type PendaftaranJSM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranDZM struct {
@@ -178,6 +193,7 @@ type PendaftaranDZM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranBSU struct {
@@ -193,6 +209,7 @@ type PendaftaranBSU struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranRescue struct {
@@ -208,6 +225,7 @@ type PendaftaranRescue struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranBTM struct {
@@ -223,6 +241,7 @@ type PendaftaranBTM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranBSM struct {
@@ -238,6 +257,7 @@ type PendaftaranBSM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranBCM struct {
@@ -253,6 +273,7 @@ type PendaftaranBCM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type PendaftaranASM struct {
@@ -268,17 +289,19 @@ type PendaftaranASM struct {
 	Verifikasi       *Verifikasi        `json:"verifikasi,omitempty" bson:"verifikasi,omitempty"`
 	Upd              *Upd               `json:"upd,omitempty" bson:"upd,omitempty"`
 	Komite           []Komite           `json:"komite,omitempty" bson:"komite,omitempty"`
+	Ppd              []Ppd              `json:"ppd,omitempty" bson:"ppd,omitempty"`
 }
 
 type Verifikasi struct {
-	Tanggal_verifikasi time.Time          `json:"tanggal_verifikasi,omitempty" bson:"tanggal_verifikasi,omitempty"`
-	Nama_pelaksana     string             `json:"nama_pelaksana,omitempty" bson:"nama_pelaksana,omitempty"`
-	Jabatan_pelaksana  string             `json:"jabatan_pelaksana,omitempty" bson:"jabatan_pelaksana,omitempty"`
-	Bentuk_bantuan     string             `json:"bentuk_bantuan,omitempty" bson:"bentuk_bantuan,omitempty"`
-	Cara_verifikasi    []string           `json:"cara_verifikasi,omitempty" bson:"cara_verifikasi,omitempty"`
-	Penerima_manfaat   []Penerima_manfaat `json:"penerima_manfaat,omitempty" bson:"penerima_manfaat,omitempty"`
-	Pihak_konfirmasi   []Konfirmasi       `json:"pihak_konfirmasi,omitempty" bson:"pihak_konfirmasi,omitempty"`
-	Hasil_verifikasi   Hasil_verif        `json:"hasil_verifikasi,omitempty" bson:"hasil_verifikasi,omitempty"`
+	Tanggal_verifikasi         time.Time          `json:"tanggal_verifikasi,omitempty" bson:"tanggal_verifikasi,omitempty"`
+	Tanggal_verifikasi_manager time.Time          `json:"tanggal_verifikasi_manager,omitempty" bson:"tanggal_verifikasi_manager,omitempty"`
+	Nama_pelaksana             string             `json:"nama_pelaksana,omitempty" bson:"nama_pelaksana,omitempty"`
+	Jabatan_pelaksana          string             `json:"jabatan_pelaksana,omitempty" bson:"jabatan_pelaksana,omitempty"`
+	Bentuk_bantuan             string             `json:"bentuk_bantuan,omitempty" bson:"bentuk_bantuan,omitempty"`
+	Cara_verifikasi            []string           `json:"cara_verifikasi,omitempty" bson:"cara_verifikasi,omitempty"`
+	Penerima_manfaat           []Penerima_manfaat `json:"penerima_manfaat,omitempty" bson:"penerima_manfaat,omitempty"`
+	Pihak_konfirmasi           []Konfirmasi       `json:"pihak_konfirmasi,omitempty" bson:"pihak_konfirmasi,omitempty"`
+	Hasil_verifikasi           Hasil_verif        `json:"hasil_verifikasi,omitempty" bson:"hasil_verifikasi,omitempty"`
 }
 
 type Konfirmasi struct {
@@ -319,7 +342,13 @@ type Program_p struct {
 }
 
 type Komite struct {
-	User    Users  `json:"user,omitempty" bson:"user,omitempty"`
-	Status  int32  `json:"status" bson:"status,omitempty"`
-	Catatan string `json:"catatan" bson:"catatan,omitempty"`
+	User    Users     `json:"user,omitempty" bson:"user,omitempty"`
+	Status  int32     `json:"status" bson:"status,omitempty"`
+	Catatan string    `json:"catatan" bson:"catatan,omitempty"`
+	Tanggal time.Time `json:"tanggal,omitempty" bson:"tanggal,omitempty"`
+}
+
+type Ppd struct {
+	User    Users     `json:"user,omitempty" bson:"user,omitempty"`
+	Tanggal time.Time `json:"tanggal,omitempty" bson:"tanggal,omitempty"`
 }

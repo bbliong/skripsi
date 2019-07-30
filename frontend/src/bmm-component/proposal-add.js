@@ -251,6 +251,7 @@ class ProposalAdd extends PolymerElement {
     this.Kategori = response.data
   }
   _errorKategori(e){
+    this.error = e.detail.request.xhr.status
     console.log(e)
   }
 
@@ -260,6 +261,7 @@ class ProposalAdd extends PolymerElement {
   }
 
   _errorManager(e){
+    this.error = e.detail.request.xhr.status
     console.log(e)
   }
 
@@ -336,7 +338,9 @@ class ProposalAdd extends PolymerElement {
     this.set('route.path', '/panel/proposal');
   }
   _handleProposalError(e){
+    this.error = e.detail.request.xhr.status
     console.log(e)
+    
   }
 
   // FUngsi untuk handle post data muztahik

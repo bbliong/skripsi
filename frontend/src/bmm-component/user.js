@@ -274,37 +274,7 @@ class User extends PolymerElement {
 
     this.updateItemsFromPage(1);
     this.$.jabatan.renderer = (root, grid, rowData) => {
-      var jabatan = " "
-      switch(`${rowData.item.role}`){
-        case "1" : 
-          jabatan = "Admin"
-        break;
-        case "2": 
-          jabatan = "Staff"
-        break;
-        case "3" : 
-          jabatan = "Manager"
-        break;
-        case "4" : 
-          jabatan = "Kafiv"
-        break;
-        case "5" : 
-          jabatan = "Administrasi"
-        break;
-        case "6" : 
-          jabatan = "Keuangan"
-        break;
-        case "7" : 
-        jabatan = "Pengurus"
-        break;
-        case "8" : 
-        jabatan = "Pengawas"
-        break;
-        default : {
-          jabatan = ""
-        }
-      }
-      root.textContent = jabatan
+      root.textContent = rowData.item.details_role
     };
     }
 
@@ -400,6 +370,7 @@ class User extends PolymerElement {
   }
 
   _handleUserDeleteError(e){
+    this.error = e.detail.request.xhr.status
     console.log(e)
   }
 

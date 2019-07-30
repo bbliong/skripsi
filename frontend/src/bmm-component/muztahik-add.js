@@ -233,7 +233,7 @@ class MuztahikAdd extends PolymerElement {
       this.$.datass.url = "change" //Fix Problem kategori tidak dikirim lagi
       this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
       this.$.datass.headers['authorization'] = this.storedUser.access_token;
-      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2"  
+      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=3"  
       this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
       
   }
@@ -246,6 +246,7 @@ class MuztahikAdd extends PolymerElement {
     var data = {
       muztahik : {},
       kategoris : {},
+      persetujuan : {},
       tanggalProposal : this.formatDate(new Date()),
     }
     this.regObj =   data
@@ -330,11 +331,14 @@ class MuztahikAdd extends PolymerElement {
             kategoris : this.regObj.kategoris,
             persetujuan : {
                 "Proposal" : 1,
-                "disposisi_pic" : this.storedUser.name,
+                "manager_id" : this.regObj.persetujuan.manager_id,
                 "tanggal_disposisi" :   new Date().toISOString(),   
             },
+            judul_proposal : this.regObj.judul_proposal,
             tanggalProposal : this.regObj.tanggalProposal,
           }
+
+          //console.log(this.regObj)
           this.$.postData.generateRequest();
         }
       break;

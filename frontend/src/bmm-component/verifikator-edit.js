@@ -32,6 +32,7 @@ import '@vaadin/vaadin-checkbox/vaadin-checkbox-group.js';
 import '@vaadin/vaadin-select/vaadin-select.js';
 import '@vaadin/vaadin-list-box/vaadin-list-box.js';
 import '@vaadin/vaadin-item/vaadin-item.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '@vaadin/vaadin-select/vaadin-select.js';
 
 //Other
@@ -68,7 +69,45 @@ class VerifikatorEdit extends PolymerElement {
                     width : 100%;
                 }
             }
+
+               paper-button.green {
+          background-color: var(--paper-green-500);
+          color: white;
+        }
+        
+        paper-button.green[active] {
+          background-color: var(--paper-red-500);
+        }
+
+        paper-button.blue {
+          background-color: var(--paper-blue-500);
+          color: white;
+        }
+        
+        paper-button.blue[active] {
+          background-color: var(--paper-blue-500);
+        }
+        
+        paper-button.blue, paper-button.green {
+            width : 97%;
+        }
+
+
+        @media all and (max-width: 600px) {
+          paper-button, paper-button.blue, paper-button.green {
+            width : 90%;
+          }
+        }
         </style>
+                
+      <vaadin-dialog aria-label="polymer templates" id="dialog_verifikasi">
+        <template>
+        <h4>Ingin mencetak Form Verifikasi?</h4>
+          <vaadin-button on-click="cetak"> Cetak</vaadin-button>
+          <vaadin-button on-click="cancel"  theme="error primary"> Tidak</vaadin-button>
+        </template>
+      </vaadin-dialog>
+
             <!-- app-location binds to the app's URL -->
             <app-location route="{{route}}"></app-location>
 
@@ -207,7 +246,8 @@ class VerifikatorEdit extends PolymerElement {
                 </vaadin-form-layout>
             </div>
         </div>
-     <paper-button  raised class="indigo" on-click="sendData" id="Verifikasi">Simpan dan Cetak Verifikasi</paper-button>
+     <paper-button  raised class="blue" on-click="sendData" id="Verifikasi">Simpan Verifikasi</paper-button>
+     <paper-button  raised class="green" on-click="sendData" id="Verifikasi_manager">Mengetahui Hasil Verifikasi</paper-button>
       <iron-ajax 
           id="postData"
           headers='{"Access-Control-Allow-Origin": "*" }'
@@ -399,6 +439,14 @@ class VerifikatorEdit extends PolymerElement {
   // Define ketika polymer pertama kali di load 
   
   _routePageChanged(page) {
+    switch (this.storedUser.role){
+      case 2 :
+        this.shadowRoot.querySelector("#Verifikasi_manager").style.display = "none" 
+        break;
+      case 3 :
+        this.shadowRoot.querySelector("#Verifikasi").style.display = "none" 
+        break;
+    }
     this.$.getData.url= MyAppGlobals.apiPath + "/api/pendaftaran/"+ this.routeData.kat  + "/" + this.routeData.id
     this.$.getData.headers['authorization'] = this.storedUser.access_token;
   }
@@ -445,16 +493,18 @@ class VerifikatorEdit extends PolymerElement {
   }
 
   _handleProposalError(e){
+    this.error = e.detail.request.xhr.status
     this.set('route.path', '/panel/proposal');
   }
 
   // Fungsi untuk handle post proposal update
 
   _handleProposalPost(e){
-    this.printData()
+    this.shadowRoot.querySelector('#dialog_verifikasi').opened =  true
   }
 
   _handleProposalPostError(e){
+    this.error = e.detail.request.xhr.status
     this.set('route.path', '/panel/proposal');
   }
 
@@ -498,24 +548,35 @@ class VerifikatorEdit extends PolymerElement {
     }
   }
 
-     /* Handle cetak */
+  
+   /******  Handle print form verifikator *******/
+  printData(){
+    this.$.printData.url= MyAppGlobals.apiPath + "/api/report/verifikasi/"+ this.routeData.kat  + "/" + this.routeData.id
+    this.$.printData.headers['authorization'] = this.storedUser.access_token;
+    this.$.printData.generateRequest();
+  }
 
-   _handleVerif(e){
+  cetak(){
+    this.shadowRoot.querySelector('#dialog_verifikasi').opened =  false
+    this.printData();
+  }
+
+  cancel(){
+    this.shadowRoot.querySelector('#dialog_verifikasi').opened =  false
+    this.set('route.path', '/panel/proposal');
+  }
+
+  _handleVerif(e){
       if(typeof e.detail.response.url !== "undefined" ){
-         document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
-         this.set('route.path', '/panel/proposal');
+        document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
+        this.set('route.path', '/panel/proposal');
       }
-   }
-   _handleVerifError(e){
-     console.log(e)
-   }
+  }
+  _handleVerifError(e){
+    this.error = e.detail.request.xhr.status
+    console.log(e)
+  }
 
-   printData(){
-     console.log("check")
-     this.$.printData.url= MyAppGlobals.apiPath + "/api/report/verifikasi/"+ this.routeData.kat  + "/" + this.routeData.id
-     this.$.printData.headers['authorization'] = this.storedUser.access_token;
-     this.$.printData.generateRequest();
-   }
 
 }
 

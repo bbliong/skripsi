@@ -478,9 +478,9 @@ class Muzatahik extends PolymerElement {
       var end = page * grid.pageSize;
       grid.items =  this.muztahiks.slice(start, end);
       this._clicked()
-      this._loading(0)
+     
     }
-
+    this._loading(0)
   }
 
   /* Fungsi delete */

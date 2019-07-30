@@ -169,7 +169,7 @@ class MuztahikEdit extends PolymerElement {
   }
 
   _handleMuztahikError(e){
-    console.log(e)
+    this.error = e.detail.request.xhr.status
     this.set('route.path', '/panel/muztahik');
   }
 

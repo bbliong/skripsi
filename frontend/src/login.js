@@ -176,8 +176,11 @@ class Login extends PolymerElement {
             this.error =""
             this.storedUser = {
                 name :response.nama,
+                id :response.id,
                 access_token : response.token,
                 role : response.role,
+                details_role : response.details_role,
+                department : response.department,
                 loggedin :true
             }
             this._loading(0)

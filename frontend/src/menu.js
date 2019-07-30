@@ -100,6 +100,12 @@ class Menu extends PolymerElement {
                    icon : "receipt",
                    text : "Proposal"
                   },
+                  {
+                    name : "ppd",
+                    url : "ppd",
+                  icon : "assignment-turned-in",
+                  text : "PPD"
+                 },
                    {
                      name : "laporan",
                      url : "laporan",
@@ -121,6 +127,12 @@ class Menu extends PolymerElement {
                    icon : "receipt",
                    text : "Proposal"
                   },
+                  {
+                    name : "ppd",
+                    url : "ppd",
+                  icon : "assignment-turned-in",
+                  text : "PPD"
+                 },
                    {
                      name : "laporan",
                      url : "laporan",
@@ -128,7 +140,7 @@ class Menu extends PolymerElement {
                    text : "Laporan"
                   },
                 ], 
-                4 :[
+                4:[
                   {
                     name : "beranda",
                     url : "beranda",
@@ -147,6 +159,12 @@ class Menu extends PolymerElement {
                    icon : "receipt",
                    text : "Proposal"
                   },
+                  {
+                    name : "ppd",
+                    url : "ppd",
+                  icon : "assignment-turned-in",
+                  text : "PPD"
+                 },
                    {
                      name : "laporan",
                      url : "laporan",
@@ -179,7 +197,103 @@ class Menu extends PolymerElement {
                    icon : "book",
                    text : "Laporan"
                   },
-                ]
+                ],
+                 7:[
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                  {
+                  name : "muztahik",
+                  url : "muztahik",
+                   icon : "face",
+                   text : "Muztahik"
+                  },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                  {
+                    name : "ppd",
+                    url : "ppd",
+                  icon : "assignment-turned-in",
+                  text : "PPD"
+                 },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ],
+                8:[
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                  {
+                  name : "muztahik",
+                  url : "muztahik",
+                   icon : "face",
+                   text : "Muztahik"
+                  },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                  {
+                    name : "ppd",
+                    url : "ppd",
+                  icon : "assignment-turned-in",
+                  text : "PPD"
+                 },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ],
+                9:[
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
+                  },
+                  {
+                  name : "muztahik",
+                  url : "muztahik",
+                   icon : "face",
+                   text : "Muztahik"
+                  },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
+                  {
+                    name : "ppd",
+                    url : "ppd",
+                  icon : "assignment-turned-in",
+                  text : "PPD"
+                 },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ],
               }
             }
         }
@@ -187,6 +301,7 @@ class Menu extends PolymerElement {
   }
   _logout(event){
     window.location.href = "/login"
+    localStorage.removeItem("login-bmm")
     this.storedUser = null
   }
 

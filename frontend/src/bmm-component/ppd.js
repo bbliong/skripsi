@@ -19,8 +19,6 @@ import '@vaadin/vaadin-grid/vaadin-grid.js';
 import '@vaadin/vaadin-button/vaadin-button.js';
 import '@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '@vaadin/vaadin-text-field/vaadin-text-field.js';
-import '@vaadin/vaadin-text-field/vaadin-text-area.js';
-import '@vaadin/vaadin-text-field/vaadin-number-field.js';
 import '@vaadin/vaadin-grid/vaadin-grid-sort-column.js';
 import '@vaadin/vaadin-grid/vaadin-grid-column.js';
 import '@vaadin/vaadin-list-box/vaadin-list-box.js';
@@ -40,7 +38,7 @@ import '@polymer/paper-menu-button/paper-menu-button.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 
-class Proposal extends PolymerElement {
+class Ppd extends PolymerElement {
   static get template() {
     return html`
       <style include="shared-styles">
@@ -158,23 +156,6 @@ class Proposal extends PolymerElement {
           tail="{{subroute}}"></app-route>
 
       <div class="card" id="main">
-      <vaadin-dialog aria-label="polymer templates" id="dialog_pic">
-          <template>
-           <h3> Pilih PIC </h3>
-           <vaadin-select value="{{ regObj.disposisi_pic_id }}" label="Staff tertuju" id="disposisi_pic">
-              <template>
-                <vaadin-list-box>
-                <dom-repeat items="{{User}}">
-                  <template>
-                    <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
-                  </template>
-                </dom-repeat>
-                </vaadin-list-box>
-              </template>
-            </vaadin-select>
-            <vaadin-button on-click="confirmPic"> Simpan</vaadin-button>
-          </template>
-       </vaadin-dialog>
        <vaadin-dialog  id="dialogSearch">
           <template>
            <h3> Filter </h3>
@@ -196,19 +177,10 @@ class Proposal extends PolymerElement {
           <!-- </div> -->
             <vaadin-date-picker id="start" label="Tanggal Mulai" value="{{Filter.tanggal_mulai}}"></vaadin-date-picker><br>
             <vaadin-date-picker id="end" label="Tanggal Akhir"  value="{{Filter.tanggal_akhir}}"></vaadin-date-picker><br>
-            <vaadin-button on-click="cekData" id="cekData" class="green" style="width:100%"> Cari</vaadin-button>
+            <vaadin-button on-click="cekData" id="cekData"> Cari</vaadin-button>
           </template>
        </vaadin-dialog>
-       <vaadin-dialog  id="dialogPencairan">
-          <template>
-           <h3> Pencairan dana a/n  {{ Pencairan.muztahiks.nama}}</h3>
-            <vaadin-date-picker id="end" label="Tanggal Akhir"value="{{Pencairan.persetujuan.tanggal_pencairan}}" style="width:100%"></vaadin-date-picker><br>
-            <vaadin-number-field label="Jumlah Pencairan" style="width:100%" value="{{Pencairan.persetujuan.jumlah_pencairan}}"></vaadin-number-field><br>
-            <vaadin-text-area label="Keterangan" style="width:100%" value="{{Pencairan.persetujuan.keterangan}}"></vaadin-text-area><br>
-            <vaadin-button on-click="simpanPencairan" id="simpanPencairan"> Simpan Data Pencairan</vaadin-button>
-          </template>
-       </vaadin-dialog>
-        <h1 style="display:inline;margin-right:20px;">Data Permintaan</h1>
+        <h1 style="display:inline;margin-right:20px;">Proposal Sudah PPD</h1>
         <paper-button raised class="indigo" on-click="refresh">Refresh</paper-button>
         <iron-ajax
           id="GetPendaftaran"
@@ -220,50 +192,16 @@ class Proposal extends PolymerElement {
           Content-Type="application/json"
           debounce-duration="300"></iron-ajax>
         
-        <!-- ajax delete -->
-          <iron-ajax
-          id="DeletePendaftaran"
-          headers='{"Access-Control-Allow-Origin": "*" }'
-          handle-as="json"
-          method="DELETE"
-          on-response="_handlePendaftaranDelete"
-          on-error="_handlePendaftaranDeleteError"
-          Content-Type="application/json"
-          debounce-duration="300"></iron-ajax>
-
-          <iron-ajax
-              auto 
-              id="managerDPP"
-              headers='{"Access-Control-Allow-Origin": "*" }'
-              handle-as="json"
-              method="GET"
-              on-response="_handleManager"
-              on-error="_errorManager"
-              Content-Type="application/json"
-              debounce-duration="300">
-          </iron-ajax>
-
-          <iron-ajax 
-            id="postData"
+        <iron-ajax
+            auto 
+            id="datass"
             headers='{"Access-Control-Allow-Origin": "*" }'
             handle-as="json"
-            method="PUT"
-            on-response="_handleProposalPost"
-            on-error="_handleProposalPostsError"
+            method="GET"
+            on-response="_handleKategori"
+            on-error="_errorKategori"
             Content-Type="application/json"
             debounce-duration="300"></iron-ajax>
-
-          <iron-ajax
-              auto 
-              id="datass"
-              headers='{"Access-Control-Allow-Origin": "*" }'
-              handle-as="json"
-              method="GET"
-              on-response="_handleKategori"
-              on-error="_errorKategori"
-              Content-Type="application/json"
-              debounce-duration="300">
-          </iron-ajax>
 
           <global-variable key="LoginCred" 
               value="{{ storedUser }}">
@@ -283,9 +221,7 @@ class Proposal extends PolymerElement {
               <vaadin-grid-sort-column id="tanggal" header="tanggal" width="200px"></vaadin-grid-sort-column >
               <vaadin-grid-sort-column path="persetujuan.kategori_program" id="kategori" header="kategori" width="220px"></vaadin-grid-sort-column >
               <vaadin-grid-sort-column id="status" header="status" width="220px"></vaadin-grid-sort-column >
-              <vaadin-grid-column header="Action" id="action" width="150px">
-                    
-              </vaadin-grid-column>
+              <vaadin-grid-column header="Action" id="action" width="150px"></vaadin-grid-column>
           </vaadin-grid>
           <div id="pages"></div>
           <!-- End Table -->
@@ -316,19 +252,7 @@ class Proposal extends PolymerElement {
   
             ]
           }
-        },
-        // Varible id 
-        muzId : {
-          type : String,
-          notify : true,
-          observer: '_activatedChanged'
-        },
-        
-         // Varible id 
-         reload : {
-          type : Boolean,
-          notify : true
-        },
+        },       
         activated: {
           type: Boolean,
           value:false,
@@ -339,20 +263,6 @@ class Proposal extends PolymerElement {
           notify : true,
           value : function(){
             return {       
-            }
-          }
-        },
-        Pencairan  : {
-          type : Object,
-          notify : true,
-          value : function(){
-            return {  
-              "nama" : "",
-              "persetujuan" : {
-                    "tanggal_pencairan" : "",
-                    "jumlah_pencairan" : "",
-                    "keterangan" : "",
-              }     
             }
           }
         },
@@ -397,47 +307,17 @@ connectedCallback() {
     console.log(val)
   }
   
-  // Fungsi aktifasi PIC
-  confirmPic(){
-    this.$.postData.url= MyAppGlobals.apiPath + "/api/pendaftaran/" + this.regObj._id
-    this.$.postData.headers['authorization'] = this.storedUser.access_token;
-    this.$.postData.body  = {
-      "muztahik_id" : this.regObj._id,
-      "persetujuan" : {
-        "disposisi_pic_id" : this.regObj.disposisi_pic_id,
-        "level_persetujuan" : this.regObj.level_persetujuan
-      }
-    }
-    // console.log( this.$.postData.body)
-    this.$.postData.generateRequest();
-  }
 
-  // Fungsi aktifasi PIC
-  simpanPencairan(){
-    this.$.postData.url= MyAppGlobals.apiPath + "/api/pencairan/" +  this.Pencairan._id
-    this.$.postData.headers['authorization'] = this.storedUser.access_token;
-    this.$.postData.body  = {
-      "muztahik_id" : this.Pencairan._id,
-      "persetujuan" : {
-        "tanggal_pencairan" :  new Date(this.Pencairan.persetujuan.tanggal_pencairan).toISOString(),
-        "jumlah_pencairan" :  parseInt(this.Pencairan.persetujuan.jumlah_pencairan),
-        "keterangan" :  this.Pencairan.persetujuan.keterangan,
-      }
-    }
-    //console.log( this.$.postData.body)
-    this.$.postData.generateRequest();
-  }
   _activatedChanged(newValue, oldValue){
     if(newValue) {
       // this._loading(1)
       localStorage.removeItem("register-data");
       this.getData(this.storeData)
-      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2&role2=3"  
-      this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
-      if(this.storedUser.role !== 3){
-          this.$.dialog_pic.style = "display:none"
-      }
     }
+  }
+
+  
+  _routePageChanged(page) {
   }
 
   _loading(show){
@@ -458,158 +338,25 @@ connectedCallback() {
     const action = this.$.action
     var that =this 
     action.renderer = function(root, column, rowData){
-      
-      switch(that.storedUser.role){
-        case  1 : 
-          var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
-          var urlDelete = MyAppGlobals.apiPath + "/api/pendaftaran/"+ rowData.item._id;
-          var innerHtml = '<paper-icon-button icon ="settings" class="green">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green" style="display:none">PIC</paper-icon-button>';
-          break;
-        case  2 : 
-          var urlEdit = '/panel/proposal/edit-verifikator/'+ rowData.item.kategori + "/" + rowData.item._id ;
-          var innerHtml = '<paper-button class="green">Verif</paper-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
-        break;
-        case  3 : 
-          var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
-          var innerHtml = '<paper-icon-button icon ="settings" class="green" style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green">PIC</paper-icon-button> ';
+       root.innerHTML =  "";
 
-          break;
-        case  4 : 
-          var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
-          var innerHtml = '<paper-icon-button icon ="settings" class="green" style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
-          break;
-        case  5 : 
-          var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
-          var urlDelete = MyAppGlobals.apiPath + "/api/pendaftaran/"+ rowData.item._id;
-          var innerHtml = '<paper-icon-button icon ="settings" class="green">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green" style="display:none">PIC</paper-icon-button>';
-        break;
-        case 7 :
-          var urlEdit = '/panel/proposal/edit-verifikator/'+ rowData.item.kategori + "/" + rowData.item._id ;
-          var innerHtml = '<paper-icon-button icon ="settings" class="green"  style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
-        break;
-        case  9 : 
-        var  urlEdit = '/panel/proposal/edit-proposal/'+ rowData.item.kategori + "/" + rowData.item._id ;
-        var innerHtml = '<paper-icon-button icon ="settings" class="green" style="display:none">Edit</paper-icon-button><paper-icon-button icon = "clear" class="red" style="display:none">Delete</paper-icon-button><paper-icon-button icon ="pan-tool" class="green"  style="display:none">PIC</paper-icon-button>';
-        break;
-      }
-
-      root.innerHTML =  innerHtml;
-      root.childNodes[0].addEventListener('click', function(e){
-        that.set('route.path', urlEdit);
-      })
-      root.childNodes[1].addEventListener('click', function(e){
-        if(confirm("Yakin hapus pendaftaran proposal "  +rowData.item.muztahiks.nama + " dengan asnaf " +  rowData.item.kategoris.asnaf + ". Jika data dihapus, tidak dapat dikembalikan kembali!")){
-          that.$.DeletePendaftaran.url= urlDelete;
-          that.$.DeletePendaftaran.headers['authorization'] = that.storedUser.access_token;
-          that.$.DeletePendaftaran.generateRequest();
-        }
-      })
-      root.childNodes[2].addEventListener('click', function(e){
-        // that.regObj._id = rowData.item._id 
-        // that.regObj.disposisi_pic_id = rowData.item.persetujuan.disposisi_pic_id
-        // that.regObj.level_persetujuan = rowData.item.persetujuan.level_persetujuan
-        that.regObj = {
-          "_id"  : rowData.item._id ,
-              "disposisi_pic_id"  : rowData.item.persetujuan.disposisi_pic_id,
-              "level_persetujuan" : rowData.item.persetujuan.level_persetujuan
-        }
-
-        // Untuk ambil yang ada di dalem shadowroot
-        var dialog =that.shadowRoot.querySelector('vaadin-dialog')
-        var backdrop = dialog.shadowRoot.querySelector('vaadin-dialog-overlay').shadowRoot.querySelector('#backdrop')
-        backdrop.addEventListener("click", function(){
-         that.regObj = {}
-        })
-        dialog.opened  =true      
-      })
-
-      if( that.storedUser.role == 3 && rowData.item.persetujuan.level_persetujuan >= 1  && (typeof rowData.item.verifikasi !== "undefined")){
+      if  (rowData.item.persetujuan.level_persetujuan >=7){
         let el = document.createElement("paper-button")
-        el.innerHTML = "Verif"
-        el.classList.add("green")
-        root.appendChild(el).addEventListener('click', function(e){
-          that.set('route.path', '/panel/proposal/edit-verifikator/'+ rowData.item.kategori +  "/" +  rowData.item._id );
-        })
-        action.width =(that._subCon(action.width) <  that._subCon("220px")) ?   "220px" : action.width;
-      }
-
-      if ( (that.storedUser.role == 3  || that.storedUser.role == 2 ||that.storedUser.role == 9 || (that.storedUser.role == 4 && that.storedUser.department == 1   ) )   && rowData.item.persetujuan.level_persetujuan >= 2){
-        let el = document.createElement("paper-button")
-        el.innerHTML = "UPD"
-        el.classList.add("green")
-        root.appendChild(el).addEventListener('click', function(e){
-          that.set('route.path', '/panel/proposal/edit-upd/'+ rowData.item.kategori +  "/" +  rowData.item._id );
-        })
-
-        action.width =(that._subCon(action.width) <  that._subCon("200px")) ?   "200px" : action.width;
-      }
-
-      if(  that.storedUser.role == 2 && rowData.item.persetujuan.level_persetujuan >= 5 && rowData.item.persetujuan.level_persetujuan !== 6) {
-        let el = document.createElement("paper-button")
-        el.innerHTML = "Komite"
+        el.innerHTML = "PPD"
         el.classList.add("blue")
         root.appendChild(el).addEventListener('click', function(e){
-          that.set('route.path', '/panel/proposal/komite-pic/'+ rowData.item.kategori +  "/" +  rowData.item._id );
+          that.set('route.path', '/panel/ppd/ppd-persetujuan/'+ rowData.item.kategori +  "/" +  rowData.item._id );
         })
-        action.width =(that._subCon(action.width) <  that._subCon("280px")) ?   "280px" : action.width;
-      }else if  ((that.storedUser.role == 4 || that.storedUser.role >= 7 )&& rowData.item.persetujuan.level_persetujuan >= 5 && rowData.item.persetujuan.level_persetujuan !== 6){
-        let el = document.createElement("paper-button")
-        el.innerHTML = "Komite"
-        el.classList.add("blue")
-        root.appendChild(el).addEventListener('click', function(e){
-          that.set('route.path', '/panel/proposal/komite-persetujuan/'+ rowData.item.kategori +  "/" +  rowData.item._id );
-        })
-        action.width =(that._subCon(action.width) <  that._subCon("200px")) ?   "200px" : action.width;
+        action.width = "100px"
       }
-
-
-      if(that.storedUser.role == 2 && rowData.item.persetujuan.level_persetujuan >= 7) {
-          var approve = rowData.item.komite.filter(function(data){
-            return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
-          })
-
-        
-          if(rowData.item.komite.length == approve.length){
-            let el = document.createElement("paper-button")
-              el.innerHTML = "PPD"
-              el.classList.add("blue")
-              root.appendChild(el).addEventListener('click', function(e){
-              that.set('route.path', '/panel/proposal/ppd-pic/'+ rowData.item.kategori +  "/" +  rowData.item._id );
-              })
-            action.width =(that._subCon(action.width) <  that._subCon("350px")) ?   "350px" : action.width; 
-
-            if(typeof  rowData.item.ppd !== "undefined"){
-              var approve = rowData.item.ppd.filter(function(data){
-                return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
-              })
     
-              if(rowData.item.ppd.length == approve.length){
-                let el = document.createElement("paper-button")
-                  el.innerHTML = "Pencairan"
-                  el.classList.add("blue")
-                  root.appendChild(el).addEventListener('click', function(e){
-                    that.Pencairan  = rowData.item
-                    that.Pencairan.persetujuan.tanggal_pencairan = that.formatDate2(new Date(rowData.item.persetujuan.tanggal_pencairan))
-                    that.shadowRoot.querySelector("#dialogPencairan").opened = true
-                  })
-                action.width =(that._subCon(action.width) <  that._subCon("440px")) ?   "440px" : action.width; 
-              } 
-            }
-
-          } 
-          
-         
-         
-      }    
-
-         
     }
   }
 
  
 
   /* Fungsi untuk get data pertama kalo */
-  getData(storeData, url = MyAppGlobals.apiPath + '/api/pendaftaran'){
+  getData(storeData, url = MyAppGlobals.apiPath + '/api/ppd'){
     if (typeof this.muzId !== 'undefined') {
         url = url +  '?muztahik_id=' + this.muzId
         this.shadowRoot.querySelector(".filter-side").style.display = 'none'
@@ -738,33 +485,33 @@ connectedCallback() {
               }
              
             }
+          
             break;
-        case  8 :
-            status = "PPD sudah dibuat"
-            root.classList.add("status-verifikasi")
-            root.style.backgroundColor = colors[10] 
-
+          case  8 :
+        
+              status = "PPD sudah dibuat"
+              root.classList.add("status-verifikasi")
+              root.style.backgroundColor = colors[10] 
+  
             
-            if(typeof rowData.item.ppd !== "undefined"){
-              var approve = rowData.item.ppd.filter(function(data){
-                return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
-              })
-              if (approve.length == 4){
-                status = "TTD PPD Sudah Lengkap" 
-                root.classList.add("status-verifikasi")
-                root.style.backgroundColor = colors[11] 
-              }else if (approve.length > 0){
-                status = "PPd sudah di ttd " + approve.length  + " orang" 
-                root.classList.add("status-verifikasi")
-                root.style.backgroundColor = colors[10] 
+              if(typeof rowData.item.ppd !== "undefined"){
+                var approve = rowData.item.ppd.filter(function(data){
+                  return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
+                })
+                if (approve.length == 4){
+                  status = "TTD PPD Sudah Lengkap" 
+                  root.classList.add("status-verifikasi")
+                  console.log(colors[11] )
+                  root.style.backgroundColor = colors[11] 
+                }else if (approve.length > 0){
+                  status = "PPd sudah di ttd " + approve.length  + " orang" 
+                  root.classList.add("status-verifikasi")
+                  root.style.backgroundColor = colors[10] 
+                }
+                
               }
-              
-            }
-        break;
-        case  9 :
-            status = "Pencairan tgl " + this.formatDate2(new Date( rowData.item.persetujuan.tanggal_pencairan))
-            root.classList.add("status-verifikasi")
-            root.style.backgroundColor = colors[2] 
+            
+              break;
       }
       root.textContent = status;
     };
@@ -853,38 +600,11 @@ connectedCallback() {
     this._loading(0)
   }
 
-  /* Fungsi delete */
-  _handlePendaftaranDelete(e){
-    this.getData(this.storeData)
-  }
-
-  _handlePendaftaranDeleteError(e){
-  }
-  /* End Fungsi Delete */
-
   /* Update ketika page dibuka */
 
-  _routePageChanged(page) {
-    // if(this.muzId){
-    //   this.getData(this.storeData)
-    // }
-  }
-
-  // Handle Data user
-  _handleManager(e){
-    var response = e.detail.response;
-    this.User = response.data
-  }
-
-  _errorManager(e){
-    console.log(e)
-  }
-
-  // Handle update pic
   
   _handleProposalPost(e){
     this.shadowRoot.querySelector("vaadin-dialog").opened = false
-    this.shadowRoot.querySelector("#dialogPencairan").opened = false
     this.getData(this.storeData)
   }
 
@@ -907,18 +627,11 @@ connectedCallback() {
     return hari + ", " + dd  + " " + bulan + " " + yyyy
     }
 
-    formatDate2(date){
-      var dd = date.getDate();
-      var mm = date.getMonth()+1; 
-      var yyyy = date.getFullYear();
-      return yyyy + "-" + mm +  "-"+dd
-    }
-
-
    // Handle kategori 
      // Fungsi untuk handle kategori
     _handleKategori(e){
       var response = e.detail.response;
+      console.log(response)
       this.Kategori = response.data
     }
     _errorKategori(e){
@@ -939,10 +652,6 @@ connectedCallback() {
       this.getData(this.storeData)
     }
 
+} 
 
-    _subCon(val){
-      return parseInt(val.substring(0,3))
-    }
-}   
-
-window.customElements.define('bmm-proposal', Proposal);
+window.customElements.define('bmm-ppd', Ppd);

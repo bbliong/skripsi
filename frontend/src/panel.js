@@ -66,7 +66,7 @@ class Panel extends PolymerElement {
 
                   <div class="info">
                      <p class=" name">{{storedUser.name}}</p>
-                     <h5 class=" email">{{roleName}}</h5>
+                     <h5 class=" email">{{storedUser.details_role}}</h5>
                   </div>
 
               </div>
@@ -89,6 +89,7 @@ class Panel extends PolymerElement {
             <bmm-beranda name="beranda"></bmm-beranda>
             <bmm-muztahik name="muztahik"></bmm-muztahik>
             <bmm-proposal name="proposal"></bmm-proposal>
+            <bmm-ppd name="ppd"></bmm-ppd>
             <bmm-proposal-add name="add-proposal"></bmm-proposal-add>
             <bmm-proposal-edit name="edit-proposal"></bmm-proposal-edit>
             <bmm-laporan name="laporan"></bmm-laporan>
@@ -100,7 +101,10 @@ class Panel extends PolymerElement {
             <bmm-user-add name="add-user"></bmm-user-add>
             <bmm-user-edit name="edit-user"></bmm-user-edit>
             <bmm-upd-edit name="edit-upd"></bmm-upd-edit>
-            <bmm-komite-manager name="komite-manager"></bmm-komite-manager>
+            <bmm-komite-pic name="komite-pic"></bmm-komite-pic>
+            <bmm-komite-persetujuan name="komite-persetujuan"></bmm-komite-persetujuan>
+            <bmm-ppd-pic name="ppd-pic"></bmm-ppd-pic>
+            <bmm-ppd-persetujuan name="ppd-persetujuan"></bmm-ppd-persetujuan>
             <bmm-loader name="loader"></bmm-loader>
             <my-view404 name="view404"></my-view404>
           </iron-pages>
@@ -228,10 +232,10 @@ class Panel extends PolymerElement {
      // Show 'view1' in that case. And if the page doesn't exist, show 'view404'.
     if (!page) {
       this.page = 'beranda';
-    } else if (['beranda', 'muztahik', 'laporan', 'proposal', 'user',  'loader'].indexOf(page) !== -1) {
+    } else if (['beranda', 'muztahik', 'laporan', 'proposal', 'user', 'ppd', 'loader'].indexOf(page) !== -1) {
       var url = this.subroute.path.split("/")[1]
       if(this.subroute.path){
-        if(['add-muztahik', 'edit-muztahik','profile-muztahik', 'edit-proposal', 'add-proposal', 'edit-verifikator', 'add-user', 'edit-user','edit-upd', 'komite-manager'].lastIndexOf(url) !== -1){
+        if(['add-muztahik', 'edit-muztahik','profile-muztahik', 'edit-proposal', 'add-proposal', 'edit-verifikator', 'add-user', 'edit-user','edit-upd', 'komite-pic','komite-persetujuan', 'ppd-pic', 'ppd-persetujuan'].lastIndexOf(url) !== -1){
           this.page = url
         }else{
           this.page = 'view404';
@@ -299,8 +303,20 @@ class Panel extends PolymerElement {
       case 'loader':
           import('./config/loader.js');
           break;
-      case 'komite-manager':
-          import('./bmm-component/komite-manager.js');
+      case 'komite-pic':
+          import('./bmm-component/komite-pic.js');
+          break;
+      case 'komite-persetujuan':
+          import('./bmm-component/komite-persetujuan.js');
+          break;
+      case 'ppd':
+          import('./bmm-component/ppd.js');
+          break;
+      case 'ppd-pic':
+          import('./bmm-component/ppd-pic.js');
+          break;
+      case 'ppd-persetujuan':
+          import('./bmm-component/ppd-persetujuan.js');
           break;
       case 'view404':
         import('./my-view404.js');
@@ -313,8 +329,11 @@ class Panel extends PolymerElement {
         this.error =""
         this.storedUser = {
             name :response.nama,
+            id :response.id,
             access_token : response.token,
             role : response.role,
+            department : response.department,
+            details_role : response.details_role,
             loggedin :true
         }
         localStorage.setItem('login-bmm', JSON.stringify(this.storedUser))
