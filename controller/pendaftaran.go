@@ -247,14 +247,14 @@ func GetAllPendaftaran(c *gin.Context) {
 			}
 		}
 	} else {
-		y, m, _ := time.Now().Date()
-		firstDay := time.Date(y, m, 1, 0, 0, 0, 0, time.UTC)
-		lastDay := time.Date(y, m+1, 1, 0, 0, 0, -1, time.UTC)
+		// y, m, _ := time.Now().Date()
+		// firstDay := time.Date(y, m, 1, 0, 0, 0, 0, time.UTC)
+		// lastDay := time.Date(y, m+1, 1, 0, 0, 0, -1, time.UTC)
 
-		filter["tanggal_proposal"] = bson.M{
-			"$gte": firstDay,
-			"$lte": lastDay,
-		}
+		// filter["tanggal_proposal"] = bson.M{
+		// 	"$gte": firstDay,
+		// 	"$lte": lastDay,
+		// }
 	}
 
 	// Check apakah urlnya adalah PPD
@@ -266,8 +266,8 @@ func GetAllPendaftaran(c *gin.Context) {
 		if len(filterRole) != 0 {
 			filter["persetujuan.level_persetujuan"] = filterRole
 		}
-
-		if url[2] == "ppd" {
+		fmt.Println(url[2])
+		if strings.Contains(url[2], "ppd")  {
 			if claims.Role == 4 || claims.Role == 2 || claims.Role == 3 || claims.Role == 9 {
 				filter["ppd.user._id"] = claims.ID
 			}
@@ -975,11 +975,11 @@ func FilterProjection(role int32) bson.D {
 			{"persetujuan.tanggal_persetujuan", 0},
 			{"persetujuan.sumber_dana", 0},
 			{"persetujuan.ppd_pic", 0},
-			{"persetujuan.ppd_manager", 0},
-			{"persetujuan.ppd_kadiv", 0},
+			// {"persetujuan.ppd_manager", 0},
+			// {"persetujuan.ppd_kadiv", 0},
 			{"persetujuan.ppd_keuangan", 0},
 			{"persetujuan.jumlah_pencairan", 0},
-			{"persetujuan.tanggal_pencairan", 0},
+			// {"persetujuan.tanggal_pencairan", 0},
 			{"persetujuan.keterangan", 0},
 			{"verifikasi", 0},
 		}
@@ -1025,11 +1025,11 @@ func FilterProjection(role int32) bson.D {
 			// {"persetujuan.tanggal_persetujuan", 0},
 			// {"persetujuan.sumber_dana", 0},
 			{"persetujuan.ppd_pic", 0},
-			{"persetujuan.ppd_manager", 0},
-			{"persetujuan.ppd_kadiv", 0},
+			// {"persetujuan.ppd_manager", 0},
+			// {"persetujuan.ppd_kadiv", 0},
 			{"persetujuan.ppd_keuangan", 0},
 			{"persetujuan.jumlah_pencairan", 0},
-			{"persetujuan.tanggal_pencairan", 0},
+			// {"persetujuan.tanggal_pencairan", 0},
 			{"persetujuan.keterangan", 0},
 		}
 	// Kadiv
@@ -1052,18 +1052,18 @@ func FilterProjection(role int32) bson.D {
 			{"persetujuan.keterangan_pic", 0},
 			{"persetujuan.keterangan_manager", 0},
 			// {"persetujuan.keterangan_kadiv", 0},
-			{"persetujuan.status_persetujuan_pic", 0},
-			{"persetujuan.status_persetujuan_manager", 0},
-			{"persetujuan.status_persetujuan_kadiv", 0},
+			// {"persetujuan.status_persetujuan_pic", 0},
+			// {"persetujuan.status_persetujuan_manager", 0},
+			// {"persetujuan.status_persetujuan_kadiv", 0},
 			// {"persetujuan.status_persetujuan", 0},
 			// {"persetujuan.tanggal_persetujuan", 0},
 			// {"persetujuan.sumber_dana", 0},
 			{"persetujuan.ppd_pic", 0},
-			{"persetujuan.ppd_manager", 0},
-			{"persetujuan.ppd_kadiv", 0},
+			// {"persetujuan.ppd_manager", 0},
+			// {"persetujuan.ppd_kadiv", 0},
 			{"persetujuan.ppd_keuangan", 0},
 			{"persetujuan.jumlah_pencairan", 0},
-			{"persetujuan.tanggal_pencairan", 0},
+			// {"persetujuan.tanggal_pencairan", 0},
 			{"persetujuan.keterangan", 0},
 		}
 	// Keuangan
@@ -1311,7 +1311,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				}else if  Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				}else if  len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -1335,6 +1339,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -1479,6 +1484,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -1622,6 +1628,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -1766,6 +1773,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -1916,6 +1924,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -2063,6 +2072,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -2209,6 +2219,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -2357,6 +2368,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -2503,6 +2515,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -2653,6 +2666,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -2804,6 +2818,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},
@@ -2956,6 +2971,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 		} else {
 			updateFilter = bson.D{
 				{"persetujuan.manager_id", Pendaftaran.Persetujuan.Manager},
+				{"persetujuan.kadiv_id", Pendaftaran.Persetujuan.Kadiv},
 				{"persetujuan.disposisi_pic_id", Pendaftaran.Persetujuan.Disposisi_pic_id},
 				{"tanggal_proposal", Pendaftaran.Tanggal_proposal},
 				{"judul_proposal", Pendaftaran.Judul_proposal},

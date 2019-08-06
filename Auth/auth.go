@@ -91,11 +91,11 @@ func SignIn(c *gin.Context) {
 	}
 
 	result = gin.H{
-		"token":      tokenString,
-		"id":         claims.ID,
-		"nama":       claims.Name,
-		"role":       claims.Role,
-		"department": claims.Department,
+		"token":        tokenString,
+		"id":           claims.ID,
+		"nama":         claims.Name,
+		"role":         claims.Role,
+		"department":   claims.Department,
 		"details_role": claims.Details_role,
 	}
 

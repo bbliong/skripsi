@@ -78,7 +78,20 @@ class Ksm extends PolymerElement {
               <vaadin-select value="{{ regObj.persetujuan.manager_id }}" label="Manager tertuju">
                 <template>
                   <vaadin-list-box>
-                  <dom-repeat items="{{user}}">
+                  <dom-repeat items="{{cekUser(user, 3 )}}">
+                    <template>
+                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                    </template>
+                  </dom-repeat>
+                  </vaadin-list-box>
+                </template>
+              </vaadin-select>
+
+              
+              <vaadin-select value="{{ regObj.persetujuan.kadiv_id }}" label="Kadiv tertuju">
+                <template>
+                  <vaadin-list-box>
+                  <dom-repeat items="{{cekUser(user, 4,9 )}}">
                     <template>
                       <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
                     </template>
@@ -114,6 +127,7 @@ class Ksm extends PolymerElement {
             },
             "persetujuan" : {
               "manager_id" : "-",
+              "kadiv_id" : "-",
             },
             "tanggalProposal" : "000-00-00",
           }
@@ -166,6 +180,16 @@ class Ksm extends PolymerElement {
       var yyyy = date.getFullYear();
       return yyyy + "-" + mm +  "-"+dd
     }
+
+    cekUser(user, role, role2 =0){
+      return user.filter(function(e){
+        if (role2 !== 0){
+          return e.role == role  || e.role == role2
+        }
+        return  e.role == role
+      })
+    }
+    
 }
 
 window.customElements.define('bmm-kategori-ksm', Ksm);

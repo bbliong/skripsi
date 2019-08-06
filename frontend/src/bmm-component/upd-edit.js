@@ -204,7 +204,7 @@ class UpdEdit extends PolymerElement {
                         <p> Verifikator : {{ tanggalPenting.verifikasi }} oleh <b>{{ regObj.verifikasi.nama_pelaksana }}</b>  </p>
                         <p> Pembuatan UPD : {{ tanggalPenting.verifikator }}  oleh <b>{{regObj.persetujuan.verifikator_nama }}</b> </p>
                         <p> Manager : {{ tanggalPenting.manager }}   oleh <b>{{ regObj.persetujuan.manager_nama }}  </b></p>
-                        <p> Kadiv : {{ tanggalPenting.kadiv }} oleh <b>{{ regObj.persetujuan.kadiv_nama }} </b> </p>
+                        <p> Kadiv / Direktur Eksekutif : {{ tanggalPenting.kadiv }} oleh <b>{{ regObj.persetujuan.kadiv_nama }} </b> </p>
 
                     </td> 
 
@@ -358,6 +358,7 @@ class UpdEdit extends PolymerElement {
       }
 
       if(typeof this.regObj.persetujuan.kadiv_tanggal != "undefined"){
+        console.log(this.regObj.persetujuan.status_persetujuan_kadiv)
         if(this.regObj.persetujuan.status_persetujuan_kadiv == 0){
           kadiv = "Tidak disetujui pada tanggal "
         }else{
@@ -427,6 +428,10 @@ class UpdEdit extends PolymerElement {
           this.shadowRoot.querySelector("#approveKadiv").style.display = "none" 
           break;
         case 4 :
+             this.shadowRoot.querySelector("#approve").style.display = "none" 
+            this.shadowRoot.querySelector("#simpan_dan_cetak_upd").style.display = "none" 
+          break;
+        case 9 :
              this.shadowRoot.querySelector("#approve").style.display = "none" 
             this.shadowRoot.querySelector("#simpan_dan_cetak_upd").style.display = "none" 
           break;

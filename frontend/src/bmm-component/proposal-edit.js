@@ -220,7 +220,7 @@ class ProposalEdit extends PolymerElement {
   _routePageChanged(page) {
     this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
     this.$.datass.headers['authorization'] = this.storedUser.access_token;
-    this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=3"  
+    this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=3&role2=4&role3=9"  
     this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
     this.$.datass.generateRequest();
     // this.$.getData.generateRequest();

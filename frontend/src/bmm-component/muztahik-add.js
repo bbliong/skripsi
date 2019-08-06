@@ -233,9 +233,8 @@ class MuztahikAdd extends PolymerElement {
       this.$.datass.url = "change" //Fix Problem kategori tidak dikirim lagi
       this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
       this.$.datass.headers['authorization'] = this.storedUser.access_token;
-      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=3"  
+      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=3&role2=4&role3=9"  
       this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
-      
   }
 
 
@@ -308,7 +307,7 @@ class MuztahikAdd extends PolymerElement {
 
   /*********** Start post data pendaftaran muztahik  **********/
   sendData(){
-    this.$.postData.url= MyAppGlobals.apiPath + "/api/muztahik"
+      this.$.postData.url= MyAppGlobals.apiPath + "/api/muztahik"
     this.$.postData.headers['authorization'] = this.storedUser.access_token;
     this.$.postData.body  = this.regObj.muztahik
     this.$.postData.generateRequest();
@@ -332,6 +331,7 @@ class MuztahikAdd extends PolymerElement {
             persetujuan : {
                 "Proposal" : 1,
                 "manager_id" : this.regObj.persetujuan.manager_id,
+                "kadiv_id" : this.regObj.persetujuan.kadiv_id,
                 "tanggal_disposisi" :   new Date().toISOString(),   
             },
             judul_proposal : this.regObj.judul_proposal,
@@ -394,7 +394,6 @@ class MuztahikAdd extends PolymerElement {
    _handleManager(e){
     var response = e.detail.response;
     this.User = response.data
-    console.log(response)
   }
 
   _errorManager(e){

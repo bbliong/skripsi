@@ -272,6 +272,30 @@ class PpdPersetujuan extends PolymerElement {
                     <tbody>
                         <tr>
                           <th> 
+                            <p>Manager DPP</p> 
+                            <vaadin-select disabled>
+                                <template>
+                                  <vaadin-list-box>
+                                      <vaadin-item label="{{regObj.persetujuan.manager_nama}}" >{{regObj.persetujuan.manager_nama}}</vaadin-item>
+                                  </vaadin-list-box>
+                                </template>
+                            </vaadin-select>
+                            <p> Tanggal TTD : {{ formatDate(regObj.persetujuan.ppd_manager)}} </p>
+                          </th>
+                          <th> 
+                            <p>Kadiv DPP</p> 
+                            <vaadin-select disabled>
+                                <template>
+                                  <vaadin-list-box>
+                                      <vaadin-item label="{{regObj.persetujuan.kadiv_nama}}" >{{regObj.persetujuan.kadiv_nama}}</vaadin-item>
+                                  </vaadin-list-box>
+                                </template>
+                            </vaadin-select>
+                            <p> Tanggal TTD : {{ formatDate(regObj.persetujuan.ppd_kadiv)}} </p>
+                          </th>
+                        </tr>
+                        <tr>
+                          <th> 
                             <p>Staff Keuangan</p> 
                             <vaadin-select value="{{ StaffKeu.user }}" disabled>
                                 <template>
@@ -622,7 +646,6 @@ class PpdPersetujuan extends PolymerElement {
     // Fungsi untuk handle kategori
     _handleKategori(e){
       var response = e.detail.response;
-      
       this.subkategori = response.data.filter(x => x.KodeP == this.routeData.kat)[0].sub
       this.$.getData.url = ""
       this.$.getData.url= MyAppGlobals.apiPath + "/api/pendaftaran/"+ this.routeData.kat  + "/" + this.routeData.id
@@ -682,11 +705,16 @@ class PpdPersetujuan extends PolymerElement {
     }
 
     formatDate(date){
+      if(typeof date == "undefined"){
+        return ""
+      }
+      date = new Date(date)
       var dd = date.getDate();
       var mm = date.getMonth()+1; 
       var yyyy = date.getFullYear();
       return yyyy + "-" + mm +  "-"+dd
     }
+    
 
     sendData(){
       this.StaffKeu = this.convertData(this.StaffKeu)

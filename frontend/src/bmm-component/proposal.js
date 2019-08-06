@@ -563,18 +563,22 @@ connectedCallback() {
       }
 
 
-      if(that.storedUser.role == 2 && rowData.item.persetujuan.level_persetujuan >= 7) {
+      
+      if((that.storedUser.id == rowData.item.persetujuan.disposisi_pic_id || that.storedUser.id == rowData.item.persetujuan.manager_id || that.storedUser.id == rowData.item.persetujuan.kadiv_id )  && rowData.item.persetujuan.level_persetujuan >= 7) {
+          var url = "/panel/ppd/ppd-persetujuan"
+          if(that.storedUser.role == 2) {
+            url = "/panel/proposal/ppd-pic"
+          }
           var approve = rowData.item.komite.filter(function(data){
             return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
           })
 
-        
           if(rowData.item.komite.length == approve.length){
             let el = document.createElement("paper-button")
               el.innerHTML = "PPD"
               el.classList.add("blue")
               root.appendChild(el).addEventListener('click', function(e){
-              that.set('route.path', '/panel/proposal/ppd-pic/'+ rowData.item.kategori +  "/" +  rowData.item._id );
+              that.set('route.path', url+'/'+ rowData.item.kategori +  "/" +  rowData.item._id );
               })
             action.width =(that._subCon(action.width) <  that._subCon("350px")) ?   "350px" : action.width; 
 
@@ -583,7 +587,7 @@ connectedCallback() {
                 return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
               })
     
-              if(rowData.item.ppd.length == approve.length){
+              if(rowData.item.ppd.length == approve.length && that.storedUser.role == 2){
                 let el = document.createElement("paper-button")
                   el.innerHTML = "Pencairan"
                   el.classList.add("blue")

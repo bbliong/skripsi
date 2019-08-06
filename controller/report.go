@@ -35,10 +35,11 @@ func ManageProposal(c *gin.Context) {
 	collection := db.Collection("pendaftaran")
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	claims := c.MustGet("decoded").(*models.Claims)
-	filter := FilterRole(claims.Role)
+	
+	// filter := FilterRole(claims.Role)
 
 	//get data taro di cursor
-	cursor, err := collection.Find(ctx, filter)
+	cursor, err := collection.Find(ctx, bson.M{})
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -5453,6 +5454,7 @@ func PpdProposal(c *gin.Context) {
 		return
 	}
 }
+
 
 
 func CekBantuan(jumlah int32) string {

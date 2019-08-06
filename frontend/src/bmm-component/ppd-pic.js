@@ -336,6 +336,30 @@ class PpdPic extends PolymerElement {
               <h3> Keuangan {{displayIndex(index)}}</h3>
                 <table border="2" id="main-table">
                     <tbody>
+                    <tr>
+                          <th> 
+                            <p>Manager DPP</p> 
+                            <vaadin-select disabled>
+                                <template>
+                                  <vaadin-list-box>
+                                      <vaadin-item label="{{regObj.persetujuan.manager_nama}}" >{{regObj.persetujuan.manager_nama}}</vaadin-item>
+                                  </vaadin-list-box>
+                                </template>
+                            </vaadin-select>
+                            <p> Tanggal TTD : {{ formatDate(regObj.persetujuan.ppd_manager)}} </p>
+                          </th>
+                          <th> 
+                            <p>Kadiv DPP</p> 
+                            <vaadin-select disabled>
+                                <template>
+                                  <vaadin-list-box>
+                                      <vaadin-item label="{{regObj.persetujuan.kadiv_nama}}" >{{regObj.persetujuan.kadiv_nama}}</vaadin-item>
+                                  </vaadin-list-box>
+                                </template>
+                            </vaadin-select>
+                            <p> Tanggal TTD : {{ formatDate(regObj.persetujuan.ppd_kadiv)}} </p>
+                          </th>
+                        </tr>
                         <tr>
                           <th> 
                             <p>Staff Keuangan</p> 
@@ -793,6 +817,10 @@ class PpdPic extends PolymerElement {
     }
 
     formatDate(date){
+      if(typeof date == "undefined"){
+        return ""
+      }
+      date = new Date(date)
       var dd = date.getDate();
       var mm = date.getMonth()+1; 
       var yyyy = date.getFullYear();

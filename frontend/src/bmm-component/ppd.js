@@ -402,7 +402,7 @@ connectedCallback() {
          }
       }
     }
-    var url = MyAppGlobals.apiPath+ '/api/pendaftaran' + search
+    var url = MyAppGlobals.apiPath+ '/api/ppd' + search
     this.getData(this.storedUser, url)
   }
 
@@ -512,6 +512,10 @@ connectedCallback() {
               }
             
               break;
+            case  9 :
+                status = "Pencairan tgl " + this.formatDate2(new Date( rowData.item.persetujuan.tanggal_pencairan))
+                root.classList.add("status-verifikasi")
+                root.style.backgroundColor = colors[2] 
       }
       root.textContent = status;
     };
@@ -626,6 +630,14 @@ connectedCallback() {
     var bulan = bulan[mm]
     return hari + ", " + dd  + " " + bulan + " " + yyyy
     }
+
+    formatDate2(date){
+      var dd = date.getDate();
+      var mm = date.getMonth()+1; 
+      var yyyy = date.getFullYear();
+      return yyyy + "-" + mm +  "-"+dd
+    }
+
 
    // Handle kategori 
      // Fungsi untuk handle kategori

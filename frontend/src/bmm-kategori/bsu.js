@@ -78,7 +78,7 @@ class Bsu extends PolymerElement {
               <vaadin-select value="{{ regObj.persetujuan.manager_id }}" label="Manager tertuju">
                 <template>
                   <vaadin-list-box>
-                  <dom-repeat items="{{user}}">
+                  <dom-repeat items="{{cekUser(user, 3 )}}">
                     <template>
                       <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
                     </template>
@@ -86,6 +86,20 @@ class Bsu extends PolymerElement {
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
+
+              
+              <vaadin-select value="{{ regObj.persetujuan.kadiv_id }}" label="Kadiv tertuju">
+                <template>
+                  <vaadin-list-box>
+                  <dom-repeat items="{{cekUser(user, 4,9 )}}">
+                    <template>
+                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                    </template>
+                  </dom-repeat>
+                  </vaadin-list-box>
+                </template>
+              </vaadin-select>
+
               <vaadin-number-field label="Jumlah Muztahik" value="{{regObj.kategoris.jumlah_muztahik}}"></vaadin-number-field>
               <vaadin-number-field label="Jumlah Bantuan" value="{{regObj.kategoris.jumlah_bantuan}}"></vaadin-number-field>
               <vaadin-text-field label="Jenis Dana" value="{{regObj.kategoris.jenis_dana}}"></vaadin-text-field>
@@ -119,6 +133,7 @@ class Bsu extends PolymerElement {
             },
             "persetujuan" : {
               "manager_id" : "-",
+              "kadiv_id" : "-",
             },
             "tanggalProposal" : this.formatDate(new Date()),
           }
@@ -169,6 +184,15 @@ class Bsu extends PolymerElement {
     return yyyy + "-" + mm +  "-"+dd
   }
 
+  cekUser(user, role, role2 =0){
+    return user.filter(function(e){
+      if (role2 !== 0){
+        return e.role == role  || e.role == role2
+      }
+      return  e.role == role
+    })
+  }
+  
 }
 
 window.customElements.define('bmm-kategori-bsu', Bsu);
