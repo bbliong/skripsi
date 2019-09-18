@@ -276,6 +276,9 @@ class Muzatahik extends PolymerElement {
 
   _loading(show){
    if(show ==0 ){
+    if( this.storedUser.role == 9){
+      this.shadowRoot.querySelector("#addMuztahik").style.display = "none"
+    }
     this.shadowRoot.querySelector("#main").style.display = "block"
     var that = this
     setTimeout(function () {
@@ -291,13 +294,21 @@ class Muzatahik extends PolymerElement {
     const action = this.$.action
     var that =this 
     action.renderer = function(root, column, rowData){
-      root.innerHTML ='<paper-button class="green">Lihat</paper-button><paper-icon-button icon ="add" class="green">Add</paper-icon-button>';
+      root.innerHTML ='<paper-button class="green">Lihat</paper-button>';
       root.childNodes[0].addEventListener('click', function(e){
         that.set('subroute.path', '/profile-muztahik/'+rowData.item._id);
       })
-      root.childNodes[1].addEventListener('click', function(e){
-        that.set('route.path', '/panel/proposal/add-proposal/'+rowData.item._id);
-      })
+
+      if( that.storedUser.role !== 9){
+        let el = document.createElement("paper-icon-button")
+        el.innerHTML = "Verif"
+        el.classList.add("green")
+        el.setAttribute("icon", "add")
+        root.appendChild(el).addEventListener('click', function(e){
+          that.set('route.path', '/panel/proposal/add-proposal/'+rowData.item._id);
+        })
+      }
+     
     }
   }
 

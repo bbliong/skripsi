@@ -140,13 +140,13 @@ func CreateMuztahik(c *gin.Context) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	filter := bson.D{{"nama", Muztahik.Nama}, {"nik_no_yayasan", Muztahik.Nik_no_yayasan}}
+	filter := bson.D{{"nik_no_yayasan", Muztahik.Nik_no_yayasan}}
 	fmt.Println(filter)
 	errSQL := collection.FindOne(ctx, filter).Decode(&MuztahikBson)
 	if errSQL == nil {
 		// If the structure of the body is wrong, return an HTTP error
 		c.JSON(500, gin.H{
-			"Message": "Data muztahik dengan Nama " + Muztahik.Nama + " dan NIK " + Muztahik.Nik_no_yayasan + " Sudah terdaftar",
+			"Message": "Data muztahik dengan NIK " + Muztahik.Nik_no_yayasan + " Sudah terdaftar",
 		})
 		return
 	}
@@ -203,7 +203,7 @@ func UpdateMuztahik(c *gin.Context) {
 		})
 		return
 	}
-	if result.MatchedCount < 1  {
+	if result.MatchedCount < 1 {
 		c.JSON(200, gin.H{
 			"Message": "Id Not Found",
 		})

@@ -9,6 +9,7 @@ import (
 type Kat struct {
 	Id       primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Kategori int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
+	Level    int32              `json:"level_persetujuan,omitempty" bson:"persetujuan.level_persetujuan,omitempty"`
 }
 
 // Muztahik Struct
@@ -102,7 +103,7 @@ type Persetujuan struct {
 
 type PendaftaranKSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -118,7 +119,7 @@ type PendaftaranKSM struct {
 
 type PendaftaranRBM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -134,7 +135,7 @@ type PendaftaranRBM struct {
 
 type PendaftaranPAUD struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -150,7 +151,7 @@ type PendaftaranPAUD struct {
 
 type PendaftaranKAFALA struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -166,7 +167,7 @@ type PendaftaranKAFALA struct {
 
 type PendaftaranJSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -182,7 +183,7 @@ type PendaftaranJSM struct {
 
 type PendaftaranDZM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -198,7 +199,7 @@ type PendaftaranDZM struct {
 
 type PendaftaranBSU struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -214,7 +215,7 @@ type PendaftaranBSU struct {
 
 type PendaftaranRescue struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -230,7 +231,7 @@ type PendaftaranRescue struct {
 
 type PendaftaranBTM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -246,7 +247,7 @@ type PendaftaranBTM struct {
 
 type PendaftaranBSM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -262,7 +263,7 @@ type PendaftaranBSM struct {
 
 type PendaftaranBCM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -278,7 +279,7 @@ type PendaftaranBCM struct {
 
 type PendaftaranASM struct {
 	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tanggal_proposal time.Time          `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
+	Tanggal_proposal *time.Time         `json:"tanggalProposal,omitempty" bson:"tanggal_proposal,omitempty"`
 	Judul_proposal   string             `json:"judul_proposal,omitempty" bson:"judul_proposal,omitempty"`
 	Tujuan_proposal  string             `json:"tujuan_proposal,omitempty" bson:"tujuan_proposal,omitempty"`
 	Kategori_program int32              `json:"kategori,omitempty" bson:"kategori,omitempty"`
@@ -293,8 +294,8 @@ type PendaftaranASM struct {
 }
 
 type Verifikasi struct {
-	Tanggal_verifikasi         time.Time          `json:"tanggal_verifikasi,omitempty" bson:"tanggal_verifikasi,omitempty"`
-	Tanggal_verifikasi_manager time.Time          `json:"tanggal_verifikasi_manager,omitempty" bson:"tanggal_verifikasi_manager,omitempty"`
+	Tanggal_verifikasi         *time.Time         `json:"tanggal_verifikasi,omitempty" bson:"tanggal_verifikasi,omitempty"`
+	Tanggal_verifikasi_manager *time.Time         `json:"tanggal_verifikasi_manager,omitempty" bson:"tanggal_verifikasi_manager,omitempty"`
 	Nama_pelaksana             string             `json:"nama_pelaksana,omitempty" bson:"nama_pelaksana,omitempty"`
 	Jabatan_pelaksana          string             `json:"jabatan_pelaksana,omitempty" bson:"jabatan_pelaksana,omitempty"`
 	Bentuk_bantuan             string             `json:"bentuk_bantuan,omitempty" bson:"bentuk_bantuan,omitempty"`
@@ -342,13 +343,14 @@ type Program_p struct {
 }
 
 type Komite struct {
-	User    Users     `json:"user,omitempty" bson:"user,omitempty"`
-	Status  int32     `json:"status" bson:"status,omitempty"`
-	Catatan string    `json:"catatan" bson:"catatan,omitempty"`
-	Tanggal time.Time `json:"tanggal,omitempty" bson:"tanggal,omitempty"`
+	User        Users      `json:"user,omitempty" bson:"user,omitempty"`
+	Status      int32      `json:"status" bson:"status,omitempty"`
+	Catatan     string     `json:"catatan" bson:"catatan,omitempty"`
+	LevelKomite int32      `json:"levelKomite" bson:"levelkomite,omitempty"`
+	Tanggal     *time.Time `json:"tanggal,omitempty" bson:"tanggal,omitempty"`
 }
 
 type Ppd struct {
-	User    Users     `json:"user,omitempty" bson:"user,omitempty"`
-	Tanggal time.Time `json:"tanggal,omitempty" bson:"tanggal,omitempty"`
+	User    Users      `json:"user,omitempty" bson:"user,omitempty"`
+	Tanggal *time.Time `json:"tanggal,omitempty" bson:"tanggal,omitempty"`
 }

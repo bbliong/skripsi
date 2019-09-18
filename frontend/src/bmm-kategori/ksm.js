@@ -99,7 +99,7 @@ class Ksm extends PolymerElement {
                   </vaadin-list-box>
                 </template>
               </vaadin-select>
-              <vaadin-number-field label="Jumlah Bantuan" value="{{regObj.kategoris.jumlah_bantuan}}"></vaadin-number-field>
+              <vaadin-number-field label="Jumlah Bantuan *wajib disi (isi default data dengan 0)" value="{{regObj.kategoris.jumlah_bantuan}}"></vaadin-number-field>
               
           </vaadin-form-layout>
       </div>

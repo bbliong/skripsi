@@ -22,6 +22,7 @@ import '@polymer/iron-pages/iron-pages.js';
 import '@polymer/iron-selector/iron-selector.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/paper-toast/paper-toast.js';
 import '@polymer/iron-localstorage/iron-localstorage.js';
 import './my-icons.js';
 import './custom-css.js';
@@ -113,17 +114,15 @@ class Panel extends PolymerElement {
       <iron-localstorage name="login-bmm" value="{{storedUser}}"></iron-localstorage>
       
       <!-- varible global untuk data dan error -->
-      <global-variable key="LoginCred" 
-           value="{{ storedUser }}">
-      </global-variable>
-      <global-variable key="error" 
-           value="{{ error }}">
-      </global-variable>
+      <global-variable key="LoginCred"  value="{{ storedUser }}"></global-variable>
+      <global-variable key="error"  value="{{ error }}"></global-variable>
+      <global-variable key="toast" value="{{ toast }}"></global-variable>
+       <!-- Untuk membuat varible global memiliki event saat diubah -->
+      <global-data id="globalData" on-set="log"> </global-data>
 
-      <!-- Untuk membuat varible global memiliki event saat diubah -->
-      <global-data id="globalData"
-         on-set="log">
-      </global-data>
+      <div class="toast">
+         <paper-toast text="{{toast}}" id="toast" ></paper-toast>
+      </div>
 
       <iron-ajax
           id="Counts"
@@ -169,7 +168,8 @@ class Panel extends PolymerElement {
       },
       roleName : {
         type :String,
-      }
+      },
+      toast : String,
     };
   }
 
@@ -177,7 +177,20 @@ class Panel extends PolymerElement {
     return [
       '_routePageChanged(routeData.page)',
       '_checkLogin(storedUser.*)',
+      '_showToast(toast)'
     ];
+  } 
+
+   /*********** Show Toast ***********/
+
+   _showToast(message){
+     console.log(message)
+     this.toast = message
+     if(message !== ""){
+       this.$.toast.open();
+       var that = this
+       setTimeout(function(){ that.toast = ""; }, 3000);
+     }     
   }
 
   _checkRole(storedUser){

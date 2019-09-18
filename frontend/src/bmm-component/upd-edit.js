@@ -96,6 +96,7 @@ class UpdEdit extends PolymerElement {
 
         <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
         <global-variable key="error" value="{{ error }}"></global-variable>
+        <global-variable key="toast" value="{{ toast }}"></global-variable>
         <global-data id="globalData"></global-data>
         
       <div class="card">
@@ -164,7 +165,7 @@ class UpdEdit extends PolymerElement {
                       <table border="2" id="sub-table">
                           <tr>
                               <td>Nominal Bantuan</td>
-                              <td> <vaadin-text-field disabled value="{{regObj.kategoris.jumlah_bantuan}}"></vaadin-text-field></td>
+                              <td> <vaadin-text-field  value="{{regObj.kategoris.jumlah_bantuan}}"></vaadin-text-field></td>
                           </tr>
                           <tr>
                               <td>Biaya Diserahkan</td>
@@ -310,8 +311,17 @@ class UpdEdit extends PolymerElement {
 
   static get observers() {
     return [
+      '_changeStoI(regObj.kategoris.*)',
       '_routePageChanged(routeData.*)',
     ];
+  }
+
+  // Fungsi convert ke int 
+  _changeStoI(f){
+    var array = f.path.split(".");
+    if (array[2] == "jumlah_bantuan" ){
+      f.base[array[2]] = parseInt(f.value)
+    }
   }
 
 
@@ -338,7 +348,6 @@ class UpdEdit extends PolymerElement {
 
     _handleProposal(e){
       this.regObj = e.detail.response.Data
-      console.log(e.detail.response.Data)
       var verifikator = "Belum buat UPD"
       var  manager= "Belum diperiksa Manager"
       var kadiv = "Belum disetujui Kadiv"
@@ -358,7 +367,6 @@ class UpdEdit extends PolymerElement {
       }
 
       if(typeof this.regObj.persetujuan.kadiv_tanggal != "undefined"){
-        console.log(this.regObj.persetujuan.status_persetujuan_kadiv)
         if(this.regObj.persetujuan.status_persetujuan_kadiv == 0){
           kadiv = "Tidak disetujui pada tanggal "
         }else{
@@ -416,7 +424,7 @@ class UpdEdit extends PolymerElement {
       // Define ketika polymer pertama kali di load 
   
     _routePageChanged(page) {
-      console.log(this.storedUser.role)
+
       switch (this.storedUser.role){
         case 1 :
         case 2 :
@@ -463,11 +471,11 @@ class UpdEdit extends PolymerElement {
     /* Handle cetak */
 
     _handleUPD(e){
+     
        if(typeof e.detail.response.url !== "undefined" ){
           document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
            this.set('route.path', '/panel/proposal');
        }
-       
     }
 
     printData(){
@@ -485,7 +493,6 @@ class UpdEdit extends PolymerElement {
       this.$.postData.url= MyAppGlobals.apiPath + "/api/upd/" + this.routeData.id
       this.$.postData.headers['authorization'] = this.storedUser.access_token;
       this.$.postData.body  = this.regObj
-      console.log(this.regObj)
       this.$.postData.generateRequest();
     }
 
@@ -503,7 +510,7 @@ class UpdEdit extends PolymerElement {
       var bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
       var day = date.getDay();
       var dd = date.getDate();
-      var mm = date.getMonth()+1; 
+      var mm = date.getMonth(); 
       var yyyy = date.getFullYear();
 
       var  hari = hari[day]
@@ -514,11 +521,15 @@ class UpdEdit extends PolymerElement {
     /*********  Handle dialog UPD Manager ********/
 
     cetak(){
+             
+      this.toast = "Berhasil Menyimpan UPD"
       this.shadowRoot.querySelector('#dialog_manager').opened =  false
       this.printData();
     }
 
     cancel(){
+             
+      this.toast = "Berhasil Menyimpan UPD"
       this.shadowRoot.querySelector('#dialog_manager').opened =  false
       this.set('route.path', '/panel/proposal');
     }

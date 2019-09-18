@@ -157,6 +157,7 @@ class PpdPic extends PolymerElement {
 
       <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
       <global-variable key="error" value="{{ error }}"></global-variable>
+      <global-variable key="toast" value="{{ toast }}"></global-variable>
       <global-data id="globalData"></global-data>
 
       <vaadin-dialog aria-label="polymer templates" id="dialog_upd">
@@ -231,7 +232,7 @@ class PpdPic extends PolymerElement {
         </template>
       </vaadin-dialog>
 
-      <paper-button  raised class="indigo" on-click="cekUPD" style="wdith:100%" >Lihat UPD</paper-button> 
+    
       <div class="card">
       <table border="2" id="main-table">
             <tbody>
@@ -632,11 +633,11 @@ class PpdPic extends PolymerElement {
              
               if(staffData.length > 0){
                 var tanggal =""
-               
-                if(this.formatDate(new Date(staffData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(staffData[0].tanggal)) !== "1-1-1" ){
+                
+                if(this.formatDate(new Date(staffData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(staffData[0].tanggal)) !== "1-1-1" && this.formatDate(new Date(staffData[0].tanggal)) !== "NaN-NaN-NaN" ){
                   tanggal = this.formatDate(new Date(staffData[0].tanggal))
                 }
-
+               
                 this.StaffKeu = {
                   "user" : staffData[0].user.Id,
                   "tanggal" : tanggal
@@ -648,7 +649,7 @@ class PpdPic extends PolymerElement {
              
               if(managerData.length > 0){
                 var tanggal =""
-                if(this.formatDate(new Date(managerData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(managerData[0].tanggal)) !== "1-1-1" ){
+                if(this.formatDate(new Date(managerData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(managerData[0].tanggal)) !== "1-1-1"  && this.formatDate(new Date(managerData[0].tanggal)) !== "NaN-NaN-NaN" ){
                   tanggal = this.formatDate(new Date(managerData[0].tanggal))
                 }
 
@@ -663,7 +664,7 @@ class PpdPic extends PolymerElement {
              
                 if(kadivData.length > 0){
                   var tanggal =""
-                  if(this.formatDate(new Date(kadivData[0].tanggal)) !== "2001-1-1"  && this.formatDate(new Date(kadivData[0].tanggal)) !== "1-1-1"){
+                  if(this.formatDate(new Date(kadivData[0].tanggal)) !== "2001-1-1"  && this.formatDate(new Date(kadivData[0].tanggal)) !== "1-1-1"  && this.formatDate(new Date(kadivData[0].tanggal)) !== "NaN-NaN-NaN"){
                     tanggal = this.formatDate(new Date(kadivData[0].tanggal))
                   }
   
@@ -678,7 +679,7 @@ class PpdPic extends PolymerElement {
               
                 if(DirekturData.length > 0){
                   var tanggal =""
-                  if(this.formatDate(new Date(DirekturData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(DirekturData[0].tanggal)) !== "1-1-1" ){
+                  if(this.formatDate(new Date(DirekturData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(DirekturData[0].tanggal)) !== "1-1-1"  && this.formatDate(new Date(DirekturData[0].tanggal)) !== "NaN-NaN-NaN"){
                     tanggal = this.formatDate(new Date(DirekturData[0].tanggal))
                   }
 
@@ -768,11 +769,13 @@ class PpdPic extends PolymerElement {
     /***** Cancel dialog ******/
   
     cancel_upd(){
+   
       this.shadowRoot.querySelector('#dialog_upd').opened =  false
     }
 
     
     cancel(){
+       this.toast = "Berhasil Menyimpan PPD"
       this.shadowRoot.querySelector('#dialog_manager').opened =  false
       this.set('route.path', '/panel/proposal');
     }
@@ -871,6 +874,7 @@ class PpdPic extends PolymerElement {
     }
 
     cetak(){
+      this.toast = "Berhasil Menyimpan PPD"
       this.shadowRoot.querySelector('#dialog_manager').opened =  false
       this.printData();
     }

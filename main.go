@@ -74,7 +74,8 @@ func main() {
 			// Function
 			api.POST("/user/password", controller.UpdatePassword)
 			api.POST("/upload", controller.UploadImage)
-			api.GET("/report/proposal", controller.ManageProposal)
+			api.POST("/report/proposal", controller.ManageProposal)
+			api.POST("/report/proposal/kategori", controller.ManageProposalKategori)
 			api.GET("/report/upd/:kat/:id", controller.UpdProposal)
 			api.GET("/report/verifikasi/:kat/:id", controller.VerifikasiProposal)
 			api.GET("/report/komite/:kat/:id", controller.KomiteProposal)

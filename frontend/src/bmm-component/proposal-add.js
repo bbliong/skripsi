@@ -67,6 +67,7 @@ class ProposalAdd extends PolymerElement {
       <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
       <global-variable key="Register" value="{{ regObj }}"></global-variable>
       <global-variable key="error" value="{{ error }}"></global-variable>
+      <global-variable key="toast" value="{{ toast }}"></global-variable>
       <global-data id="globalData"></global-data>
       <div class="card">
       <h1>Pendaftaran Muztahik</h1>
@@ -238,7 +239,7 @@ class ProposalAdd extends PolymerElement {
       // this.inisialRegObj()
       this.$.datass.url= MyAppGlobals.apiPath + "/api/kategori"
       this.$.datass.headers['authorization'] = this.storedUser.access_token;
-      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=2"  
+      this.$.managerDPP.url= MyAppGlobals.apiPath + "/api/users?role=3&role2=4&role3=9"    
       this.$.managerDPP.headers['authorization'] = this.storedUser.access_token;
       this.$.getData.url= MyAppGlobals.apiPath + "/api/muztahik/" + this.routeData.view
       this.$.getData.headers['authorization'] = this.storedUser.access_token;
@@ -313,6 +314,14 @@ class ProposalAdd extends PolymerElement {
     
   }
   sendData(){
+    if(this.selectedKategori == null ){
+      this.toast = "Terjadi Masalah : Kategori Belum Dipilih"
+      return;
+     }
+    else if (typeof this.regObj.persetujuan.manager_id == "undefined" || typeof this.regObj.persetujuan.kadiv_id == "undefined"){
+      this.toast = "Terjadi Masalah : Manager ID atau Kadiv ID belum terisi"
+      return;
+    }
     this.$.postData.url= MyAppGlobals.apiPath + "/api/pendaftaran"
     this.$.postData.headers['authorization'] = this.storedUser.access_token;
     this.$.postData.body  = {
@@ -335,11 +344,15 @@ class ProposalAdd extends PolymerElement {
   // FUngsi untuk handle post data proposal
 
   _handleProposal(e){
+    this.toast = e.detail.response.Message
     this.set('route.path', '/panel/proposal');
   }
   _handleProposalError(e){
-    this.error = e.detail.request.xhr.status
-    console.log(e)
+    if(e.detail.request.xhr.status == 401){
+      this.error = e.detail.request.xhr.status
+    }else{
+      this.toast =e.detail.request.xhr.response.Message
+    }
     
   }
 

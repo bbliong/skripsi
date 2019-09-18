@@ -154,7 +154,7 @@ class MuztahikProfile extends PolymerElement {
             </header>
             <aside class="aside aside-1">
                 <img src="/images/no_photo.png" alt="photo muztahik" id="img" class="img-rounded">
-                <vaadin-upload id="uploadPhoto" capture="camera" accept="image/*" nodrop></vaadin-upload>                  
+                <vaadin-upload id="uploadPhoto" capture="camera" accept="image/*" nodrop ></vaadin-upload>                  
             </aside>
             <section class="main">
               <table class="aside">

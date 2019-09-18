@@ -202,7 +202,7 @@ class Proposal extends PolymerElement {
        <vaadin-dialog  id="dialogPencairan">
           <template>
            <h3> Pencairan dana a/n  {{ Pencairan.muztahiks.nama}}</h3>
-            <vaadin-date-picker id="end" label="Tanggal Akhir"value="{{Pencairan.persetujuan.tanggal_pencairan}}" style="width:100%"></vaadin-date-picker><br>
+            <vaadin-date-picker id="end" label="Tanggal Pencairan"value="{{Pencairan.persetujuan.tanggal_pencairan}}" style="width:100%"></vaadin-date-picker><br>
             <vaadin-number-field label="Jumlah Pencairan" style="width:100%" value="{{Pencairan.persetujuan.jumlah_pencairan}}"></vaadin-number-field><br>
             <vaadin-text-area label="Keterangan" style="width:100%" value="{{Pencairan.persetujuan.keterangan}}"></vaadin-text-area><br>
             <vaadin-button on-click="simpanPencairan" id="simpanPencairan"> Simpan Data Pencairan</vaadin-button>
@@ -265,14 +265,10 @@ class Proposal extends PolymerElement {
               debounce-duration="300">
           </iron-ajax>
 
-          <global-variable key="LoginCred" 
-              value="{{ storedUser }}">
-          </global-variable>
-          <global-variable key="error" 
-              value="{{ error }}">
-          </global-variable>
-          <global-data id="globalData">
-          </global-data>
+          <global-variable key="LoginCred"   value="{{ storedUser }}"> </global-variable>
+          <global-variable key="error"   value="{{ error }}">  </global-variable>
+          <global-variable key="toast" value="{{ toast }}"></global-variable>
+          <global-data id="globalData"> </global-data>
 
           <div class="filter-side">
               <paper-icon-button icon="search" on-click="dialogSearch"></paper-icon-button>
@@ -376,6 +372,7 @@ class Proposal extends PolymerElement {
             }
           }
         },
+        statusRequest : Number
   }
 } 
 
@@ -408,7 +405,7 @@ connectedCallback() {
         "level_persetujuan" : this.regObj.level_persetujuan
       }
     }
-    // console.log( this.$.postData.body)
+    this.statusRequest = 1
     this.$.postData.generateRequest();
   }
 
@@ -419,12 +416,13 @@ connectedCallback() {
     this.$.postData.body  = {
       "muztahik_id" : this.Pencairan._id,
       "persetujuan" : {
+        "level_persetujuan" : this.Pencairan.persetujuan.level_persetujuan,
         "tanggal_pencairan" :  new Date(this.Pencairan.persetujuan.tanggal_pencairan).toISOString(),
         "jumlah_pencairan" :  parseInt(this.Pencairan.persetujuan.jumlah_pencairan),
         "keterangan" :  this.Pencairan.persetujuan.keterangan,
       }
     }
-    //console.log( this.$.postData.body)
+    this.statusRequest = 2
     this.$.postData.generateRequest();
   }
   _activatedChanged(newValue, oldValue){
@@ -570,7 +568,7 @@ connectedCallback() {
             url = "/panel/proposal/ppd-pic"
           }
           var approve = rowData.item.komite.filter(function(data){
-            return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
+            return typeof data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
           })
 
           if(rowData.item.komite.length == approve.length){
@@ -584,7 +582,7 @@ connectedCallback() {
 
             if(typeof  rowData.item.ppd !== "undefined"){
               var approve = rowData.item.ppd.filter(function(data){
-                return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
+                return typeof data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
               })
     
               if(rowData.item.ppd.length == approve.length && that.storedUser.role == 2){
@@ -594,6 +592,9 @@ connectedCallback() {
                   root.appendChild(el).addEventListener('click', function(e){
                     that.Pencairan  = rowData.item
                     that.Pencairan.persetujuan.tanggal_pencairan = that.formatDate2(new Date(rowData.item.persetujuan.tanggal_pencairan))
+                    if (typeof that.Pencairan.persetujuan.jumlah_pencairan  == "undefined"){
+                      that.Pencairan.persetujuan.jumlah_pencairan = that.Pencairan.kategoris.jumlah_bantuan
+                    }
                     that.shadowRoot.querySelector("#dialogPencairan").opened = true
                   })
                 action.width =(that._subCon(action.width) <  that._subCon("440px")) ?   "440px" : action.width; 
@@ -733,9 +734,13 @@ connectedCallback() {
          
             if(typeof rowData.item.komite !== "undefined"){
               var approve = rowData.item.komite.filter(function(data){
-                return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
+                return typeof data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
               })
-              if (approve.length > 0){
+              if (approve.length == rowData.item.komite.length){
+                status = "TTD Komite Sudah Lengkap" 
+                root.classList.add("status-verifikasi")
+                root.style.backgroundColor = colors[11] 
+              }else if (approve.length > 0){
                 status = "Komite sudah di ttd " + approve.length  + " orang" 
                 root.classList.add("status-verifikasi")
                 root.style.backgroundColor = colors[9] 
@@ -748,10 +753,9 @@ connectedCallback() {
             root.classList.add("status-verifikasi")
             root.style.backgroundColor = colors[10] 
 
-            
             if(typeof rowData.item.ppd !== "undefined"){
               var approve = rowData.item.ppd.filter(function(data){
-                return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
+                return typeof data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
               })
               if (approve.length == 4){
                 status = "TTD PPD Sudah Lengkap" 
@@ -887,13 +891,22 @@ connectedCallback() {
   // Handle update pic
   
   _handleProposalPost(e){
+    if(this.statusRequest == 1){
+      this.toast = "Berhasil memilih PIC"
+    }else if(this.statusRequest == 1){
+      this.toast = "Alhamdulillah sudah melakukan pencairan"
+    }
     this.shadowRoot.querySelector("vaadin-dialog").opened = false
     this.shadowRoot.querySelector("#dialogPencairan").opened = false
     this.getData(this.storeData)
   }
 
   _handleProposalPostError(e){
-    console.log(e)
+    if(e.detail.request.xhr.status == 401){
+      this.error = e.detail.request.xhr.status
+    }else{
+      this.toast =e.detail.request.xhr.response.Message
+    }
   }
 
 

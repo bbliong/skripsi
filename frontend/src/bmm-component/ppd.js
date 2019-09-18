@@ -476,7 +476,7 @@ connectedCallback() {
          
             if(typeof rowData.item.komite !== "undefined"){
               var approve = rowData.item.komite.filter(function(data){
-                return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
+                return typeof data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
               })
               if (approve.length > 0){
                 status = "Komite sudah di ttd " + approve.length  + " orang" 
@@ -496,12 +496,11 @@ connectedCallback() {
             
               if(typeof rowData.item.ppd !== "undefined"){
                 var approve = rowData.item.ppd.filter(function(data){
-                  return data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
+                  return typeof data.tanggal !== "undefined" && data.tanggal !== "" && data.tanggal !== "0001-01-01T00:00:00Z"  
                 })
                 if (approve.length == 4){
                   status = "TTD PPD Sudah Lengkap" 
                   root.classList.add("status-verifikasi")
-                  console.log(colors[11] )
                   root.style.backgroundColor = colors[11] 
                 }else if (approve.length > 0){
                   status = "PPd sudah di ttd " + approve.length  + " orang" 
@@ -643,7 +642,6 @@ connectedCallback() {
      // Fungsi untuk handle kategori
     _handleKategori(e){
       var response = e.detail.response;
-      console.log(response)
       this.Kategori = response.data
     }
     _errorKategori(e){

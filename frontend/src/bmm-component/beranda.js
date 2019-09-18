@@ -42,42 +42,144 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
       <style include="shared-styles">
         :host {
           display: block;
-
-          padding: 10px;
         }
 
        
          /* Phone and tablet */
-          #chartBMM {
+          #chartBMM1 {
             height: 300px;
             width: 300px;
           }
+          #chartBMM2 {
+            height: 300px;
+            width: 300px;
+          }
+
+      
+          .bar1 {
+              display: blocks;
+              margin-top  : -50px;
+            }
+          
+          .header{
+            background: #5C55BF;
+            color: white;
+            padding: 50px;
+            margin-top: -10px;
+          }
+
+          .header > h1 {
+            color : #fff;
+            display : inline;
+          }
+
           /* Desktop */
           @media screen and (min-width: 1024px) {
-            #chartBMM {
-              width: 600px;
+            #chartBMM1 {
+              width: 500px;
             }
+            #chartBMM2 {
+              width: 100%;
+            }
+
+           .bar1 {
+              display: flex;
+            }
+
+            .bar1 > .card {
+                display: inline-block;
+                flex: 1;
+            }
+
+            .bar1 > .card:nth-child(1){
+              width : 500px;
+            }
+
+            .bar1 > .card:nth-child(2){
+              width : 400px;
+            }
+
           }
 
           #main {
           display :none;
         }
 
+        .card {
+          box-shadow: 2px 6px 15px 0 rgba(69,65,78,.1);
+          -webkit-box-shadow: 2px 6px 15px 0 rgba(69,65,78,.1);
+          -moz-box-shadow: 2px 6px 15px 0 rgba(69,65,78,.1);
+        }
+
+        .card > span {
+          padding: 5px;
+          border-radius: 50%;
+          border: 1px solid white;
+          display: inline;
+          right: 2px;
+          text-align: right;
+          position: absolute;
+          right: 10px;
+          top: 10px;
+          width: 30px;
+          height: 30px;
+          line-height: 30px;
+          text-align: center;
+        }
+
       </style>
-       <bmm-loader></bmm-loader>
-      <div class="card" id="main">
+     
+
+      <div id="main">
+      <bmm-loader></bmm-loader>
+        <div class="header">
         <h1> Grafik Proposal Masuk Baitulmaal Muamalat</h1>
         <paper-button raised class="indigo" on-click="refreshCount">Refresh</paper-button>
-        <google-chart 
-          id="chartBMM"
-          type="pie"
-          cols='[{"label": "Kategori", "type": "string"},{"label": "Jumlah", "type": "number"}]'
-          rows='{{Kategori}}'
-          options='{"vAxis": {"minValue" : 0, "maxValue": 10},
-          "chartArea": {"width": "100%"},
-          "selectionMode": "multiple"}'
-         >
-        </google-chart>
+        </div>  
+        <div class="bar1">
+        <div class="card" >
+          <h3> Proposal per Kategori</h3>
+          <google-chart 
+            id="chartBMM1"
+            type="pie"
+            cols='[{"label": "Kategori", "type": "string"},{"label": "Jumlah", "type": "number"}]'
+            rows='{{Kategori}}'
+            options='{"vAxis": {"minValue" : 0, "maxValue": 20},
+            "chartArea": {"width": "100%"},
+            "selectionMode": "multiple"}'
+          >
+          </google-chart>
+        </div>
+         <div class="card">
+            <h3> Data Jumlah </h3>
+            <div class="card" style="background : #990099; margin:0;margin-bottom:10px;color:white;position:relative;">
+              Data Muztahik 
+              <span> {{JumlahMuztahik}} </span>
+            </div>  
+            <div class="card" style="background : #0099C6; margin:0;margin-bottom:10px;color:white;position:relative;">
+              Data Proposal Masuk
+              <span> {{JumlahProposal}} </span>
+            </div>  
+            <div class="card" style="background : #B82E2E; margin:0;margin-bottom:10px;color:white;position:relative;">
+              Data  Proposal Sudah Pencairan
+              <span> {{JumlahPencairan}} </span>
+            </div>          
+         </div>
+      </div>
+        <div class="card">
+          <h3>Status Proposal </h3>
+          <google-chart 
+            id="chartBMM2"
+            type="column"
+            cols='[{"label": "Kategori", "type": "string"},{"label": "Jumlah", "type": "number"}]'
+            rows='{{Graph2}}' >
+          </google-chart>
+        </div>
+
+      </div>
+
+      
+
 
         <iron-ajax
           id="Counts"
@@ -98,7 +200,7 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
       <global-data id="globalData">
       </global-data>
       
-      </div>
+
     `;
   }
 
@@ -114,7 +216,18 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
           ]
         }
       },
-
+      Graph2: {
+        type: Array,
+        notify: true,
+        value : function(){
+          return [
+            ["data",1]
+          ]
+        }
+      },
+      JumlahProposal : Number,
+      JumlahPencairan : Number,
+      JumlahMuztahik : Number,
       data: {
         type: Object,
         notify: true
@@ -129,6 +242,7 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
         type : Object,
         notify : true
       }
+      
 
     }
   }
@@ -159,12 +273,28 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
 
   getCount(e){
     var data = e.detail.response.data
+    var data2 = e.detail.response.data2
+    var data3 = e.detail.response.data3
    
     var kategori = []
     for (var key in  data){
       kategori.push([key, data[key]])
     }
+
+    var Graph2 = []
+    var index = ["Belum Diverifikasi", "Sudah Diverifikasi", "UPD Sudah Dibuat" , "UPD diperiksa Manager", "UPD Disetujui Kadiv/Direktur", "UPD Tidak disetujui Kadiv/Direktur", "Komite sudah dibentuk", "PPD sudah dibuat", "Pencairan"]
+
+    for(var key in  data2){
+        Graph2.push([index[key - 1], data2[key]])
+    }
+    
+  
     this.Kategori = kategori
+    this.Graph2 = Graph2
+    this.JumlahProposal = data3[0]
+    this.JumlahPencairan = data3[1]
+    this.JumlahMuztahik = data3[2]
+
     this._loading(0)
   }
 
@@ -182,7 +312,8 @@ class Beranda extends mixinBehaviors([NeonAnimationRunnerBehavior,IronResizableB
   }
 
   onIronResize() {
-    this.$.chartBMM.redraw(); 
+    this.$.chartBMM1.redraw(); 
+    this.$.chartBMM2.redraw(); 
   }
 
   handleError(e){

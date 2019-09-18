@@ -455,7 +455,6 @@ class VerifikatorEdit extends PolymerElement {
 
   _handleProposal(e){
     this.regObj = e.detail.response.Data
-    console.log(this.regObj)
     if(typeof this.regObj.verifikasi == "undefined"){
         this.regObj.verifikasi =   {
             "tanggal_verifikasi" : this.formatDate(new Date()),
@@ -471,13 +470,22 @@ class VerifikatorEdit extends PolymerElement {
         }
     }
 
+ 
+    if(typeof this.regObj.verifikasi.nama_pelaksana == "undefined"  ){
+      this.regObj.verifikasi.nama_pelaksana = this.storedUser.name
+    }else if(this.regObj.verifikasi.nama_pelaksana == ""){
+      this.regObj.verifikasi.nama_pelaksana = this.storedUser.name
+    }
+
     //Handle checkbox cara verifikasi
-    if(this.regObj.verifikasi.cara_verifikasi.length !== 0){
-        let cara = this.regObj.verifikasi.cara_verifikasi
-        const options = Array.from(this.shadowRoot.querySelectorAll('vaadin-checkbox[value]'));
-        cara.forEach(function(item, index){
-            options[index].checked =true
-        })
+    if(typeof this.regObj.verifikasi.cara_verifikasi !== "undefined"){
+      if(this.regObj.verifikasi.cara_verifikasi.length !== 0){
+          let cara = this.regObj.verifikasi.cara_verifikasi
+          const options = Array.from(this.shadowRoot.querySelectorAll('vaadin-checkbox[value]'));
+          cara.forEach(function(item, index){
+              options[index].checked =true
+          })
+      }
     }
 
     //Handle card pihak dverifikasi

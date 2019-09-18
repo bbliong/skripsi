@@ -147,6 +147,7 @@ class KomitePic extends PolymerElement {
 
       <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
       <global-variable key="error" value="{{ error }}"></global-variable>
+      <global-variable key="toast" value="{{ toast }}"></global-variable>
       <global-data id="globalData"></global-data>
 
       <vaadin-dialog aria-label="polymer templates" id="dialog_upd">
@@ -290,7 +291,7 @@ class KomitePic extends PolymerElement {
                 <tr>
                   <th> Biaya Kegiatan</th>
                   <td>
-                      <vaadin-number-field label="" value="{{ regObj.kategoris.jumlah_bantuan }}" style="width:50%;"></vaadin-number-field>
+                      <vaadin-number-field label="" value="{{ regObj.kategoris.jumlah_bantuan }}" style="width:45%;"></vaadin-number-field>
                       <vaadin-button on-click="_checkKomiteTerpilih">Cek</vaadin-button>
                   </td>
                   <th>Sumber Dana</th>
@@ -343,17 +344,38 @@ class KomitePic extends PolymerElement {
                         <tr>
                           <th> 
                           <p style="margin-left : 20px;">Status  :  {{displayStatus(item.status)}}</p>
-                          <vaadin-select value="{{ item.user }}" label="Kepala Divisi">
-                              <template>
-                                <vaadin-list-box>
-                                <dom-repeat items="{{ cekUser(User, 4)}}">
-                                  <template>
-                                    <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
-                                  </template>
-                                </dom-repeat>
-                                </vaadin-list-box>
-                              </template>
-                            </vaadin-select>
+                        <dom-if if="{{item.status}}">
+                            <template>
+                            <vaadin-select value="{{ item.user }}" label="Kepala Divisi" disabled>
+                                <template>
+                                  <vaadin-list-box>
+                                  <dom-repeat items="{{ cekUser(User, 4)}}">
+                                    <template>
+                                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                    </template>
+                                  </dom-repeat>
+                                  </vaadin-list-box>
+                                </template>
+                              </vaadin-select>
+                            </template>
+                          </dom-if>
+
+                          <dom-if if="{{!item.status}}">
+                            <template>
+                            <vaadin-select value="{{ item.user }}" label="Kepala Divisi" >
+                                <template>
+                                  <vaadin-list-box>
+                                  <dom-repeat items="{{ cekUser(User, 4)}}">
+                                    <template>
+                                      <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                    </template>
+                                  </dom-repeat>
+                                  </vaadin-list-box>
+                                </template>
+                              </vaadin-select>
+                            </template>
+                          </dom-if>
+
                             <br>
                             
                           </th>
@@ -378,7 +400,9 @@ class KomitePic extends PolymerElement {
                         <tr>
                           <th> 
                           <p style="margin-left : 20px;">Status  :  {{displayStatus(item.status)}}</p>
-                          <vaadin-select value="{{ item.user}}" label="Kepala Divisi">
+                          <dom-if if="{{item.status}}">
+                            <template>
+                          <vaadin-select value="{{ item.user}}" label="Kepala Divisi"  disabled>
                               <template>
                                 <vaadin-list-box>
                                 <dom-repeat items="{{cekUser(User, 7)}}">
@@ -389,6 +413,24 @@ class KomitePic extends PolymerElement {
                                 </vaadin-list-box>
                               </template>
                             </vaadin-select>
+                            </template>
+                            </dom-if >
+
+                            <dom-if if="{{!item.status}}">
+                            <template>
+                          <vaadin-select value="{{ item.user}}" label="Kepala Divisi"  >
+                              <template>
+                                <vaadin-list-box>
+                                <dom-repeat items="{{cekUser(User, 7)}}">
+                                  <template>
+                                    <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                  </template>
+                                </dom-repeat>
+                                </vaadin-list-box>
+                              </template>
+                            </vaadin-select>
+                            </template>
+                            </dom-if >
                             <br>
                             
                           </th>
@@ -413,7 +455,10 @@ class KomitePic extends PolymerElement {
                         <tr>
                           <th> 
                           <p style="margin-left : 20px;">Status  :   {{displayStatus(item.status)}}</p>
-                          <vaadin-select value="{{ item.user }}" label="Kepala Divisi">
+                          
+                          <dom-if if="{{item.status}}">
+                            <template>
+                          <vaadin-select value="{{ item.user }}" label="Kepala Divisi" disabled>
                               <template>
                                 <vaadin-list-box>
                                 <dom-repeat items="{{cekUser(User, 8)}}">
@@ -424,6 +469,24 @@ class KomitePic extends PolymerElement {
                                 </vaadin-list-box>
                               </template>
                             </vaadin-select>
+                            </template>
+                          </dom-if>
+
+                          <dom-if if="{{!item.status}}">
+                            <template>
+                          <vaadin-select value="{{ item.user }}" label="Kepala Divisi" >
+                              <template>
+                                <vaadin-list-box>
+                                <dom-repeat items="{{cekUser(User, 8)}}">
+                                  <template>
+                                    <vaadin-item label="{{item.nama}}" value="{{item.Id}}">{{item.nama}}</vaadin-item>
+                                  </template>
+                                </dom-repeat>
+                                </vaadin-list-box>
+                              </template>
+                            </vaadin-select>
+                            </template>
+                          </dom-if>
                             <br>
                             
                           </th>
@@ -603,14 +666,14 @@ class KomitePic extends PolymerElement {
                 "status" : 0,
                 "catatan" : "",
                 "tanggal" : "",
-                
+                "levelKomite" : 1,
               },
               {
                 "user" : "",
                 "status" : 0,
                 "catatan" : "",
                 "tanggal" : "",
-                
+                "levelKomite" : 1,
               }
             ]
             this.Pengurus = []
@@ -622,6 +685,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 1,
               
             },
             {
@@ -629,6 +693,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 1,
               
             }
           ]
@@ -637,7 +702,8 @@ class KomitePic extends PolymerElement {
               "user" : "",
               "status" : 0,
               "catatan" : "",
-              "tanggal" : "",
+              "tanggal" : "",              
+              "levelKomite" : 2,
               
             }
           ]
@@ -648,14 +714,15 @@ class KomitePic extends PolymerElement {
               "user" : "",
               "status" : 0,
               "catatan" : "",
-              "tanggal" : "",
-              
+              "tanggal" : "",    
+              "levelKomite" : 1,          
             },
             {
               "user" : "",
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 1,
               
             }
           ]
@@ -665,6 +732,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 2,
               
             },
             {
@@ -672,6 +740,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 2,
               
             }
           ]
@@ -682,7 +751,8 @@ class KomitePic extends PolymerElement {
               "user" : "",
               "status" : 0,
               "catatan" : "",
-               "tanggal" : "",
+               "tanggal" : "",               
+              "levelKomite" : 1,
               
             },
             {
@@ -690,6 +760,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 1,
               
             }
           ]
@@ -699,6 +770,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 2,
               
             },
             {
@@ -706,6 +778,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 2,
               
             }
           ]
@@ -715,6 +788,7 @@ class KomitePic extends PolymerElement {
               "status" : 0,
               "catatan" : "",
               "tanggal" : "",
+              "levelKomite" : 3,
               "role" : 8
             }
           ]
@@ -727,7 +801,7 @@ class KomitePic extends PolymerElement {
     }
 
     _checkKomiteTerpilih(){
-      console.log(this.regObj.kategoris.jumlah_bantuan)
+
       this._changeKomite(this.regObj.kategoris.jumlah_bantuan)
       if ( typeof this.regObj.komite !== "undefined" ){
           if(this.regObj.komite.length > 0){
@@ -735,7 +809,7 @@ class KomitePic extends PolymerElement {
             
             // Filter kadiv yang nilainya 4 dan di balikan berupa nilai object ke kadiv
             var cloneKadiv = this.Kadiv.slice(0);
-            var kadivData =this.regObj.komite.filter(x => x.user.role == 4)
+            var kadivData =this.regObj.komite.filter(x => (x.user.role == 4 || x.user.role == 9) && x.levelKomite == 1)
        
             for (var i = 0; i < cloneKadiv.length ; i++){
               if(typeof kadivData[i] != "undefined"){
@@ -747,17 +821,20 @@ class KomitePic extends PolymerElement {
                   "user" : kadivData[i].user.Id,
                   "catatan" :  kadivData[i].catatan,
                   "status" :   kadivData[i].status,
-                  "tanggal" : tanggal
+                  "tanggal" : tanggal,
+                  "levelKomite" : 1
                 }
               }
             }
+          
             this.Kadiv = cloneKadiv
+            console.log(this.Kadiv)
 
-            // Filter pengurus yang nilainya 4 dan di balikan berupa nilai object ke pengurus
+            // Filter pengurus yang nilainya 7 dan 9 di balikan berupa nilai object ke pengurus
             var clonePengurus = this.Pengurus.slice(0);
            
-            var pengurusData =this.regObj.komite.filter(x => x.user.role == 7 || x.user.role == 9 ) 
-            console.log(pengurusData)
+            var pengurusData =this.regObj.komite.filter(x => (x.user.role == 7 || x.user.role == 9) &&  x.levelKomite == 2) 
+          
             for (var i = 0; i < clonePengurus.length ; i++){
               if(typeof pengurusData[i] != "undefined"){
                 var tanggal =""
@@ -768,17 +845,18 @@ class KomitePic extends PolymerElement {
                     "user" : pengurusData[i].user.Id,
                     "catatan" :  pengurusData[i].catatan,
                     "status" :   pengurusData[i].status,
-                    "tanggal" : tanggal
+                    "tanggal" : tanggal,
+                    "levelKomite" : 2
                   }
               }
              }
             
             }
             this.Pengurus = clonePengurus
-            console.log(   this.Pengurus)
+
               // Filter pengurus yang nilainya 4 dan di balikan berupa nilai object ke pengurus
               var clonePengawas = this.Pengawas.slice(0);
-              var pengawasData =this.regObj.komite.filter(x => x.user.role == 8)
+              var pengawasData =this.regObj.komite.filter(x => x.user.role == 8 && x.levelKomite == 3)
               for (var i = 0; i < clonePengawas.length ; i++){
                 if(typeof pengawasData[i] != "undefined"){
                   var tanggal =""
@@ -789,7 +867,8 @@ class KomitePic extends PolymerElement {
                       "user" : pengawasData[i].user.Id,
                       "catatan" :  pengawasData[i].catatan,
                       "status" :   pengawasData[i].status,
-                      "tanggal" : tanggal
+                      "tanggal" : tanggal,
+                      "levelKomite" : 3
                     }
                 }
               }
@@ -867,7 +946,7 @@ class KomitePic extends PolymerElement {
     _handleKadiv(e){
       var response = e.detail.response;
       this.User = response.data
-      console.log(this.User)
+
     }
 
     _errorKadiv(e){
@@ -933,17 +1012,21 @@ class KomitePic extends PolymerElement {
     }
 
     sendData(){
+      if( typeof this.regObj.persetujuan.tanggal_komite == "undefined" || typeof this.regObj.persetujuan.tanggal_pelaksanaan == "undefined") {
+        this.regObj.persetujuan.tanggal_komite = new Date().toISOString()
+        //this.regObj.persetujuan.tanggal_pelaksanaan = new Date().toISOString()
+      }
       this.Kadiv = this.convertData(this.Kadiv)
       this.Pengawas = this.convertData(this.Pengawas)
       this.Pengurus = this.convertData(this.Pengurus)
       
      this.regObj.komite = [...this.Kadiv, ...this.Pengawas , ...this.Pengurus]
-      console.log(this.regObj)
+      
       this.regObj.kategoris.jumlah_bantuan = parseInt(  this.regObj.kategoris.jumlah_bantuan)
       this.$.postData.url= MyAppGlobals.apiPath + "/api/komite/" + this.routeData.id
       this.$.postData.headers['authorization'] = this.storedUser.access_token;
       this.$.postData.body  = this.regObj
-      this.$.postData.generateRequest();
+       this.$.postData.generateRequest();
     }
 
     convertData(data){
@@ -952,8 +1035,7 @@ class KomitePic extends PolymerElement {
       var i;
       for (i = data.length - 1; i >= 0; i -= 1) {
         var temp =  that.User.filter(u =>  u.Id == data[i].user)
-        if(data[i].tanggal !== "" && data[i].tanggal != "undefined") {
-          console.log(data[i].tanggal)
+        if(data[i].tanggal !== "" && data[i].tanggal !== "undefined" &&  data[i].tanggal !== "NaN-NaN-NaN") {
           data[i].tanggal = new Date(data[i].tanggal).toISOString()
         }else{
           delete data[i].tanggal
@@ -993,12 +1075,14 @@ class KomitePic extends PolymerElement {
     }
 
     cetak(){
+      this.toast = "Berhasil Menyimpan Komite"
       this.shadowRoot.querySelector('#dialog_manager').opened =  false
       this.printData();
     }
 
     
     _handleKomitePrint(e){
+      
       if(typeof e.detail.response.url !== "undefined" ){
          document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
           this.set('route.path', '/panel/proposal');
@@ -1007,7 +1091,7 @@ class KomitePic extends PolymerElement {
 
    _handleKomitePrintError(e){
     this.error = e.detail.request.xhr.status
-      console.log(e)
+     
    }
     /****** Fungsi untuk print  ******/
 

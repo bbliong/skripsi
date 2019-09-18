@@ -64,6 +64,7 @@ class Laporan extends PolymerElement {
       <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
       <global-variable key="Register" value="{{ regObj }}"></global-variable>
       <global-variable key="error" value="{{ error }}"></global-variable>
+      <global-variable key="toast" value="{{ toast }}"></global-variable>
       <global-data id="globalData"></global-data>
 
       <iron-ajax
@@ -73,30 +74,42 @@ class Laporan extends PolymerElement {
           on-error="_errorKategori">
       </iron-ajax>
 
+      <iron-ajax 
+          id="printData"
+          headers='{"Access-Control-Allow-Origin": "*" }'
+          method="POST"
+          handle-as="json"
+          on-response="_handleReport"
+          on-error="_handleReportError"
+          Content-Type="application/json"
+          debounce-duration="300">
+      </iron-ajax>
+
+
       <div class="card" id="main">
         <h1>Laporan</h1>
         <vaadin-form-layout>
-          <vaadin-date-picker id="start" label="Tanggal Awal" value="{{Pencairan.persetujuan.tanggal_pencairan}}"></vaadin-date-picker>
-          <vaadin-date-picker id="end" label="Tanggal Akhir" value="{{Pencairan.persetujuan.tanggal_pencairan}}" ></vaadin-date-picker>
+          <vaadin-date-picker id="start" label="Tanggal Awal" value="{{filter.start_date}}"></vaadin-date-picker>
+          <vaadin-date-picker id="end" label="Tanggal Akhir" value="{{filter.end_date}}" ></vaadin-date-picker>
           <vaadin-select value="{{selectedKategori}}" colspan="2" label="kategori">
-          <template>
-            <vaadin-list-box>
-            <vaadin-item label="Semua" value="0">Semua</vaadin-item>
-            <dom-repeat items="{{Kategori}}">
             <template>
-              <vaadin-item label="{{item.Value}}" value="{{item.kodeP}}">{{item.Value}}</vaadin-item>
+              <vaadin-list-box>
+              <vaadin-item label="Semua" value="0">Semua</vaadin-item>
+                <dom-repeat items="{{Kategori}}">
+                  <template>
+                    <vaadin-item label="{{item.Value}}" value="{{item.KodeP}}">{{item.Value}}</vaadin-item>
+                  </template>
+                </dom-repeat>
+              </vaadin-list-box>
             </template>
-            </dom-repeat>
-            </vaadin-list-box>
-          </template>
           </vaadin-select>
 
-          <vaadin-button on-click="cetak" theme="success"> Monitoring </vaadin-button>
-          <vaadin-button on-click="cancel"  theme="primary"> Per Kategori</vaadin-button>
+          <vaadin-button on-click="printData" theme="success"> Monitoring </vaadin-button>
+          <vaadin-button on-click="printDataKategori"  theme="primary"> Per Kategori</vaadin-button>
         </vaadin-form-layout>
 
-        <p> *Tombol Monitoring digunakan untuk mencetak laporan monitoring proposal selama 1 tahun berdasarkan tahun di inputan tanggal awal</p>
-        <p> *Tombol Per Kategori digunakan untuk mencetak laporan monitoring berdasarkan filter diatas</p>
+        <p> *Tombol Monitoring digunakan untuk mencetak laporan dalam 1 buah file (filter kategori tidak berpengaruh)</p>
+        <p> *Tombol Per Kategori digunakan untuk mencetak laporan monitoring dengan file terpisah</p>
       </div>
     `;
   }
@@ -116,14 +129,73 @@ class Laporan extends PolymerElement {
         type : Number,
         notify : true
       },
+      Filter : {
+        type : Object,
+        notify : true,
+        value : function(){
+         return {
+          "start_date" : this.formatDate(new Date()),
+          "end_date" : this.formatDate(new Date()),
+         }
+        }
+      }
     }
   }
 
+      
   static get observers() {
     return [
-      '_routePageChanged(routeData.*)'
+      '_routePageChanged(routeData.*)',
+      '_changeDateStart(Filter.start_date)',
+      '_changeDateEnd(Filter.end_date)',
     ];
   }
+
+    _changeDateStart(f){
+      if (f !== "" && typeof f !== "undefined" ){
+        var date = this.$.start
+        var that =this
+        date.value = this.formatDate(new Date(f))
+
+        if(date.value !== ""){
+          that.Filter.start_date = new Date(date.value).toISOString()
+        }
+
+        date.addEventListener("change", function(){
+          if(date.value !== ""){
+
+            that.Filter.start_date = new Date(date.value).toISOString()
+          }
+        })
+      }
+    }
+
+    _changeDateEnd(f){
+      if (f !== "" && typeof f !== "undefined" ){
+        var date = this.$.end
+        var that =this
+        date.value = this.formatDate(new Date(f))
+
+        if(date.value !== ""){
+          that.Filter.end_date = new Date(date.value).toISOString()
+        }
+
+        date.addEventListener("change", function(){
+          if(date.value !== ""){
+
+            that.Filter.end_date = new Date(date.value).toISOString()
+          }
+        })
+      }
+    }
+
+    formatDate(date){
+      var dd = date.getDate();
+      var mm = date.getMonth()+1; 
+      var yyyy = date.getFullYear();
+      return yyyy + "-" + mm +  "-"+dd
+    }
+
   
   /*********** Start Trigger ketika page berubahs **********/
   _routePageChanged(page) {
@@ -160,6 +232,48 @@ class Laporan extends PolymerElement {
    connectedCallback() {
     super.connectedCallback();
     this._loading(1)
+  } 
+
+    
+   /******  Handle print form verifikator *******/
+  printData(){
+    this.$.printData.url= MyAppGlobals.apiPath + "/api/report/proposal"
+    this.$.printData.headers['authorization'] = this.storedUser.access_token;
+    this.$.printData.body  = {
+      "start_date" : this.Filter.start_date,
+      "end_date" : this.Filter.end_date,
+    }
+    this.$.printData.generateRequest();
+  }
+
+  printDataKategori(){
+   if(this.selectedKategori == ""){
+    this.toast = "Kategori belum dipilih"
+    return
+   }
+
+    this.$.printData.url= MyAppGlobals.apiPath + "/api/report/proposal/kategori"
+    this.$.printData.headers['authorization'] = this.storedUser.access_token;
+    this.$.printData.body  = {
+      "start_date" : this.Filter.start_date,
+      "end_date" : this.Filter.end_date,
+      "kategori" : this.selectedKategori,
+    }
+    console.log( this.$.printData.body)
+    this.$.printData.generateRequest();
+  }
+
+
+  _handleReport(e){
+    if(typeof e.detail.response.url !== "undefined" ){
+      document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
+      // this.set('route.path', '/panel/proposal');
+    }
+  }
+
+  _handleReportError(e){
+    this.error = e.detail.request.xhr.status
+    console.log(e)
   }
 
 }

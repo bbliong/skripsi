@@ -147,12 +147,6 @@ class Menu extends PolymerElement {
                    icon : "home",
                    text : "Beranda"
                   },
-                  {
-                  name : "muztahik",
-                  url : "muztahik",
-                   icon : "face",
-                   text : "Muztahik"
-                  },
                    {
                      name : "proposal",
                      url : "proposal",
@@ -198,18 +192,38 @@ class Menu extends PolymerElement {
                    text : "Laporan"
                   },
                 ],
-                 7:[
+                6:[
                   {
                     name : "beranda",
                     url : "beranda",
                    icon : "home",
                    text : "Beranda"
                   },
+                   {
+                     name : "proposal",
+                     url : "proposal",
+                   icon : "receipt",
+                   text : "Proposal"
+                  },
                   {
-                  name : "muztahik",
-                  url : "muztahik",
-                   icon : "face",
-                   text : "Muztahik"
+                    name : "ppd",
+                    url : "ppd",
+                  icon : "assignment-turned-in",
+                  text : "PPD"
+                 },
+                   {
+                     name : "laporan",
+                     url : "laporan",
+                   icon : "book",
+                   text : "Laporan"
+                  },
+                ],
+                 7:[
+                  {
+                    name : "beranda",
+                    url : "beranda",
+                   icon : "home",
+                   text : "Beranda"
                   },
                    {
                      name : "proposal",
@@ -236,12 +250,6 @@ class Menu extends PolymerElement {
                     url : "beranda",
                    icon : "home",
                    text : "Beranda"
-                  },
-                  {
-                  name : "muztahik",
-                  url : "muztahik",
-                   icon : "face",
-                   text : "Muztahik"
                   },
                    {
                      name : "proposal",
@@ -270,11 +278,11 @@ class Menu extends PolymerElement {
                    text : "Beranda"
                   },
                   {
-                  name : "muztahik",
-                  url : "muztahik",
-                   icon : "face",
-                   text : "Muztahik"
-                  },
+                    name : "muztahik",
+                    url : "muztahik",
+                     icon : "face",
+                     text : "Muztahik"
+                    },
                    {
                      name : "proposal",
                      url : "proposal",

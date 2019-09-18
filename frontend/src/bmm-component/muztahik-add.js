@@ -18,7 +18,6 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/app-route/app-route.js';
 import '@polymer/iron-pages/iron-pages.js';
 import '@polymer/app-route/app-location.js';
-import '@polymer/paper-toast/paper-toast.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/iron-localstorage/iron-localstorage.js';
 
@@ -67,13 +66,14 @@ class MuztahikAdd extends PolymerElement {
       <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
       <global-variable key="Register" value="{{ regObj }}"></global-variable>
       <global-variable key="error" value="{{ error }}"></global-variable>
+      <global-variable key="toast" value="{{ toast }}"></global-variable>
       <global-data id="globalData"></global-data>
       <div class="card">
       <h1>Pendaftaran Muztahik</h1>
 
       <vaadin-form-layout>
             <vaadin-text-field label="Nama" value="{{regObj.muztahik.nama}}"></vaadin-text-field>
-            <vaadin-text-field label="Nik" value="{{regObj.muztahik.nik}}"></vaadin-text-field>
+            <vaadin-text-field label="Nik *Wajib Diisi" value="{{regObj.muztahik.nik}}"></vaadin-text-field>
             <vaadin-text-field label="No Handphone" value="{{regObj.muztahik.nohp}}"></vaadin-text-field>
             <vaadin-text-field label="Email" value="{{regObj.muztahik.email}}"></vaadin-text-field>
         </vaadin-form-layout>
@@ -161,10 +161,6 @@ class MuztahikAdd extends PolymerElement {
       <iron-localstorage name="register-data" value="{{regObj}}"></iron-localstorage>
       <paper-button  raised class="indigo" on-click="sendData" >Registrasi</paper-button> 
       </div>
-      <div class="toast">
-         <paper-toast text="{{toastError}}" id="toastError" ></paper-toast>
-      </div>
-
     `;
   }
 
@@ -207,7 +203,6 @@ class MuztahikAdd extends PolymerElement {
           return []
         }
       },
-      toastError : String,
       resID : String,
       User : {
         type : Array,
@@ -224,10 +219,11 @@ class MuztahikAdd extends PolymerElement {
   static get observers() {
     return [
       '_kategoriSelected(selectedKategori)',
-      '_routePageChanged(routeData.*)'
+      '_routePageChanged(routeData.*)'     
     ];
   }
 
+ 
    /*********** Start Trigger ketika page berubahs **********/
   _routePageChanged(page) {
       this.$.datass.url = "change" //Fix Problem kategori tidak dikirim lagi
@@ -307,7 +303,15 @@ class MuztahikAdd extends PolymerElement {
 
   /*********** Start post data pendaftaran muztahik  **********/
   sendData(){
-      this.$.postData.url= MyAppGlobals.apiPath + "/api/muztahik"
+    if(typeof this.selectedKategori.KodeP == "undefined" ){
+      this.toast = "Terjadi Masalah : Kategori Belum Dipilih"
+      return;
+     }
+    else if (typeof this.regObj.persetujuan.manager_id == "undefined" || typeof this.regObj.persetujuan.kadiv_id == "undefined"){
+      this.toast = "Terjadi Masalah : Manager ID atau Kadiv ID belum terisi"
+      return;
+    }
+    this.$.postData.url= MyAppGlobals.apiPath + "/api/muztahik"
     this.$.postData.headers['authorization'] = this.storedUser.access_token;
     this.$.postData.body  = this.regObj.muztahik
     this.$.postData.generateRequest();
@@ -337,8 +341,6 @@ class MuztahikAdd extends PolymerElement {
             judul_proposal : this.regObj.judul_proposal,
             tanggalProposal : this.regObj.tanggalProposal,
           }
-
-          //console.log(this.regObj)
           this.$.postData.generateRequest();
         }
       break;
@@ -350,7 +352,8 @@ class MuztahikAdd extends PolymerElement {
           }
           this.regObj =   data
           this.selectedKategori = {}
-          this.set('subroute.path', '/muztahik');
+          this.toast = e.detail.response.Message
+          this.set('route.path', '/panel/muztahik');
         }
       }
 
@@ -360,22 +363,21 @@ class MuztahikAdd extends PolymerElement {
     if(e.detail.request.xhr.status == 401){
       this.error = e.detail.request.xhr.status
     }else{
+      this.toast =e.detail.request.xhr.response.Message
         if (this.resID != ""){
           this.$.deleteData.url= MyAppGlobals.apiPath + "/api/muztahik/" + this.resID
           this.$.deleteData.headers['authorization'] = this.storedUser.access_token;
           this.$.deleteData.generateRequest();
         }
-      this.toastError =e.detail.request.xhr.response.Message
-      this.$.toastError.open();
-   }
+    }
   }
 
   _handleMuztahikDelete(e){
-    console.log(e)
+    // console.log(e)
   }
 
   _handleMuztahikDeleteError(e){
-    console.log(e)
+    // console.log(e)
   }
    /*********** End Fungsi untuk handle post data muztahik **********/
 

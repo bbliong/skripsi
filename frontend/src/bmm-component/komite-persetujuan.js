@@ -147,6 +147,7 @@ class KomitePersetujuan extends PolymerElement {
 
       <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
       <global-variable key="error" value="{{ error }}"></global-variable>
+      <global-variable key="toast" value="{{ toast }}"></global-variable>
       <global-data id="globalData"></global-data>
 
       <vaadin-dialog aria-label="polymer templates" id="dialog_upd">
@@ -423,7 +424,7 @@ class KomitePersetujuan extends PolymerElement {
                               </template>
                           </dom-if>                         
                            </p>
-                          <vaadin-select value="{{ item.user}}" label="Kepala Divisi" disabled>
+                          <vaadin-select value="{{ item.user}}" label="Pengawas" disabled>
                               <template>
                                 <vaadin-list-box>
                                 <dom-repeat items="{{cekUser(User, 7)}}">
@@ -816,11 +817,12 @@ class KomitePersetujuan extends PolymerElement {
             
             // Filter kadiv yang nilainya 4 dan di balikan berupa nilai object ke kadiv
             var cloneKadiv = this.Kadiv.slice(0);
-            var kadivData =this.regObj.komite.filter(x => x.user.role == 4 || x.user.role  == 9)
+            var kadivData =this.regObj.komite.filter(x => (x.user.role == 4 || x.user.role == 9) && x.levelKomite == 1)
             for (var i = 0; i < cloneKadiv.length ; i++){
               if(typeof kadivData[i] != "undefined"){
                 var tanggal =""
-                if(this.formatDate(new Date(kadivData[i].tanggal)) !== "1-1-1" ){
+          
+                if(this.formatDate(new Date(kadivData[i].tanggal)) !== "1-1-1"  &&  this.formatDate(new Date(kadivData[i].tanggal))  !== "NaN-NaN-NaN" ){
                   tanggal = this.formatDate(new Date(kadivData[i].tanggal))
                 }
                 cloneKadiv[i] = {
@@ -836,8 +838,8 @@ class KomitePersetujuan extends PolymerElement {
             // Filter pengurus yang nilainya 4 dan di balikan berupa nilai object ke pengurus
             var clonePengurus = this.Pengurus.slice(0);
            
-            var pengurusData =this.regObj.komite.filter(x => x.user.role == 7 || x.user.role  == 9)
-           console.log( this.Pengurus)
+            var pengurusData =this.regObj.komite.filter(x =>(x.user.role == 7 || x.user.role == 9) &&  x.levelKomite == 2)
+         
             for (var i = 0; i < clonePengurus.length ; i++){
               if(typeof pengurusData[i] != "undefined"){
                 var tanggal =""
@@ -857,7 +859,7 @@ class KomitePersetujuan extends PolymerElement {
             }
             this.Pengurus = clonePengurus
          
-           // console.log(   this.Pengurus)
+         
               // Filter pengurus yang nilainya 4 dan di balikan berupa nilai object ke pengurus
               var clonePengawas = this.Pengawas.slice(0);
               var pengawasData =this.regObj.komite.filter(x => x.user.role == 8)
@@ -1005,6 +1007,7 @@ class KomitePersetujuan extends PolymerElement {
     }
 
     formatDate(date){
+
       var dd = date.getDate();
       var mm = date.getMonth()+1; 
       var yyyy = date.getFullYear();
@@ -1081,12 +1084,14 @@ class KomitePersetujuan extends PolymerElement {
     }
 
     cetak(){
+      this.toast = "Berhasil Menyimpan Komite"
       this.shadowRoot.querySelector('#dialog_manager').opened =  false
       this.printData();
     }
 
     
     _handleKomitePrint(e){
+    
       if(typeof e.detail.response.url !== "undefined" ){
          document.location.href =  MyAppGlobals.apiPath  + e.detail.response.url
           this.set('route.path', '/panel/proposal');

@@ -57,13 +57,12 @@ func CreatePendaftaran(c *gin.Context) {
 	Pendaftarans, err = switchKategoriPendaftaran(Kat.Kategori, c)
 
 	if err != nil {
-		result := gin.H{
-			"Status": err,
-		}
-		c.JSON(501, result)
+		fmt.Println(err)
+		c.JSON(500, gin.H{
+			"Message": err.Error(),
+		})
 		return
 	}
-
 	collection := db.Collection("pendaftaran")
 
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
@@ -184,6 +183,10 @@ func switchKategoriPendaftaran(kat int32, c *gin.Context) (interface{}, error) {
 			return nil, fmt.Errorf("Kategori tidak ditemukan")
 		}
 	}
+
+	if err != nil {
+		err = fmt.Errorf("Terjadi Masalah, isi default data bertanda *wajib diisi")
+	}
 	return Pendaftarans, err
 }
 
@@ -266,8 +269,7 @@ func GetAllPendaftaran(c *gin.Context) {
 		if len(filterRole) != 0 {
 			filter["persetujuan.level_persetujuan"] = filterRole
 		}
-		fmt.Println(url[2])
-		if strings.Contains(url[2], "ppd")  {
+		if strings.Contains(url[2], "ppd") {
 			if claims.Role == 4 || claims.Role == 2 || claims.Role == 3 || claims.Role == 9 {
 				filter["ppd.user._id"] = claims.ID
 			}
@@ -282,11 +284,12 @@ func GetAllPendaftaran(c *gin.Context) {
 
 			if (claims.Role == 4 && claims.Department != 1) || claims.Role == 7 || claims.Role == 8 {
 				filter["komite.user._id"] = claims.ID
+			} else if claims.Role == 4 && claims.Department == 1 {
+				filter["persetujuan.kadiv_id"] = claims.ID
 			}
 		}
 	}
 
-	fmt.Println(filter)
 	// Set Projection
 	filterProjection := FilterProjection(claims.Role)
 	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(filterProjection))
@@ -436,6 +439,25 @@ func GetAllPendaftaranCount(c *gin.Context) {
 			"BCM":    0,
 			"ASM":    0,
 		}
+
+		jumlahProposal  int32
+		jumlahPencairan int32
+
+		Graph2 struct {
+			Id    int32 `json:"_id,omitempty" bson:"_id,omitempty"`
+			Count int32 `json:"count,omitempty" bson:"count,omitempty"`
+		}
+		Result2 = map[int32]int32{
+			1: 0,
+			2: 0,
+			3: 0,
+			4: 0,
+			5: 0,
+			6: 0,
+			7: 0,
+			8: 0,
+			9: 0,
+		}
 	)
 
 	// Memilih Tabel
@@ -447,6 +469,7 @@ func GetAllPendaftaranCount(c *gin.Context) {
 	projection := bson.D{
 		{"_id", 1},
 		{"kategori", 1},
+		{"persetujuan.level_persetujuan", 1},
 	}
 
 	//Set Projection
@@ -489,10 +512,62 @@ func GetAllPendaftaranCount(c *gin.Context) {
 		case 12:
 			Kats["ASM"]++
 		}
+		jumlahProposal++
 	}
 
+	// Chart 2
+	//Set Projection
+	cursor2, err2 := collection.Aggregate(ctx, []bson.M{bson.M{"$group": bson.M{
+		"_id": "$persetujuan.level_persetujuan",
+		"count": bson.M{
+			"$sum": 1,
+		},
+	},
+	},
+	},
+	)
+	if err2 != nil {
+		fmt.Println(err2)
+		result := gin.H{
+			"Status": err2,
+		}
+		c.JSON(501, result)
+		return
+	}
+	defer cursor2.Close(ctx)
+	for cursor2.Next(ctx) {
+		cursor2.Decode(&Graph2)
+		Result2[Graph2.Id] += Graph2.Count
+		if Graph2.Id == 9 {
+			jumlahPencairan += Graph2.Count
+		}
+	}
+
+	// Chart3
+
+	collectionMuz := db.Collection("muztahik")
+
+	//Set Projection
+	countMuztahik, err3 := collectionMuz.CountDocuments(ctx, bson.M{})
+
+	if err3 != nil {
+		result := gin.H{
+			"Status": err3,
+		}
+		c.JSON(501, result)
+		return
+	}
+	defer cursor.Close(ctx)
+
+
 	result := gin.H{
-		"data": Kats,
+		"data":  Kats,
+		"data2": Result2,
+		"data3" : []int32{
+			jumlahProposal,
+			jumlahPencairan,
+			int32(countMuztahik),
+		},
 	}
 	c.JSON(http.StatusOK, result)
 }
@@ -558,28 +633,28 @@ func UpdatePendaftaran(c *gin.Context) {
 	case 1:
 	case 2:
 
-		fmt.Println(P.Persetujuan)
+		fmt.Println(P.Persetujuan.Level_persetujuan)
 		if P.Persetujuan.Level_persetujuan == 2 && url[2] == "upd" {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 3})
-		} else if P.Persetujuan.Level_persetujuan == 5 {
+		} else if P.Persetujuan.Level_persetujuan == 5 && url[2] == "komite" {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 7})
-		} else if P.Persetujuan.Level_persetujuan == 7 {
+		} else if P.Persetujuan.Level_persetujuan == 7 && url[2] == "ppd" {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 8})
-		} else if P.Persetujuan.Level_persetujuan == 8 {
+		} else if P.Persetujuan.Level_persetujuan == 8 && url[2] == "pencairan" {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 9})
 		}
 		break
 	case 3:
-		if P.Persetujuan.Level_persetujuan < 1 {
-			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 1})
-		} else if P.Persetujuan.Level_persetujuan == 1 {
+		if P.Persetujuan.Level_persetujuan == 1 && url[2] == "verifikator" {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 2})
+		} else if P.Persetujuan.Level_persetujuan <= 1 {
+			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 1})
 		} else if P.Persetujuan.Level_persetujuan == 3 {
 			updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 4})
 		}
 		break
 	case 4, 9:
-		if P.Persetujuan.Level_persetujuan >= 4 && P.Persetujuan.Level_persetujuan <= 6 && (claims.Department == 1 || claims.Role == 9) && url[2] != "komite" {
+		if P.Persetujuan.Level_persetujuan >= 4 && P.Persetujuan.Level_persetujuan <= 6 && (claims.Department == 1 || claims.Role == 9) && url[2] == "upd" {
 			if P.Persetujuan.Status_persetujuan_kadiv == 1 {
 				updateFilters = append(updateFilters, bson.E{"persetujuan.level_persetujuan", 5})
 			} else {
@@ -1232,8 +1307,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9) {
+			} else if ((url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  && claims.Department == 1) || ((url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  && claims.Role == 9) {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -1313,9 +1389,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 
 				if Pendaftaran.Persetujuan.Manager == claims.ID {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
-				}else if  Pendaftaran.Persetujuan.Kadiv == claims.ID {
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
-				}else if  len(updateFilter) == 0 {
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -1327,7 +1403,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 						{"ppd", Pendaftaran.Ppd},
 					}
 				}
-			}  else if url == "pencairan" {
+			} else if url == "pencairan" {
 				updateFilter = bson.D{
 					{"persetujuan.tanggal_pencairan", Pendaftaran.Persetujuan.Tanggal_pencairan},
 					{"persetujuan.keterangan", Pendaftaran.Persetujuan.Keterangan},
@@ -1381,8 +1457,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -1399,7 +1476,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4 || role == 9  {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -1459,7 +1536,12 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -1527,8 +1609,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -1545,7 +1628,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4  || role == 9  {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -1604,7 +1687,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -1671,8 +1758,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -1689,7 +1777,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4 || role == 9  {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -1724,7 +1812,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -1823,8 +1915,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -1841,7 +1934,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4  || role == 9 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -1899,7 +1992,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -1969,8 +2066,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -1987,7 +2085,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4 || role == 9  {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -2048,7 +2146,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -2117,8 +2219,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -2135,7 +2238,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4 || role == 9  {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -2194,7 +2297,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -2266,8 +2373,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -2284,7 +2392,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4|| role == 9  {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -2343,7 +2451,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -2413,8 +2525,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -2431,7 +2544,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4 || role == 9  {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -2490,7 +2603,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -2564,8 +2681,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -2582,7 +2700,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4  || role == 9 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -2641,7 +2759,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -2716,8 +2838,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -2734,7 +2857,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4  || role == 9 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -2793,7 +2916,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},
@@ -2869,8 +2996,9 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 				break
-			} else if url == "upd" {
+			} else if (url == "upd" && claims.Department == 1) || (url == "upd" && claims.Role == 9)  {
 				updateFilter = bson.D{
+					{"kategoris.jumlah_bantuan", Pendaftaran.Kategoris.Jumlah_bantuan},
 					{"upd.tujuan", Pendaftaran.Upd.Tujuan},
 					{"upd.latar_belakang", Pendaftaran.Upd.Latar_belakang},
 					{"upd.analisis_kelayakan", Pendaftaran.Upd.Analisis_kelayakan},
@@ -2887,7 +3015,7 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 				} else if role == 3 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_tanggal", time.Now()})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.manager_nama", claims.Name})
-				} else if role == 4 {
+				} else if role == 4  || role == 9 {
 					updateFilter = append(updateFilter, bson.E{"persetujuan.keterangan_kadiv", Pendaftaran.Persetujuan.Keterangan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.status_persetujuan_kadiv", Pendaftaran.Persetujuan.Status_persetujuan_kadiv})
 					updateFilter = append(updateFilter, bson.E{"persetujuan.kadiv_tanggal", time.Now()})
@@ -2946,7 +3074,11 @@ func UpdateFilter(claims *models.Claims, persetujuan models.Persetujuan, c *gin.
 					}
 				}
 
-				if len(updateFilter) == 0 {
+				if Pendaftaran.Persetujuan.Manager == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_manager", time.Now()})
+				} else if Pendaftaran.Persetujuan.Kadiv == claims.ID {
+					updateFilter = append(updateFilter, bson.E{"persetujuan.ppd_kadiv", time.Now()})
+				} else if len(updateFilter) == 0 {
 					updateFilter = bson.D{
 						{"persetujuan.tanggal_ppd", Pendaftaran.Persetujuan.Tanggal_ppd},
 						{"persetujuan.tanggal_pelaksanaan", Pendaftaran.Persetujuan.Tanggal_pelaksanaan},

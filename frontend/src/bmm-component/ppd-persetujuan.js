@@ -156,6 +156,7 @@ class PpdPersetujuan extends PolymerElement {
 
       <global-variable key="LoginCred" value="{{ storedUser }}"></global-variable>
       <global-variable key="error" value="{{ error }}"></global-variable>
+       <global-variable key="toast" value="{{ toast }}"></global-variable>
       <global-data id="globalData"></global-data>
 
       <vaadin-dialog>
@@ -536,7 +537,7 @@ class PpdPersetujuan extends PolymerElement {
               if(staffData.length > 0){
                 var tanggal =""
                
-                if(this.formatDate(new Date(staffData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(staffData[0].tanggal)) !== "1-1-1" ){
+                if(this.formatDate(new Date(staffData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(staffData[0].tanggal)) !== "1-1-1" && this.formatDate(new Date(staffData[0].tanggal)) !== "NaN-NaN-NaN" ){
                   tanggal = this.formatDate(new Date(staffData[0].tanggal))
                 }
 
@@ -551,7 +552,7 @@ class PpdPersetujuan extends PolymerElement {
              
               if(managerData.length > 0){
                 var tanggal =""
-                if(this.formatDate(new Date(managerData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(managerData[0].tanggal)) !== "1-1-1" ){
+                if(this.formatDate(new Date(managerData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(managerData[0].tanggal)) !== "1-1-1" && this.formatDate(new Date(managerData[0].tanggal)) !== "NaN-NaN-NaN" ){
                   tanggal = this.formatDate(new Date(managerData[0].tanggal))
                 }
 
@@ -566,7 +567,7 @@ class PpdPersetujuan extends PolymerElement {
              
                 if(kadivData.length > 0){
                   var tanggal =""
-                  if(this.formatDate(new Date(kadivData[0].tanggal)) !== "2001-1-1"  && this.formatDate(new Date(kadivData[0].tanggal)) !== "1-1-1"){
+                  if(this.formatDate(new Date(kadivData[0].tanggal)) !== "2001-1-1"  && this.formatDate(new Date(kadivData[0].tanggal)) !== "1-1-1" && this.formatDate(new Date(kadivData[0].tanggal)) !== "NaN-NaN-NaN"){
                     tanggal = this.formatDate(new Date(kadivData[0].tanggal))
                   }
   
@@ -581,10 +582,11 @@ class PpdPersetujuan extends PolymerElement {
               
                 if(DirekturData.length > 0){
                   var tanggal =""
-                  if(this.formatDate(new Date(DirekturData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(DirekturData[0].tanggal)) !== "1-1-1" ){
+                  if(this.formatDate(new Date(DirekturData[0].tanggal)) !== "2001-1-1" && this.formatDate(new Date(DirekturData[0].tanggal)) !== "1-1-1" && this.formatDate(new Date(DirekturData[0].tanggal)) !== "NaN-NaN-NaN"){
                     tanggal = this.formatDate(new Date(DirekturData[0].tanggal))
                   }
 
+                  console.log(DirekturData[0].tanggal)
                   this.DirekturEksekutif = {
                     "user" : DirekturData[0].user.Id,
                     "tanggal" : tanggal
@@ -667,6 +669,7 @@ class PpdPersetujuan extends PolymerElement {
 
     /*****  Handle ppd posts*******/
     _handlePpdPost(e){
+      this.toast = "Berhasil Tanda Tangan PPD"
          this.set('route.path', '/panel/ppd');
     }
 
@@ -705,6 +708,7 @@ class PpdPersetujuan extends PolymerElement {
     }
 
     formatDate(date){
+
       if(typeof date == "undefined"){
         return ""
       }
@@ -731,7 +735,7 @@ class PpdPersetujuan extends PolymerElement {
 
     convertData(data){
         data.user =  this.User.filter(u =>  u.Id == data.user)[0]
-        if(data.tanggal !== "" && data.tanggal !== "undefined") {
+        if(data.tanggal !== "" &&  typeof data.tanggal !== "undefined") {
           data.tanggal = new Date(data.tanggal).toISOString()
         }else{
           delete data.tanggal
